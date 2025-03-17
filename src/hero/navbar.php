@@ -1,5 +1,8 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $user_id = $_SESSION['user_id'] ?? null;
 $user = $user_id ? ['name' => 'Admin'] : ['name' => 'Guest'];
 ?>
@@ -15,3 +18,53 @@ $user = $user_id ? ['name' => 'Admin'] : ['name' => 'Guest'];
         <i class="fas fa-user-circle fs-4 text-secondary"></i>
     </div>
 </div>
+
+<style>
+    .navbar-custom {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    height: 60px;
+    background-color: #ffffff;
+    color: #000;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 0 15px;
+    z-index: 1000;
+    transition: left 0.3s ease;
+}
+
+.navbar-custom .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.navbar-custom .admin-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+#toggleSidebar {
+    margin-left: 5px;
+}
+
+.content {
+    margin-left: 250px;
+    padding: 20px;
+    margin-top: 60px;
+    transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+    margin-left: 0;
+}
+</style>

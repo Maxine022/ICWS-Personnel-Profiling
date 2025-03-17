@@ -1,5 +1,8 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 ?>
 
@@ -95,7 +98,7 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 
     <hr class="sidebar-divider">
 
-    <div class="d-flex align-items-center justify-content-start mb-3 ps-3 sidebar-divider">
+    <div class="d-flex align-items-center justify-content-start mb-3 ps-3">
         <img src="/assets/profile.jpg" class="rounded-circle" alt="User Profile" width="40" height="40">
         <p class="m-0 ms-2"><?php echo $user['name']; ?></p>
     </div>
@@ -120,7 +123,7 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
     <a href="#"><i class="fas fa-users"></i>Intern</a>
     <a href="#"><i class="fas fa-users"></i> COC</a>
     
-    <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a href="/src/components/login.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>
 
 <script>
@@ -130,15 +133,26 @@ document.addEventListener("DOMContentLoaded", function () {
     var chevron = document.getElementById("chevron");
 
     manageToggle.addEventListener("click", function (event) {
-        event.preventDefault(); // Prevents default link behavior
+        event.preventDefault(); // Prevent default link behavior
 
-        // Toggle the dropdown
-        if (manageDropdown.style.display === "block") {
+        // Toggle the "active" class instead of setting display manually
+        manageDropdown.classList.toggle("active");
+        chevron.classList.toggle("rotate");
+
+        // Update display based on the class
+        if (manageDropdown.classList.contains("active")) {
+            manageDropdown.style.display = "block";
+        } else {
+            manageDropdown.style.display = "none";
+        }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (event) {
+        if (!manageToggle.contains(event.target) && !manageDropdown.contains(event.target)) {
+            manageDropdown.classList.remove("active");
             manageDropdown.style.display = "none";
             chevron.classList.remove("rotate");
-        } else {
-            manageDropdown.style.display = "block";
-            chevron.classList.add("rotate");
         }
     });
 });
