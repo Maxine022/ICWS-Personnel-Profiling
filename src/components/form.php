@@ -1,170 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWD Application Form</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 900px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWD Application Form</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f5f6fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .form-container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      margin-top: 30px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      color: #0d6efd;
+      border-left: 5px solid #0d6efd;
+      padding-left: 10px;
+    }
+    label {
+      font-weight: 500;
+    }
+    .photo-upload {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        width: 120px;
+        height: 120px;
+        border: 2px dashed #0d6efd;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        background-color: #f0f8ff;
+        font-size: 12px;
+        color: #0d6efd;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .photo-upload img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .photo-upload input[type="file"] {
+        display: none;
+    }
+
+    #photoText {
+        padding: 0 5px;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container mt-4">
-        <h2 class="text-center text-primary">PWD Application Form</h2>
-        <form action="process_form.php" method="POST" enctype="multipart/form-data">
-            
-            <!-- Applicant Type -->
-            <div class="mb-3">
-                <label class="form-label">Applicant Type</label><br>
-                <input type="radio" name="applicant_type" value="new" required> New Applicant
-                <input type="radio" name="applicant_type" value="renewal"> Renewal
-            </div>
-
-            <!-- Personal Information -->
-            <h4 class="text-primary">Personal Information</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>Last Name</label>
-                    <input type="text" name="last_name" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>First Name</label>
-                    <input type="text" name="first_name" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Middle Name</label>
-                    <input type="text" name="middle_name" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label>Suffix</label>
-                    <input type="text" name="suffix" class="form-control">
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <label>Date of Birth</label>
-                    <input type="date" name="dob" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Sex</label><br>
-                    <input type="radio" name="sex" value="male" required> Male
-                    <input type="radio" name="sex" value="female"> Female
-                </div>
-            </div>
-
-            <!-- Address -->
-            <h4 class="text-primary">Address</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>House No. & Street</label>
-                    <input type="text" name="address" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Barangay</label>
-                    <input type="text" name="barangay" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Municipality</label>
-                    <input type="text" name="municipality" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Province</label>
-                    <input type="text" name="province" class="form-control" required>
-                </div>
-            </div>
-
-            <!-- Contact Information -->
-            <h4 class="text-primary">Contact Details</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>Mobile No.</label>
-                    <input type="text" name="mobile" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Email Address</label>
-                    <input type="email" name="email" class="form-control">
-                </div>
-            </div>
-
-            <!-- Type of Disability -->
-            <h4 class="text-primary">Type of Disability</h4>
-            <div class="mb-3">
-                <input type="checkbox" name="disability[]" value="deaf"> Deaf or Hard of Hearing
-                <input type="checkbox" name="disability[]" value="intellectual"> Intellectual Disability
-                <input type="checkbox" name="disability[]" value="visual"> Visual Disability
-                <input type="checkbox" name="disability[]" value="psychosocial"> Psychosocial Disability
-                <input type="checkbox" name="disability[]" value="others"> Others (Specify)
-                <input type="text" name="other_disability" class="form-control">
-            </div>
-
-            <!-- Education & Occupation -->
-            <h4 class="text-primary">Education & Employment</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>Educational Attainment</label>
-                    <select name="education" class="form-control">
-                        <option value="none">None</option>
-                        <option value="elementary">Elementary</option>
-                        <option value="highschool">High School</option>
-                        <option value="college">College</option>
-                        <option value="vocational">Vocational</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label>Employment Status</label>
-                    <select name="employment_status" class="form-control">
-                        <option value="employed">Employed</option>
-                        <option value="unemployed">Unemployed</option>
-                        <option value="self-employed">Self-Employed</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Emergency Contact -->
-            <h4 class="text-primary">Emergency Contact</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>Contact Person's Name</label>
-                    <input type="text" name="emergency_name" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Contact Person's No.</label>
-                    <input type="text" name="emergency_contact" class="form-control" required>
-                </div>
-            </div>
-
-            <!-- File Upload -->
-            <h4 class="text-primary">Upload Required Documents</h4>
-            <div class="mb-3">
-                <label>Upload 1x1 Photo:</label>
-                <input type="file" name="photo" class="form-control">
-            </div>
-
-            <!-- Buttons -->
-            <div class="mt-3">
-                <button type="submit" class="btn btn-primary">Submit</button>
-                <button type="reset" class="btn btn-secondary">Reset</button>
-            </div>
-
-        </form>
+<div class="container">
+  <div class="form-container">
+    <h2 class="text-center text-primary">PWD Application Form</h2>
+    <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+      <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(event)">
+      <span id="photoText">Upload<br>1x1 Photo</span>
+      <img id="photoPreview" src="#" alt="" style="display:none;" />
     </div>
 
+    <form id="pwdForm">
+
+      <div class="section-title">Application Details</div>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label>Application Type *</label><br>
+          <input type="radio" name="applicant_type" value="New Applicant"> New Applicant
+          <input type="radio" name="applicant_type" value="Renewal"> Renewal
+        </div>
+        <div class="col-md-4">
+          <label>PWD Number</label>
+          <input type="text" class="form-control" placeholder="RR-PPMM-BBB-NNNNNNN">
+        </div>
+        <div class="col-md-4">
+          <label>Date Applied *</label>
+          <input type="date" class="form-control">
+        </div>
+      </div>
+
+      <div class="section-title">Personal Information</div>
+      <div class="row mb-3">
+        <div class="col-md-3"><label>Last Name *</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>First Name *</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Middle Name</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Suffix</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Date of Birth *</label><input type="date" class="form-control"></div>
+        <div class="col-md-4"><label>Sex *</label><select class="form-select"><option>Male</option><option>Female</option></select></div>
+        <div class="col-md-4"><label>Civil Status *</label><select class="form-select"><option>Single</option><option>Separated</option><option>Cohabitation</option><option>Married</option><option>Widow/er</option></select></div>
+      </div>
+
+      <div class="section-title">Type and Cause of Disability</div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label>Type of Disability</label>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Deaf or Hard of Hearing</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Intellectual Disability</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Learning Disability</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Mental Disability</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Physical Disability (Orthopedic)</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Psychosocial Disability</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Speech and Language Impairment</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Visual Disability</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Cancer (RA 11215)</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Rare Disease (RA 10747)</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Others (specify)</div>
+        </div>
+        <div class="col-md-6">
+          <label>Cause of Disability</label>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Congenital/Inborn</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Acquired</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> ADHD</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Chronic Illness</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Cerebral Palsy</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Down Syndrome</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Injury</div>
+          <div class="form-check"><input type="checkbox" class="form-check-input"> Others (specify)</div>
+        </div>
+      </div>
+
+      <div class="section-title">Residence Address</div>
+      <div class="row mb-3">
+        <div class="col-md-3"><label>House No. & Street</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Barangay</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Municipality</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Province</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Region</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Contact Details</div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label>Landline</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Mobile</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Email</label><input type="email" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Education & Employment</div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label>Educational Attainment</label><select class="form-select">
+          <option>None</option><option>Kindergarten</option><option>Elementary</option><option>Junior High</option><option>Senior High</option><option>College</option><option>Vocational</option><option>Post Graduate</option></select></div>
+        <div class="col-md-4"><label>Employment Status</label><select class="form-select"><option>Employed</option><option>Unemployed</option><option>Self-Employed</option></select></div>
+        <div class="col-md-4"><label>Type of Employment</label><select class="form-select"><option>Permanent/Regular</option><option>Seasonal</option><option>Casual</option><option>Emergency</option></select></div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-4"><label>Category</label><select class="form-select"><option>Government</option><option>Private</option></select></div>
+        <div class="col-md-4"><label>Occupation</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Organization Information</div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label>Organization Affiliated</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Contact Person</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Office Address</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Government IDs</div>
+      <div class="row mb-3">
+        <div class="col-md-3"><label>SSS No.</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>GSIS No.</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>Pag-IBIG No.</label><input type="text" class="form-control"></div>
+        <div class="col-md-3"><label>PhilHealth No.</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Family Background</div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label>Father's Name</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Mother's Name</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Guardian's Name</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Accomplished By</div>
+      <div class="mb-3">
+        <input type="radio" name="accomplished_by" value="Applicant"> Applicant
+        <input type="radio" name="accomplished_by" value="Guardian"> Guardian
+        <input type="radio" name="accomplished_by" value="Representative"> Representative
+      </div>
+
+      <div class="section-title">Certifications</div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label>Certifying Physician</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>License No</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Processing Officer</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Approving Officer</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Encoder</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Reporting Unit</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label>Control No</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="section-title">Emergency Contact</div>
+      <div class="row mb-3">
+        <div class="col-md-6"><label>Contact Person Name</label><input type="text" class="form-control"></div>
+        <div class="col-md-6"><label>Contact No.</label><input type="text" class="form-control"></div>
+      </div>
+
+      <div class="text-end mt-4">
+        <button class="btn btn-primary">Submit</button>
+        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function previewPhoto(event) {
+    const input = event.target;
+    const preview = document.getElementById('photoPreview');
+    const text = document.getElementById('photoText');
+
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        text.style.display = 'none';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
 </body>
 </html>

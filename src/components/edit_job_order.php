@@ -1,16 +1,16 @@
 <?php
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST["full_name"];
-    $position = $_POST["position"];
-    $division = $_POST["division"];
-    $plantillaNumber = $_POST["plantilla_number"];
     $contactNumber = $_POST["contact_number"];
+    $birthdate = $_POST["birthdate"];
+    $sex = $_POST["sex"];
+    $designation = $_POST["designation"];
     $salaryGrade = $_POST["salary_grade"];
-    $step = $_POST["step"];
-    $level = $_POST["level"];
-    $acaPera = $_POST["aca_pera"];
-    $monthlySalary = $_POST["monthly_salary"];
+    $address = $_POST["address"];
+    $date = $_POST["date"];
+    $time = $_POST["time"];
+    $justification = $_POST["justification"];
+    $remarks = $_POST["remarks"];
 
     $success = true;
 }
@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add New Regular Employee</title>
+  <title>Add New Job Order Employee</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -69,7 +69,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     .breadcrumb-custom {
       font-size: 14px;
+    }
+    .breadcrumb-link {
       color: #6c757d;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .breadcrumb-link:hover {
+      color: #0d6efd;
     }
     .form-section {
       background: #fff;
@@ -85,13 +92,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .btn-cancel:hover {
       background-color: #f1f1f1;
     }
-    .breadcrumb-link:hover {
-    color: #0d6efd; 
-    }
-    .breadcrumb-link {
-    transition: color 0.3s ease;
-    color: #6c757d;
-    }
   </style>
 </head>
 <body>
@@ -106,8 +106,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <a href="#" class="nav-link">Dashboard</a>
   <a href="#" class="nav-link">Profile</a>
   <a href="#" class="nav-link">Personnel</a>
-  <a href="#" class="nav-link active ms-3">Regular</a>
-  <a href="#" class="nav-link ms-3">Job Order</a>
+  <a href="#" class="nav-link ms-3">Regular</a>
+  <a href="#" class="nav-link active ms-3">Job Order</a>
   <a href="#" class="nav-link ms-3">Contract of Service</a>
   <a href="#" class="nav-link ms-3">Intern</a>
   <a href="#" class="nav-link">Logout</a>
@@ -115,20 +115,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!-- Main Content -->
 <div class="main">
-  <!-- Top Navigation Row with Breadcrumb aligned to the right -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="fw-bold fs-5">Add New Regular Employee</div>
-  <div class="breadcrumb-custom text-end">
-    <a href="#" class="text-decoration-none breadcrumb-link">Home</a>
-    <span class="mx-1">/</span>
-    <a href="#" class="text-decoration-none breadcrumb-link">Manage</a>
-    <span class="mx-1">/</span>
-    <span class="text-dark">Add New Regular Employee</span>
+    <div class="fw-bold fs-5">Updatet Job Order Employee Information</div>
+    <div class="breadcrumb-custom text-end">
+      <a href="#" class="breadcrumb-link">Home</a>
+      <span class="mx-1">/</span>
+      <a href="#" class="breadcrumb-link">Manage</a>
+      <span class="mx-1">/</span>
+      <span class="text-dark">Update JO Information</span>
+    </div>
   </div>
-</div>
 
   <?php if (!empty($success)): ?>
-    <div class="alert alert-success">Employee information submitted successfully!</div>
+    <div class="alert alert-success">Employee details have been successfully updated!</div>
   <?php endif; ?>
 
   <div class="form-section">
@@ -138,63 +137,57 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <label class="form-label">Full Name</label>
           <input type="text" class="form-control" name="full_name" required>
         </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Position</label>
-          <select class="form-select" name="position" required>
-            <option value="">Select Position</option>
-            <option value="HR Officer">HR Officer</option>
-            <option value="Admin Assistant">Admin Assistant</option>
-          </select>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Division</label>
-          <select class="form-select" name="division" required>
-            <option value="">Select Division</option>
-            <option value="IT Division">IT Division</option>
-            <option value="HR Division">HR Division</option>
-          </select>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Plantilla Number</label>
-          <input type="text" class="form-control" name="plantilla_number">
-        </div>
-
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
           <input type="text" class="form-control" name="contact_number">
         </div>
-
-        <div class="col-md-2">
+        <div class="col-md-6">
+          <label class="form-label">Birthdate</label>
+          <input type="date" class="form-control" name="birthdate">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Sex</label>
+          <select name="sex" class="form-select">
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Designation</label>
+          <select name="designation" class="form-select">
+            <option value="">Enter Designation</option>
+            <option value="Clerk">Clerk</option>
+            <option value="Support Staff">Support Staff</option>
+          </select>
+        </div>
+        <div class="col-md-6">
           <label class="form-label">Salary Grade</label>
           <input type="text" class="form-control" name="salary_grade">
         </div>
-
-        <div class="col-md-2">
-          <label class="form-label">Step</label>
-          <input type="text" class="form-control" name="step">
+        <div class="col-12">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-control" name="address">
         </div>
-
-        <div class="col-md-2">
-          <label class="form-label">Level</label>
-          <input type="text" class="form-control" name="level">
-        </div>
-
         <div class="col-md-6">
-          <label class="form-label">ACA Pera</label>
-          <input type="text" class="form-control" name="aca_pera">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-control" name="date">
         </div>
-
         <div class="col-md-6">
-          <label class="form-label">Monthly Salary</label>
-          <input type="text" class="form-control" name="monthly_salary">
+          <label class="form-label">Time</label>
+          <input type="time" class="form-control" name="time">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Justification of Activity</label>
+          <textarea class="form-control" name="justification" rows="2"></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Remarks</label>
+          <textarea class="form-control" name="remarks" rows="2"></textarea>
         </div>
       </div>
-
       <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4">Submit</button>
+        <button type="submit" class="btn btn-success px-4">Save Changes</button>
         <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
       </div>
     </form>

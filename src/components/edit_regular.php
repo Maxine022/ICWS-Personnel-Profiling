@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add New Regular Employee</title>
+  <title>Edit New Regular Employee</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -117,18 +117,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="main">
   <!-- Top Navigation Row with Breadcrumb aligned to the right -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="fw-bold fs-5">Add New Regular Employee</div>
+  <div class="fw-bold fs-5">Update Regular Employee Information</div>
   <div class="breadcrumb-custom text-end">
     <a href="#" class="text-decoration-none breadcrumb-link">Home</a>
     <span class="mx-1">/</span>
     <a href="#" class="text-decoration-none breadcrumb-link">Manage</a>
     <span class="mx-1">/</span>
-    <span class="text-dark">Add New Regular Employee</span>
+    <span class="text-dark">Update Information</span>
   </div>
 </div>
 
   <?php if (!empty($success)): ?>
-    <div class="alert alert-success">Employee information submitted successfully!</div>
+    <div class="alert alert-success">Employee details has been successfully updated!</div>
   <?php endif; ?>
 
   <div class="form-section">
@@ -194,7 +194,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
 
       <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4">Submit</button>
+        <button type="submit" class="btn btn-success px-4">Save Changes</button>
         <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
       </div>
     </form>

@@ -1,126 +1,195 @@
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $fullName = $_POST["full_name"];
+    $contactNumber = $_POST["contact_number"];
+    $school = $_POST["school"];
+    $courseProgram = $_POST["course_program"];
+    $numberOfHours = $_POST["number_of_hours"];
+    $internshipStart = $_POST["internship_start"];
+    $internshipEnd = $_POST["internship_end"];
+    $division = $_POST["division"];
+    $supervisor = $_POST["supervisor"];
+
+    $success = true;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Intern</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f8f9fa;
-        }
-        .form-container {
-            max-width: 750px;
-            margin: 50px auto;
-            padding: 30px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-control {
-            height: 38px;
-        }
-        .btn-submit {
-            font-size: 16px;
-            padding: 8px 20px;
-        }
-        .input-group-text {
-            background: #fff;
-            border-left: 0;
-        }
-        .input-group .form-control {
-            border-right: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Add New Intern</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+    }
+    .sidebar {
+      width: 220px;
+      background-color: #2c3e50;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding-top: 1rem;
+      color: #fff;
+    }
+    .sidebar .logo {
+      text-align: center;
+      font-weight: bold;
+      font-size: 20px;
+      padding: 10px 0;
+    }
+    .sidebar .profile {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 1rem;
+      color: #dcdcdc;
+    }
+    .sidebar .nav-link {
+      color: #dcdcdc;
+      padding: 10px 20px;
+      display: block;
+      text-decoration: none;
+    }
+    .sidebar .nav-link.active,
+    .sidebar .nav-link:hover {
+      background-color: #0d6efd;
+      color: #fff;
+      border-radius: 5px;
+    }
+    .main {
+      margin-left: 220px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .breadcrumb-custom {
+      font-size: 14px;
+    }
+    .breadcrumb-link {
+      color: #6c757d;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .breadcrumb-link:hover {
+      color: #0d6efd;
+    }
+    .form-label {
+      font-weight: 500;
+    }
+    .btn-cancel {
+      background-color: #fff;
+      border: 1px solid #ced4da;
+      color: #000;
+    }
+    .btn-cancel:hover {
+      background-color: #f1f1f1;
+    }
+    .form-wrapper {
+      background-color: #ffffff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="form-container">
-        <h3 class="text-center fw-bold">Add Intern</h3>
-            <form>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="full-name">Full Name</label>
-                            <input type="text" class="form-control" id="full-name" placeholder="Enter your Full Name">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="contact-number">Contact Number</label>
-                            <input type="text" class="form-control" id="contact-number" placeholder="Enter Contact Number">
-                        </div>
-                    </div>
-                </div>
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">ICWS</div>
+  <div class="profile">
+    <img src="https://via.placeholder.com/60" class="rounded-circle mb-2" alt="Profile"><br>
+    John Ryan Dela Cruz
+  </div>
+  <a href="#" class="nav-link">Dashboard</a>
+  <a href="#" class="nav-link">Profile</a>
+  <a href="#" class="nav-link">Personnel</a>
+  <a href="#" class="nav-link ms-3">Regular</a>
+  <a href="#" class="nav-link ms-3">Job Order</a>
+  <a href="#" class="nav-link ms-3">Contract of Service</a>
+  <a href="#" class="nav-link active ms-3">Intern</a>
+  <a href="#" class="nav-link">Logout</a>
+</div>
 
-                <div class="form-group">
-                    <label for="school">School</label>
-                    <input type="text" class="form-control" id="school" placeholder="Enter School Name">
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="course-program">Course/Program</label>
-                            <input type="text" class="form-control" id="course-program" placeholder="Enter Course or Program">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="num-hours">Number of Hours</label>
-                            <input type="text" class="form-control" id="num-hours" placeholder="Enter Number of Hours">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="internship-start">Internship Start Date</label>
-                            <input type="date" class="form-control" id="internship-start">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="internship-end">Internship End Date</label>
-                            <input type="date" class="form-control" id="internship-end">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Assigned Division with Dropdown Icon -->
-                <div class="form-group">
-                    <label for="assigned-division">Assigned Division</label>
-                    <div class="input-group">
-                        <select class="form-control" id="assigned-division">
-                            <option>Please Select</option>
-                            <option>Division 1</option>
-                            <option>Division 2</option>
-                            <option>Division 3</option>
-                        </select>
-                        <span class="input-group-text"><i class="fas fa-caret-down"></i></span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="supervisor-name">Supervisor Name</label>
-                    <input type="text" class="form-control" id="supervisor-name" placeholder="Enter Name">
-                </div>
-
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary btn-submit">Submit</button>
-                </div>
-            </form>
-        </div>
+<!-- Main Content -->
+<div class="main">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 fw-semibold">Add New Intern</h5>
+    <div class="breadcrumb-custom text-end">
+      <a href="#" class="breadcrumb-link">Home</a>
+      <span class="mx-1">/</span>
+      <a href="#" class="breadcrumb-link">Manage</a>
+      <span class="mx-1">/</span>
+      <span class="text-dark">Add New Intern</span>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <?php if (!empty($success)): ?>
+    <div class="alert alert-success">Intern information has been successfully saved!</div>
+  <?php endif; ?>
+
+  <div class="form-wrapper">
+    <form method="POST" action="">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" name="full_name" placeholder="Enter your Full Name" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Contact Number</label>
+          <input type="text" class="form-control" name="contact_number" placeholder="Enter Contact Number">
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label">School</label>
+          <input type="text" class="form-control" name="school" placeholder="Enter School Name">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Course/Program</label>
+          <input type="text" class="form-control" name="course_program" placeholder="Enter Course or Program">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Number of Hours</label>
+          <input type="text" class="form-control" name="number_of_hours" placeholder="Enter Number of Hours">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Internship Start Date</label>
+          <input type="date" class="form-control" name="internship_start">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Internship End Date</label>
+          <input type="date" class="form-control" name="internship_end">
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label">Assigned Division</label>
+          <select class="form-select" name="division">
+            <option value="">Please Select</option>
+            <option value="IT Division">IT Division</option>
+            <option value="Finance Division">Finance Division</option>
+            <option value="HR Division">HR Division</option>
+          </select>
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label">Supervisor Name</label>
+          <input type="text" class="form-control" name="supervisor" placeholder="Enter Name">
+        </div>
+
+        <div class="col-md-12 d-flex mt-5 gap-4">
+          <button type="submit" class="btn btn-primary px-4">Submit</button>
+          <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 
 </body>
 </html>
