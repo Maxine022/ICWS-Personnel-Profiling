@@ -68,7 +68,7 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile Upload Fix</title>
+  <title>Profile</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -84,34 +84,6 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
       left: 0;
       width: 100%;
       z-index: 1000;
-    }
-    .sidebar {
-      width: 250px;
-      height: 100vh;
-      background: #2C3E50;
-      position: fixed;
-      top: 0;
-      left: -250px;
-      padding-top: 60px;
-      color: white;
-      transition: left 0.3s ease-in-out;
-    }
-    .sidebar.show { left: 0; }
-    .sidebar a {
-      display: block;
-      color: white;
-      padding: 15px;
-      text-decoration: none;
-    }
-    .sidebar a:hover { background: #007BFF; }
-    .sidebar h3 { margin-top: 10px; }
-    .toggle-btn {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-      margin-right: 15px;
     }
     .content {
       margin-left: 0;
@@ -167,27 +139,9 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
   </style>
 </head>
 <body>
-<div class="header">
-  <button class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-  <h3 class="m-0">Profile Dashboard</h3>
-</div>
 
-<div class="sidebar">
-  <div class="d-flex align-items-center ps-3" style="margin-top: 10px;">
-    <img src="/assets/logo.png" alt="ICWS Logo" width="40" height="40" class="me-2">
-    <h3 class="m-0 fw-bold" style="padding-top: 5px;">ICWS</h3>
-  </div>
-  <hr>
-  <div class="d-flex align-items-center justify-content-start mb-3 ps-3">
-    <img src="<?php echo isset($_SESSION['uploaded_photo']) ? $_SESSION['uploaded_photo'] : '/assets/profile.jpg'; ?>" class="rounded-circle" alt="User Profile" width="40" height="40">
-    <p class="m-0 ms-2"><?php echo $user['name']; ?></p>
-  </div>
-  <hr>
-  <a href="#"><i class="fas fa-home"></i> Dashboard</a>
-  <a href="#"><i class="fas fa-user"></i> Profile</a>
-  <a href="#"><i class="fas fa-tasks"></i> Manage</a>
-  <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
-</div>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <div class="content">
   <div class="container mt-4">
@@ -288,12 +242,6 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
     </div>
   </div>
 </div>
-
-<script>
-function toggleSidebar() {
-  document.querySelector(".sidebar").classList.toggle("show");
-  document.querySelector(".content").classList.toggle("shifted");
-}
-</script>
+<?php include __DIR__ . '/../hero/footer.php'; ?>
 </body>
 </html>

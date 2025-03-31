@@ -1,7 +1,6 @@
 <?php
 // Start PHP session (Optional, if needed for authentication)
 session_start();
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -218,5 +217,6 @@ session_start();
             </form>
         </div>
     </div>
+
 </body>
 </html>

@@ -105,17 +105,17 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 
     <hr class="sidebar-divider">
     
-    <a href="#"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="#"><i class="fas fa-user"></i> Profile</a>
-    <a href="#"><i class="fas fa-users"></i> Personnel</a>
+    <a href="/src/index.php"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="/src/components/profile.php"><i class="fas fa-user"></i> Profile</a>
+    <a href="/src/components/personnel_record.php"><i class="fas fa-users"></i> Personnel</a>
     
-    <a href="#" id="manageToggle" class="manage-toggle">
+    <a href="/src/components/personnel_record.php" id="manageToggle" class="manage-toggle">
         <i class="fas fa-chevron-right" id="chevron"></i>
         <i class="fas fa-tasks"></i> Manage Personnel
     </a>
 
     <div class="dropdown-container" id="manageDropdown">
-        <a href="#"><i class="far fa-circle bullet-icon"></i> Regular Employee</a>
+        <a href="/src/components/manage_regEmp.php"><i class="far fa-circle bullet-icon"></i> Regular Employee</a>
         <a href="#"><i class="far fa-circle bullet-icon"></i> Job Order</a>
         <a href="#"><i class="far fa-circle bullet-icon"></i> Contract of Service</a>
     </div>
@@ -127,34 +127,34 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    var manageToggle = document.getElementById("manageToggle");
-    var manageDropdown = document.getElementById("manageDropdown");
-    var chevron = document.getElementById("chevron");
+        document.getElementById("toggleSidebar").addEventListener("click", function () {
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("content");
+            const navbar = document.getElementById("navbar");
 
-    manageToggle.addEventListener("click", function (event) {
-        event.preventDefault(); // Prevent default link behavior
+            if (sidebar.classList.contains("d-none")) {
+                sidebar.classList.remove("d-none");
+                content.classList.remove("expanded");
+                navbar.style.left = "250px";
+            } else {
+                sidebar.classList.add("d-none");
+                content.classList.add("expanded");
+                navbar.style.left = "0";
+            }
+        });
 
-        // Toggle the "active" class instead of setting display manually
-        manageDropdown.classList.toggle("active");
-        chevron.classList.toggle("rotate");
-
-        // Update display based on the class
-        if (manageDropdown.classList.contains("active")) {
-            manageDropdown.style.display = "block";
-        } else {
-            manageDropdown.style.display = "none";
-        }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function (event) {
-        if (!manageToggle.contains(event.target) && !manageDropdown.contains(event.target)) {
-            manageDropdown.classList.remove("active");
-            manageDropdown.style.display = "none";
-            chevron.classList.remove("rotate");
-        }
-    });
-});
-</script>
+        document.getElementById("manageToggle").addEventListener("click", function(event) {
+            event.preventDefault();
+            let dropdown = document.getElementById("manageDropdown");
+            let chevron = document.getElementById("chevron");
+            if (dropdown.style.display === "flex") {
+                dropdown.style.display = "none";
+                chevron.classList.remove("rotate");
+            } else {
+                dropdown.style.display = "flex";
+                chevron.classList.add("rotate");
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

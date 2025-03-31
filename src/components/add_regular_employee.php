@@ -1,18 +1,38 @@
 <?php
-// Handle form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fullName = $_POST["full_name"];
-    $position = $_POST["position"];
-    $division = $_POST["division"];
-    $plantillaNumber = $_POST["plantilla_number"];
-    $contactNumber = $_POST["contact_number"];
-    $salaryGrade = $_POST["salary_grade"];
-    $step = $_POST["step"];
-    $level = $_POST["level"];
-    $acaPera = $_POST["aca_pera"];
-    $monthlySalary = $_POST["monthly_salary"];
+session_start();
 
-    $success = true;
+// Check if form was submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Get form data
+    $fullName = $_POST["full_name"] ?? '';
+    $position = $_POST["position"] ?? '';
+    $division = $_POST["division"] ?? '';
+    $plantillaNumber = $_POST["plantilla_number"] ?? '';
+    $contactNumber = $_POST["contact_number"] ?? '';
+    $salaryGrade = $_POST["salary_grade"] ?? '';
+    $step = $_POST["step"] ?? '';
+    $level = $_POST["level"] ?? '';
+    $acaPera = $_POST["aca_pera"] ?? '';
+    $monthlySalary = $_POST["monthly_salary"] ?? '';
+
+    // For now, just simulate saving by printing values (or logging if needed)
+    echo "<h2>Employee Submitted Successfully</h2>";
+    echo "<ul>";
+    echo "<li><strong>Full Name:</strong> $fullName</li>";
+    echo "<li><strong>Position:</strong> $position</li>";
+    echo "<li><strong>Division:</strong> $division</li>";
+    echo "<li><strong>Plantilla No:</strong> $plantillaNumber</li>";
+    echo "<li><strong>Contact Number:</strong> $contactNumber</li>";
+    echo "<li><strong>Salary Grade:</strong> $salaryGrade</li>";
+    echo "<li><strong>Step:</strong> $step</li>";
+    echo "<li><strong>Level:</strong> $level</li>";
+    echo "<li><strong>ACA Pera:</strong> $acaPera</li>";
+    echo "<li><strong>Monthly Salary:</strong> $monthlySalary</li>";
+    echo "</ul>";
+
+    echo "<br><a href='add_regular_employee.php'>← Back to Form</a>";
+} else {
+    echo "<p>No form data submitted.</p>";
 }
 ?>
 
@@ -26,40 +46,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #2c3e50;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      padding-top: 1rem;
-      color: #fff;
-    }
-    .sidebar .logo {
-      text-align: center;
-      font-weight: bold;
-      font-size: 20px;
-      padding: 10px 0;
-    }
-    .sidebar .profile {
-      text-align: center;
-      font-size: 14px;
-      margin-bottom: 1rem;
-      color: #dcdcdc;
-    }
-    .sidebar .nav-link {
-      color: #dcdcdc;
-      padding: 10px 20px;
-      display: block;
-      text-decoration: none;
-    }
-    .sidebar .nav-link.active,
-    .sidebar .nav-link:hover {
-      background-color: #1abc9c;
-      color: #fff;
-      border-radius: 5px;
     }
     .main {
       margin-left: 220px;
@@ -95,37 +81,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
+  <?php include __DIR__ . '/../hero/navbar.php'; ?>
+  <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">ICWS</div>
-  <div class="profile">
-    <img src="https://via.placeholder.com/60" class="rounded-circle mb-2" alt="Profile"><br>
-    John Ryan Dela Cruz
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Top Navigation Row with Breadcrumb aligned to the right -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="fw-bold fs-5">Add New Regular Employee</div>
+    <div class="breadcrumb-custom text-end">
+      <a href="/src/index.php" class="text-decoration-none breadcrumb-link">Home</a>
+      <span class="mx-1">/</span>
+      <a href="#" class="text-decoration-none breadcrumb-link">Manage</a>
+      <span class="mx-1">/</span>
+      <span class="text-dark">Add New Regular Employee</span>
+    </div>
   </div>
-  <a href="#" class="nav-link">Dashboard</a>
-  <a href="#" class="nav-link">Profile</a>
-  <a href="#" class="nav-link">Personnel</a>
-  <a href="#" class="nav-link active ms-3">Regular</a>
-  <a href="#" class="nav-link ms-3">Job Order</a>
-  <a href="#" class="nav-link ms-3">Contract of Service</a>
-  <a href="#" class="nav-link ms-3">Intern</a>
-  <a href="#" class="nav-link">Logout</a>
-</div>
-
-<!-- Main Content -->
-<div class="main">
-  <!-- Top Navigation Row with Breadcrumb aligned to the right -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="fw-bold fs-5">Add New Regular Employee</div>
-  <div class="breadcrumb-custom text-end">
-    <a href="#" class="text-decoration-none breadcrumb-link">Home</a>
-    <span class="mx-1">/</span>
-    <a href="#" class="text-decoration-none breadcrumb-link">Manage</a>
-    <span class="mx-1">/</span>
-    <span class="text-dark">Add New Regular Employee</span>
-  </div>
-</div>
 
   <?php if (!empty($success)): ?>
     <div class="alert alert-success">Employee information submitted successfully!</div>

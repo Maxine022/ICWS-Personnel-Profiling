@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 $jsonData = file_exists("personnel.json") ? file_get_contents("personnel.json") : '[]';
 $personnel = json_decode($jsonData, true) ?? [];
 ?>
@@ -10,7 +8,7 @@ $personnel = json_decode($jsonData, true) ?? [];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICWS</title>
+    <title>Dashboard - ICWS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
@@ -144,11 +142,24 @@ $personnel = json_decode($jsonData, true) ?? [];
         
     </style>
 </head>
-
-<?php include __DIR__ . '/../hero/navbar.php'; ?>
-<?php include __DIR__ . '/../hero/sidebar.php'; ?>
-
 <body>
+    <div class="sidebar" id="sidebar">
+        <div class="d-flex align-items-center justify-content-start mb-3 ps-3">
+            <img src="/assets/logo.png" alt="ICWS Logo" width="40" height="40" class="me-2">
+            <h3 class="m-0 fw-bold">ICWS</h3>
+        </div>
+        <hr>
+        <div class="d-flex align-items-center justify-content-start mb-3 ps-3">
+            <img src="/assets/profile.jpg" class="rounded-circle" alt="User Profile" width="40" height="40">
+            <p class="m-0 ms-2">User Name</p>
+        </div>
+        <hr>
+        <a href="#"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-user"></i> Profile</a>
+        <a href="#"><i class="fas fa-tasks"></i> Manage</a>
+        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+    
     <div class="content" id="content">
         <div class="header">
             <h2>Personnel Records</h2>
@@ -227,7 +238,10 @@ $personnel = json_decode($jsonData, true) ?? [];
             $('.dataTables_filter').appendTo($('.content .d-flex:first-child .dataTables_filter'));
             $('.dt-buttons').appendTo($('.content .d-flex:first-child .dt-buttons'));
         });
+            function toggleSidebar() {
+                document.getElementById("sidebar").classList.toggle("hidden");
+                document.getElementById("content").classList.toggle("expanded");
+            }
     </script>
 </body>
-
 </html>

@@ -20,30 +20,32 @@ if (is_array($personnelData)) {
 }
 ?>
 
+<?php include './hero/sidebar.php'; ?>
+<?php include './hero/navbar.php'; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - ICWS</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-    <?php include './hero/sidebar.php'; ?>
-    <?php include './hero/navbar.php'; ?>
-
     <div class="content" id="content">
         <div class="header">
             <h2>Dashboard</h2>
             <div class="header-text">
-                <a href="#" style="text-decoration: none; color: inherit; transition: 0.3s;" 
-                   onmouseover="this.style.textDecoration='underline'; this.style.color='#007bff'"
-                   onmouseout="this.style.textDecoration='none'; this.style.color='inherit'">
-                   Home
-                </a> / Dashboard
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2"></div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Manage Personnel</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Regular</li>
+                </ol>
+            </nav>
             </div>
         </div>
 
@@ -70,7 +72,7 @@ if (is_array($personnelData)) {
             </div>
             <div class="col-md-3">
                 <div class="card bg-warning p-4">
-                    <i class="fas fa-briefcase"></i>
+                    <i class="fas fa-user"></i>
                     <div class="text-start ms-4">
                         <h5 class="m-0">Contract of Service</h5>
                         <h3 class="m-0 fw-bold"><?php echo $contractCount; ?></h3>
@@ -89,18 +91,21 @@ if (is_array($personnelData)) {
                 </div>
             </div>
         </div>
-
+        <hr/>
         <div class="row mt-4">
         <div class="col-md-3">
             <div class="profile-manage-container">
-                <div class="square-box"><i class="fas fa-user"></i><span>Profile</span></div>
+                <a href="./components/profile.php">
+                    <div class="square-box"><i class="fas fa-user"></i><span>Profile</span></div>
+                </a>
                 <div class="square-box"><i class="fas fa-users"></i><span>Manage</span></div>
             </div>
-        </div>
-    </div>
-    </div>
 
+        </div>
+        
     <?php include './hero/footer.php'; ?>
+    </div>
+    </div>
 
     <script>
         document.getElementById("toggleSidebar").addEventListener("click", function () {
@@ -135,3 +140,64 @@ if (is_array($personnelData)) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<style>
+    .card {
+            border: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            height: 120px; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card i {
+            font-size: 50px;
+            position: absolute;
+            top: 25px;
+            left: 15px;
+        }
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .profile-manage-container {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            margin-top: 5px; 
+        }
+        .square-box {
+            width: 70px;  
+            height: 70px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, color 0.3s;
+            padding: 5px;
+        }
+        .square-box i {
+            font-size: 24px; 
+            line-height: 1;
+        }
+        .square-box:hover {
+            background: #007BFF;
+            color: white;
+        }
+        .square-box span {
+            font-size: 12px; 
+            display: block;
+            margin-top: 3px;
+            text-align: center;
+        }
+</style>
