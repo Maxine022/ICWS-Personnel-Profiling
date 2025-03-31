@@ -21,30 +21,8 @@ $personnel = json_decode($jsonData, true) ?? [];
         body {
             font-family: Arial, sans-serif;
         }
-        .sidebar {
-            height: 100vh;
-            width: 250px;
-            background: #2C3E50;
-            position: fixed;
-            padding-top: 20px;
-            color: white;
-        }
-        .sidebar.hidden {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-        }
         .content.expanded {
             margin-left: 0;
-        }
-        .sidebar a {
-            display: block;
-            color: white;
-            padding: 15px;
-            text-decoration: none;
-        }
-        .sidebar a:hover {
-            background: #007BFF;
         }
         .content {
             margin-left: 250px;

@@ -100,12 +100,10 @@ if (is_array($personnelData)) {
                 </a>
                 <div class="square-box"><i class="fas fa-users"></i><span>Manage</span></div>
             </div>
-
         </div>
-        
+    </div>
     <?php include './hero/footer.php'; ?>
-    </div>
-    </div>
+</div>
 
     <script>
         document.getElementById("toggleSidebar").addEventListener("click", function () {

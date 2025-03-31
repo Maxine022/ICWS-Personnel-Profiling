@@ -13,10 +13,21 @@ $user = $user_id ? ['name' => 'Admin'] : ['name' => 'Guest'];
             <i class="fas fa-bars"></i>
         </button>
     </div>
-    <div class="admin-info">
-        <span class="text-muted"><?php echo $user['name']; ?></span>
-        <i class="fas fa-user-circle fs-4 text-secondary"></i>
-    </div>
+    <div class="admin-info dropdown">
+    <span class="text-muted"><?php echo $user['name']; ?></span>
+    <i class="fas fa-user-circle fs-4 text-secondary"></i>
+    
+    <!-- Dropdown button -->
+    <i class="fas fa-caret-down" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"></i>
+    
+    <!-- Dropdown menu -->
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><a class="dropdown-item" href="/src/components/profile.php">Profile</a></li>
+        <li><hr class="dropdown-divider"></li> 
+        <li><a class="dropdown-item" href="/src/components/login.php">Logout</a></li>
+    </ul>
+</div>
+
 </div>
 
 <style>

@@ -34,25 +34,6 @@ $employees = [
 
   <style>
     body { font-family: Arial; }
-    .sidebar {
-      height: 100vh;
-      width: 250px;
-      background: #2C3E50;
-      color: white;
-      position: fixed;
-      top: 0;
-      left: 0;
-      padding-top: 20px;
-    }
-    .sidebar a {
-      display: block;
-      color: white;
-      padding: 12px;
-      text-decoration: none;
-    }
-    .sidebar a.active, .sidebar a:hover {
-      background-color: #007bff;
-    }
     .content {
       margin-left: 250px;
       padding: 30px;

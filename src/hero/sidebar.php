@@ -92,8 +92,10 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 
 <div class="sidebar" id="sidebar">
     <div class="d-flex align-items-center justify-content-start mb-3 ps-3 pt-3">
-        <img src="/assets/logo.png" alt="ICWS Logo" width="40" height="40" class="me-2">
-        <h3 class="m-0 fw-bold">ICWS</h3>
+        <a href="/src/index.php" class="text-decoration-none text-white"> <!-- Link added here -->
+            <img src="/assets/logo.png" alt="ICWS Logo" width="40" height="40" class="me-2">
+            <h3 class="m-0 fw-bold">ICWS</h3>
+        </a>
     </div>
 
     <hr class="sidebar-divider">
