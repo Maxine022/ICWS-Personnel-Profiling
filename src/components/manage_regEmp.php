@@ -49,6 +49,12 @@ $employees = [
     .table-bordered td, .table-bordered th {
     border: 1px solid #dee2e6 !important;
     }
+    .search-buttons-container {
+    margin-top: 25px;
+    }
+    .table-container {
+    margin-top: 35px; 
+    }
   </style>
 </head>
 <body>
@@ -58,28 +64,36 @@ $employees = [
     <div class="content">
 
     <!-- Title + Breadcrumb in same row -->
-        <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
         <h4 class="mb-0">Manage Regular Employees</h4>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Manage Personnel</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Regular</li>
-            </ol>
-        </nav>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Manage Personnel</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Regular</li>
+                </ol>
+            </nav>
+    </div>
+
+    <!-- Search and Buttons -->
+    <div class="search-buttons-container row align-items-center mb-4">
+        <!-- Search label + input -->
+        <div class="col-md-6 d-flex align-items-center gap-2">
+            <label for="searchInput" class="form-label mb-0"><strong>Search:</strong></label>
+            <div id="customSearchContainer" class="w-100"></div>
         </div>
 
-        <!-- Action Buttons aligned right -->
-        <div class="d-flex justify-content-end mb-3">
-        <div class="d-flex flex-wrap align-items-center gap-2">
-            <a href="/src/components/add_regular_employee.php" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add
-            </a>
-            <button class="btn btn-success"><i class="fas fa-edit"></i> Edit</button>
-            <button class="btn btn-outline-success export-btn" data-type="csv">CSV</button>
-            <button class="btn btn-danger export-btn" data-type="pdf">PDF</button>
-            <button class="btn btn-warning export-btn" data-type="print">Print</button>
-        </div>
+        <!-- Action Buttons -->
+        <div class="col-md-6 text-end">
+            <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
+                <button class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add</button>
+                <button class="btn btn-success btn-sm"><i class="fas fa-edit"></i> Edit</button>
+                <span class="vr d-none d-md-inline"></span>
+                <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
+                <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
+                <button class="btn btn-warning export-btn btn-sm" data-type="print">Print</button>
+                </div>
+            </div>
         </div>
 
         <table class="table table-striped table-bordered" id="personnelTable">
@@ -108,23 +122,29 @@ $employees = [
 
     <script>
     $(document).ready(function () {
-        const table = $('#personnelTable').DataTable({
-        dom:
-            "<'row mb-3'<'col-md-6'f>>" +
-            "<'row'<'col-12'tr>>" +
-            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
-        buttons: [
-            { extend: 'csv', className: 'd-none', title: 'RegularEmployees' },
-            { extend: 'pdf', className: 'd-none', title: 'RegularEmployees' },
-            { extend: 'print', className: 'd-none', title: 'RegularEmployees' }
-        ]
-        });
+  const table = $('#personnelTable').DataTable({
+    dom:
+      "<'row'<'col-md-12'tr>>" +
+      "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
+    buttons: [
+      { extend: 'csv', className: 'd-none', title: 'RegularEmployees' },
+      { extend: 'pdf', className: 'd-none', title: 'RegularEmployees' },
+      { extend: 'print', className: 'd-none', title: 'RegularEmployees' }
+    ],
+    initComplete: function () {
+      // Move search input after DataTable finishes initializing
+      const searchInput = $('div.dataTables_filter input');
+      $('#customSearchContainer').append(searchInput);
+      $('div.dataTables_filter').remove(); // Remove the original wrapper
+    }
+  });
 
-        $('.export-btn').on('click', function () {
-        const type = $(this).data('type');
-        table.button(`.buttons-${type}`).trigger();
-        });
-    });
+  // Export button triggers
+  $('.export-btn').on('click', function () {
+    const type = $(this).data('type');
+    table.button(`.buttons-${type}`).trigger();
+  });
+});
 </script>
 </script>
 </body>

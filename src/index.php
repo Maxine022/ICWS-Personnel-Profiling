@@ -32,21 +32,20 @@ if (is_array($personnelData)) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <!-- Bootstrap Bundle with Popper (must be loaded before dropdowns work) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </head>
 <body>
     <div class="content" id="content">
-        <div class="header">
-            <h2>Dashboard</h2>
-            <div class="header-text">
-            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2"></div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Manage Personnel</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Regular</li>
-                </ol>
-            </nav>
-            </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+            <h4 class="mb-0" style="font-weight: bold;">Dashboard</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="#">Home</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="#">Dashboard</a></li>
+            </ol>
+        </nav>
         </div>
 
         <div class="row mt-3">

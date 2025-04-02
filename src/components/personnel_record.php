@@ -128,11 +128,15 @@ $personnel = json_decode($jsonData, true) ?? [];
 
 <body>
     <div class="content" id="content">
-        <div class="header">
-            <h2>Personnel Records</h2>
-            <div class="breadcrumb-container">
-                <a href="#">Home</a> / <a>Personnel</a>
-            </div>
+        <!-- Title + Breadcrumb in same row -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+            <h4 class="mb-0">Manage Regular Employees</h4>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/src/components/personnel_record.php">Manage Personnel</a></li>
+                    </ol>
+                </nav>
         </div>
 
         <div class="d-flex justify-content-between align-items-center my-3">

@@ -32,6 +32,10 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
     .sidebar a:hover {
         background: #007BFF;
     }
+    .sidebar a.active {
+        background-color: #007BFF;
+        color: white !important;
+    }
     .sidebar a i {
         width: 25px;
         text-align: center;
@@ -107,9 +111,14 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 
     <hr class="sidebar-divider">
     
-    <a href="/src/index.php"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="/src/components/profile.php"><i class="fas fa-user"></i> Profile</a>
-    <a href="/src/components/personnel_record.php"><i class="fas fa-users"></i> Personnel</a>
+    <a href="/src/index.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/index.php') ? 'active' : ''; ?>">
+        <i class="fas fa-home"></i> Dashboard
+    </a><a href="/src/components/profile.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/profile.php') ? 'active' : ''; ?>">
+        <i class="fas fa-user"></i> Profile
+    </a>
+    </a><a href="/src/components/personnel_record.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/personnel_record.php') ? 'active' : ''; ?>">
+        <i class="fas fa-users"></i> Personnel
+    </a>
     
     <a href="/src/components/personnel_record.php" id="manageToggle" class="manage-toggle">
         <i class="fas fa-chevron-right" id="chevron"></i>
@@ -117,14 +126,26 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
     </a>
 
     <div class="dropdown-container" id="manageDropdown">
-        <a href="/src/components/manage_regEmp.php"><i class="far fa-circle bullet-icon"></i> Regular Employee</a>
-        <a href="#"><i class="far fa-circle bullet-icon"></i> Job Order</a>
-        <a href="#"><i class="far fa-circle bullet-icon"></i> Contract of Service</a>
+        <a href="/src/components/manage_regEmp.php"
+            class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_regEmp.php') !== false) ? 'active' : ''; ?>">
+            <i class="far fa-circle bullet-icon"></i> Regular Employee
+        </a>
+        <a href="/src/components/manage_jo.php"
+            class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_jo.php') !== false) ? 'active' : ''; ?>">
+            <i class="far fa-circle bullet-icon"></i> Job Order
+        </a>
+        <a href="/src/components/manage_coc.php"
+            class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_coc.php') !== false) ? 'active' : ''; ?>">
+            <i class="far fa-circle bullet-icon"></i> Contract of Service
+        </a>
     </div>
     
-    <a href="#"><i class="fas fa-users"></i>Intern</a>
-    <a href="#"><i class="fas fa-users"></i> COC</a>
-    
+    </a><a href="/src/components/manage_intern.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_intern.php') ? 'active' : ''; ?>">
+        <i class="fas fa-users"></i> Intern
+    </a>
+    </a><a href="/src/components/manage_coc.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_coc.php') ? 'active' : ''; ?>">
+        <i class="fas fa-users"></i> COC
+    </a>
     <a href="/src/components/login.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>
 

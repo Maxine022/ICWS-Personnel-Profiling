@@ -143,7 +143,17 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
-<div class="content">
+<div class="content" id="content">
+  <!-- Title + Breadcrumb in same row -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+        <h4 class="mb-0">Profile</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Profile</a></li>
+                </ol>
+            </nav>
+  </div>
   <div class="container mt-4">
     <div class="row">
       <div class="col-md-3">
@@ -241,7 +251,8 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
       </div>
     </div>
   </div>
+  <?php include __DIR__ . '/../hero/footer.php'; ?>
 </div>
-<?php include __DIR__ . '/../hero/footer.php'; ?>
+
 </body>
 </html>
