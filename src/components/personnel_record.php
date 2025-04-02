@@ -1,12 +1,20 @@
 <?php
-// Load interns data from JSON
-$interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.json"), true) : [];
+$regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regulars.json"), true) : [];
+$jo = file_exists("jo.json") ? json_decode(file_get_contents("jo.json"), true) : [];
+$cos = file_exists("cos.json") ? json_decode(file_get_contents("cos.json"), true) : [];
+
+foreach ($regulars as &$r) { $r['employment_type'] = 'Regular'; }
+foreach ($jo as &$j) { $j['employment_type'] = 'Job Order'; }
+foreach ($cos as &$c) { $c['employment_type'] = 'Contract of Service'; }
+
+$personnel = array_merge($regulars, $jo, $cos);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Manage Interns</title>
+  <title>Personnel Records</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Bootstrap -->
@@ -83,26 +91,24 @@ $interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.
     <table class="table table-striped table-bordered" id="personnelTable">
       <thead>
         <tr>
+          <th>Emp No</th>
           <th>Full Name</th>
           <th>Contact Number</th>
-          <th>School</th>
-          <th>Course/Program</th>
-          <th>Hours</th>
+          <th>Employment Type</th>
+          <th>Position</th>
           <th>Division</th>
-          <th>Supervisor</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($interns as $intern): ?>
+        <?php foreach ($personnel as $index => $p): ?>
           <tr>
-            <td><?= htmlspecialchars($intern['full_name']) ?></td>
-            <td><?= htmlspecialchars($intern['contact_number']) ?></td>
-            <td><?= htmlspecialchars($intern['school']) ?></td>
-            <td><?= htmlspecialchars($intern['course_program']) ?></td>
-            <td><?= htmlspecialchars($intern['number_of_hours']) ?></td>
-            <td><?= htmlspecialchars($intern['division']) ?></td>
-            <td><?= htmlspecialchars($intern['supervisor']) ?></td>
+            <td><?= $index + 1 ?></td>
+            <td><?= htmlspecialchars($p['full_name']) ?></td>
+            <td><?= htmlspecialchars($p['contact_number']) ?></td>
+            <td><?= htmlspecialchars($p['employment_type']) ?></td>
+            <td><?= htmlspecialchars($p['position']) ?></td>
+            <td><?= htmlspecialchars($p['division']) ?></td>
             <td><a href="#" class="view-link">View Profile</a></td>
           </tr>
         <?php endforeach; ?>
@@ -130,9 +136,9 @@ $interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.
         "<'row'<'col-12'tr>>" +
         "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
       buttons: [
-        { extend: 'csv', className: 'd-none', title: 'Interns' },
-        { extend: 'pdf', className: 'd-none', title: 'Interns' },
-        { extend: 'print', className: 'd-none', title: 'Interns' }
+        { extend: 'csv', className: 'd-none', title: 'Personnel Records' },
+        { extend: 'pdf', className: 'd-none', title: 'Personnel Records' },
+        { extend: 'print', className: 'd-none', title: 'Personnel Records' }
       ]
     });
 
