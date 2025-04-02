@@ -38,12 +38,13 @@ if (is_array($personnelData)) {
 </head>
 <body>
     <div class="content" id="content">
+        <!-- Header and Breadcrumb -->
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <h4 class="mb-0" style="font-weight: bold;">Dashboard</h4>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="#">Home</a></li>
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="#">Dashboard</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
             </ol>
         </nav>
         </div>
@@ -91,15 +92,6 @@ if (is_array($personnelData)) {
             </div>
         </div>
         <hr/>
-        <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="profile-manage-container">
-                <a href="./components/profile.php">
-                    <div class="square-box"><i class="fas fa-user"></i><span>Profile</span></div>
-                </a>
-                <div class="square-box"><i class="fas fa-users"></i><span>Manage</span></div>
-            </div>
-        </div>
     </div>
     <?php include './hero/footer.php'; ?>
 </div>
@@ -162,6 +154,17 @@ if (is_array($personnelData)) {
             width: 100%;
             height: 25px;
             background: rgba(0, 0, 0, 0.2);
+        }
+        .breadcrumb-custom {
+        font-size: 14px;
+        }
+        .breadcrumb-link {
+        color: #6c757d;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        }
+        .breadcrumb-link:hover {
+        color: #0d6efd;
         }
         .profile-manage-container {
             display: flex;

@@ -97,6 +97,17 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
       background: white;
     }
+    .breadcrumb-custom {
+      font-size: 14px;
+    }
+    .breadcrumb-link {
+      color: #6c757d;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .breadcrumb-link:hover {
+      color: #0d6efd;
+    }
     .profile-pic-container {
       position: relative;
       width: 150px;
@@ -144,16 +155,16 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <div class="content" id="content">
-  <!-- Title + Breadcrumb in same row -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
-        <h4 class="mb-0">Profile</h4>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/src/index.php">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Profile</a></li>
-                </ol>
-            </nav>
-  </div>
+  <!-- Header and Breadcrumb -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+            <h4 class="mb-0" style="font-weight: bold;">Profile</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Profile</li>
+            </ol>
+        </nav>
+        </div>
   <div class="container mt-4">
     <div class="row">
       <div class="col-md-3">
@@ -198,7 +209,7 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
       <div class="col-md-9">
         <div class="card p-3 profile-card">
           <div class="btn-container">
-            <button class="btn btn-success">Update</button>
+          <a href="/src/components/edit_regular.php" class="btn btn-success">Update</a>
             <button class="btn btn-warning">Print</button>
           </div>
           <h5 class="fw-bold mt-3">Admin Data</h5>

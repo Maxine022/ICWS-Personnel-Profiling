@@ -63,7 +63,7 @@ $employees = [
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
-  <div class="content">
+  <div class="content" id="content">
     <!-- Header and Breadcrumb -->
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
         <h4 class="mb-0" style="font-weight: bold;">Manage Contract of Service Employees</h4>

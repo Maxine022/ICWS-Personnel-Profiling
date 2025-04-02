@@ -19,46 +19,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
   <meta charset="UTF-8">
   <title>Add New Intern</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background-color: #f8f9fa;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #2c3e50;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      padding-top: 1rem;
-      color: #fff;
-    }
-    .sidebar .logo {
-      text-align: center;
-      font-weight: bold;
-      font-size: 20px;
-      padding: 10px 0;
-    }
-    .sidebar .profile {
-      text-align: center;
-      font-size: 14px;
-      margin-bottom: 1rem;
-      color: #dcdcdc;
-    }
-    .sidebar .nav-link {
-      color: #dcdcdc;
-      padding: 10px 20px;
-      display: block;
-      text-decoration: none;
-    }
-    .sidebar .nav-link.active,
-    .sidebar .nav-link:hover {
-      background-color: #0d6efd;
-      color: #fff;
-      border-radius: 5px;
     }
     .main {
       margin-left: 220px;
@@ -96,26 +66,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">ICWS</div>
-  <div class="profile">
-    <img src="https://via.placeholder.com/60" class="rounded-circle mb-2" alt="Profile"><br>
-    John Ryan Dela Cruz
-  </div>
-  <a href="#" class="nav-link">Dashboard</a>
-  <a href="#" class="nav-link">Profile</a>
-  <a href="#" class="nav-link">Personnel</a>
-  <a href="#" class="nav-link ms-3">Regular</a>
-  <a href="#" class="nav-link ms-3">Job Order</a>
-  <a href="#" class="nav-link ms-3">Contract of Service</a>
-  <a href="#" class="nav-link active ms-3">Intern</a>
-  <a href="#" class="nav-link">Logout</a>
-</div>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <!-- Main Content -->
-<div class="main">
+<div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0 fw-semibold">Update Intern Information</h5>
     <div class="breadcrumb-custom text-end">

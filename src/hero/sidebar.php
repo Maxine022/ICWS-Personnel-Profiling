@@ -113,8 +113,6 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
     
     <a href="/src/index.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/index.php') ? 'active' : ''; ?>">
         <i class="fas fa-home"></i> Dashboard
-    </a><a href="/src/components/profile.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/profile.php') ? 'active' : ''; ?>">
-        <i class="fas fa-user"></i> Profile
     </a>
     </a><a href="/src/components/personnel_record.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/personnel_record.php') ? 'active' : ''; ?>">
         <i class="fas fa-users"></i> Personnel

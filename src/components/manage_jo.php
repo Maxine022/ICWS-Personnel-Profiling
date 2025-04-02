@@ -63,7 +63,7 @@ $employees = [
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
-  <div class="content">
+  <div class="content" id="content">
     <!-- Header and Breadcrumb -->
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
         <h4 class="mb-0" style="font-weight: bold;">Manage Job Order Employees</h4>
@@ -88,7 +88,6 @@ $employees = [
     <div class="col-md-6 text-end">
         <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
         <button class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add</button>
-        <button class="btn btn-success btn-sm"><i class="fas fa-edit"></i> Edit</button>
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
         <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
