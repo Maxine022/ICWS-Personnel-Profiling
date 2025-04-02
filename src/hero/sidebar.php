@@ -134,8 +134,8 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
             class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_jo.php') !== false) ? 'active' : ''; ?>">
             <i class="far fa-circle bullet-icon"></i> Job Order
         </a>
-        <a href="/src/components/manage_coc.php"
-            class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_coc.php') !== false) ? 'active' : ''; ?>">
+        <a href="/src/components/manage_cos.php"
+            class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_cos.php') !== false) ? 'active' : ''; ?>">
             <i class="far fa-circle bullet-icon"></i> Contract of Service
         </a>
     </div>

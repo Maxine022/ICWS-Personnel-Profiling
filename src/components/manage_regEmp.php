@@ -52,9 +52,6 @@ $employees = [
     .search-buttons-container {
     margin-top: 25px;
     }
-    .table-container {
-    margin-top: 35px; 
-    }
   </style>
 </head>
 <body>
@@ -64,7 +61,7 @@ $employees = [
     <div class="content">
 
     <!-- Title + Breadcrumb in same row -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
         <h4 class="mb-0">Manage Regular Employees</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
@@ -73,21 +70,25 @@ $employees = [
                 <li class="breadcrumb-item active" aria-current="page">Regular</li>
                 </ol>
             </nav>
-    </div>
+        </div>
 
     <!-- Search and Buttons -->
     <div class="search-buttons-container row align-items-center mb-4">
         <!-- Search label + input -->
         <div class="col-md-6 d-flex align-items-center gap-2">
             <label for="searchInput" class="form-label mb-0"><strong>Search:</strong></label>
-            <div id="customSearchContainer" class="w-100"></div>
+            <div id="customSearchContainer"></div>
         </div>
 
         <!-- Action Buttons -->
         <div class="col-md-6 text-end">
             <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-                <button class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add</button>
-                <button class="btn btn-success btn-sm"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_regular_employee.php'">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+                <button class="btn btn-success btn-sm" onclick="window.location.href='/src/components/edit_regular.php'">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
                 <span class="vr d-none d-md-inline"></span>
                 <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
                 <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
@@ -122,29 +123,23 @@ $employees = [
 
     <script>
     $(document).ready(function () {
-  const table = $('#personnelTable').DataTable({
-    dom:
-      "<'row'<'col-md-12'tr>>" +
-      "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
-    buttons: [
-      { extend: 'csv', className: 'd-none', title: 'RegularEmployees' },
-      { extend: 'pdf', className: 'd-none', title: 'RegularEmployees' },
-      { extend: 'print', className: 'd-none', title: 'RegularEmployees' }
-    ],
-    initComplete: function () {
-      // Move search input after DataTable finishes initializing
-      const searchInput = $('div.dataTables_filter input');
-      $('#customSearchContainer').append(searchInput);
-      $('div.dataTables_filter').remove(); // Remove the original wrapper
-    }
-  });
+        const table = $('#personnelTable').DataTable({
+        dom:
+            "<'d-none'f>" + 
+            "<'row'<'col-12'tr>>" +
+            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
+        buttons: [
+            { extend: 'csv', className: 'd-none', title: 'RegularEmployees' },
+            { extend: 'pdf', className: 'd-none', title: 'RegularEmployees' },
+            { extend: 'print', className: 'd-none', title: 'RegularEmployees' }
+        ]
+        });
 
-  // Export button triggers
-  $('.export-btn').on('click', function () {
-    const type = $(this).data('type');
-    table.button(`.buttons-${type}`).trigger();
-  });
-});
+        $('.export-btn').on('click', function () {
+        const type = $(this).data('type');
+        table.button(`.buttons-${type}`).trigger();
+        });
+    });
 </script>
 </script>
 </body>

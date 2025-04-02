@@ -27,40 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
     }
-    .sidebar {
-      width: 220px;
-      background-color: #2c3e50;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      padding-top: 1rem;
-      color: #fff;
-    }
-    .sidebar .logo {
-      text-align: center;
-      font-weight: bold;
-      font-size: 20px;
-      padding: 10px 0;
-    }
-    .sidebar .profile {
-      text-align: center;
-      font-size: 14px;
-      margin-bottom: 1rem;
-      color: #dcdcdc;
-    }
-    .sidebar .nav-link {
-      color: #dcdcdc;
-      padding: 10px 20px;
-      display: block;
-      text-decoration: none;
-    }
-    .sidebar .nav-link.active,
-    .sidebar .nav-link:hover {
-      background-color: #1abc9c;
-      color: #fff;
-      border-radius: 5px;
-    }
+    
     .main {
       margin-left: 220px;
       padding: 2rem;
@@ -95,23 +62,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">ICWS</div>
-  <div class="profile">
-    <img src="https://via.placeholder.com/60" class="rounded-circle mb-2" alt="Profile"><br>
-    John Ryan Dela Cruz
-  </div>
-  <a href="#" class="nav-link">Dashboard</a>
-  <a href="#" class="nav-link">Profile</a>
-  <a href="#" class="nav-link">Personnel</a>
-  <a href="#" class="nav-link ms-3">Regular</a>
-  <a href="#" class="nav-link ms-3">Job Order</a>
-  <a href="#" class="nav-link active ms-3">Contract of Service</a>
-  <a href="#" class="nav-link ms-3">Intern</a>
-  <a href="#" class="nav-link">Logout</a>
-</div>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <!-- Main Content -->
 <div class="main">
