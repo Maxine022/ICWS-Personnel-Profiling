@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
+$email = $_SESSION['email'] ?? 'Guest';
 ?>
 
 <style>
@@ -106,7 +106,7 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
 
     <div class="d-flex align-items-center justify-content-start mb-3 ps-3">
         <img src="/assets/profile.jpg" class="rounded-circle" alt="User Profile" width="40" height="40">
-        <p class="m-0 ms-2"><?php echo $user['name']; ?></p>
+        <p class="m-0 ms-2"><?php echo htmlspecialchars($email); ?></p>
     </div>
 
     <hr class="sidebar-divider">
@@ -143,6 +143,9 @@ $user = $_SESSION['user_id'] ?? ['name' => 'Guest'];
     </a>
     </a><a href="/src/components/manage_coc.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_coc.php') ? 'active' : ''; ?>">
         <i class="fas fa-users"></i> COC
+    </a>
+    </a><a href="/src/components/settings.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/settings.php') ? 'active' : ''; ?>">
+        <i class="fas fa-cog"></i> Settings
     </a>
     <a href="/src/components/login.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>

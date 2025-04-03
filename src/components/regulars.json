@@ -46,5 +46,44 @@
         "level": "231",
         "aca_pera": "23",
         "monthly_salary": "21"
+    },
+    {
+        "Emp No": "",
+        "full_name": "thea",
+        "position": "HR Officer",
+        "division": "IT Division",
+        "plantilla_number": "626",
+        "contact_number": "65656",
+        "salary_grade": "121",
+        "step": "55",
+        "level": "12",
+        "aca_pera": "232",
+        "monthly_salary": "212"
+    },
+    {
+        "Emp No": "",
+        "full_name": "Jielven Rose Baraquel",
+        "position": "HR Officer",
+        "division": "IT Division",
+        "plantilla_number": "1223",
+        "contact_number": "2321",
+        "salary_grade": "23",
+        "step": "23",
+        "level": "23",
+        "aca_pera": "321",
+        "monthly_salary": "2"
+    },
+    {
+        "Emp No": "",
+        "full_name": "Jielven Rose Baraquel",
+        "position": "HR Officer",
+        "division": "IT Division",
+        "plantilla_number": "123",
+        "contact_number": "132",
+        "salary_grade": "32",
+        "step": "23",
+        "level": "23",
+        "aca_pera": "2",
+        "monthly_salary": "2"
     }
 ]

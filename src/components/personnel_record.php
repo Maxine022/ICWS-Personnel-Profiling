@@ -1,14 +1,35 @@
 <?php
-$regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regulars.json"), true) : [];
-$jo = file_exists("jo.json") ? json_decode(file_get_contents("jo.json"), true) : [];
-$cos = file_exists("cos.json") ? json_decode(file_get_contents("cos.json"), true) : [];
+$regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regulars.json"), true) ?? [] : [];
+$jo = file_exists("jo.json") ? json_decode(file_get_contents("jo.json"), true) ?? [] : [];
+$cos = file_exists("cos.json") ? json_decode(file_get_contents("cos.json"), true) ?? [] : [];
 
-foreach ($regulars as &$r) { $r['employment_type'] = 'Regular'; }
-foreach ($jo as &$j) { $j['employment_type'] = 'Job Order'; }
-foreach ($cos as &$c) { $c['employment_type'] = 'Contract of Service'; }
+if (is_array($regulars)) {
+    foreach ($regulars as &$r) {
+        $r['employment_type'] = 'Regular';
+    }
+} else {
+    $regulars = [];
+}
+
+if (is_array($jo)) {
+    foreach ($jo as &$j) {
+        $j['employment_type'] = 'Job Order';
+    }
+} else {
+    $jo = [];
+}
+
+if (is_array($cos)) {
+    foreach ($cos as &$c) {
+        $c['employment_type'] = 'Contract of Service';
+    }
+} else {
+    $cos = [];
+}
 
 $personnel = array_merge($regulars, $jo, $cos);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

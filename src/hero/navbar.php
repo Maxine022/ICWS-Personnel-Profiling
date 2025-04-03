@@ -3,8 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$user_id = $_SESSION['user_id'] ?? null;
-$user = $user_id ? ['name' => 'Admin'] : ['name' => 'Guest'];
+$email = $_SESSION['email'] ?? 'Guest';
 ?>
 
 <div class="navbar-custom" id="navbar">
@@ -14,7 +13,7 @@ $user = $user_id ? ['name' => 'Admin'] : ['name' => 'Guest'];
         </button>
     </div>
     <div class="admin-info dropdown">
-    <span class="text-muted"><?php echo $user['name']; ?></span>
+    <span class="text-muted"><?php echo htmlspecialchars($email); ?></span>
     <i class="fas fa-user-circle fs-4 text-secondary"></i>
     
     <!-- Dropdown button -->

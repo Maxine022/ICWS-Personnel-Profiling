@@ -1,31 +1,71 @@
 <?php
 session_start();
+include_once __DIR__ . '/../../backend/db.php';
 
-// Handle form submission and save to JSON
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $newEmployee = [
-        "Emp No" => $_POST["Emp No"] ?? '',
-        "full_name" => $_POST["full_name"] ?? '',
-        "position" => $_POST["position"] ?? '',
-        "division" => $_POST["division"] ?? '',
-        "plantilla_number" => $_POST["plantilla_number"] ?? '',
-        "contact_number" => $_POST["contact_number"] ?? '',
-        "salary_grade" => $_POST["salary_grade"] ?? '',
-        "step" => $_POST["step"] ?? '',
-        "level" => $_POST["level"] ?? '',
-        "aca_pera" => $_POST["aca_pera"] ?? '',
-        "monthly_salary" => $_POST["monthly_salary"] ?? ''
-    ];
+    $Emp_No = $_POST["Emp_No"] ?? '';
+    $full_name = $_POST["full_name"] ?? '';
+    $position = $_POST["position"] ?? '';
+    $division = $_POST["division"] ?? '';
+    $contact_number = $_POST["contact_number"] ?? '';
+    $sex = $_POST["sex"] ?? '';
+    $birthdate = $_POST["birthdate"] ?? '';
+    $address = $_POST["address"] ?? '';
+    $plantillaNo = $_POST["plantillaNo"] ?? '';
+    $acaPera = $_POST["acaPera"] ?? '';
+    $salaryGrade = $_POST["salaryGrade"] ?? '';
+    $step = $_POST["step"] ?? '';
+    $level = $_POST["level"] ?? '';
+    $monthlySalary = $_POST["monthly_salary"] ?? '';
 
-    $file = 'regulars.json';
-    $existingData = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
-    $existingData[] = $newEmployee;
-    file_put_contents($file, json_encode($existingData, JSON_PRETTY_PRINT));
+    // Check if Emp_No already exists to prevent duplication
+    $check = $conn->prepare("SELECT Emp_No FROM personnel WHERE Emp_No = ?");
+    $check->bind_param("s", $Emp_No);
+    $check->execute();
+    $check->store_result();
+    if ($check->num_rows > 0) {
+        echo "<script>alert('Employee number already exists.');</script>";
+        exit();
+    }
+    $check->close();
 
-    header("Location: manage_regEmp.php");
-    exit();
+    // Insert into personnel
+    $stmt1 = $conn->prepare("INSERT INTO personnel (Emp_No, full_name, position, division, contact_number, sex, birthdate, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt1->bind_param("ssssssss", $Emp_No, $full_name, $position, $division, $contact_number, $sex, $birthdate, $address);
+
+    if ($stmt1->execute()) {
+        $personnel_id = $stmt1->insert_id;
+
+        // Insert into salary
+        $stmt2 = $conn->prepare("INSERT INTO salary (personnel_id, salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
+        $stmt2->bind_param("iiiss", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
+
+        if ($stmt2->execute()) {
+            $salary_id = $stmt2->insert_id;
+
+            // Insert into reg_emp
+            $stmt3 = $conn->prepare("INSERT INTO reg_emp (personnel_id, salary_id, plantillaNo, acaPera) VALUES (?, ?, ?, ?)");
+            $stmt3->bind_param("iiss", $personnel_id, $salary_id, $plantillaNo, $acaPera);
+
+            if ($stmt3->execute()) {
+                header("Location: manage_regEmp.php");
+                exit();
+            } else {
+              echo "<script>alert('Error inserting into reg_emp: " . $stmt3->error . "');</script>";
+            }
+            $stmt3->close();
+        } else {
+            echo "<script>alert('Error inserting into salary.');</script>";
+        }
+        $stmt2->close();
+    } else {
+        echo "<script>alert('Error inserting into personnel.');</script>";
+    }
+    $stmt1->close();
+    $conn->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -86,8 +126,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" action="">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Emp No</label>
-          <input type="text" class="form-control" name="Emp No" required>
+          <label class="form-label">Emp_No</label>
+          <input type="text" class="form-control" name="Emp_No" required>
         </div>
         <div class="row g-3">
         <div class="col-md-6">
@@ -112,15 +152,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Plantilla Number</label>
-          <input type="text" class="form-control" name="plantilla_number">
+          <input type="text" class="form-control" name="plantillaNo">
         </div>
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
           <input type="text" class="form-control" name="contact_number">
         </div>
         <div class="col-md-2">
+            <label class="form-label">Sex</label>
+            <select class="form-select" name="sex" required>
+              <option value="">Select</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Birthdate</label>
+            <input type="date" class="form-control" name="birthdate" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-control" name="address" required>
+          </div>
+
+        <div class="col-md-2">
           <label class="form-label">Salary Grade</label>
-          <input type="text" class="form-control" name="salary_grade">
+          <input type="text" class="form-control" name="salaryGrade">
         </div>
         <div class="col-md-2">
           <label class="form-label">Step</label>
@@ -132,17 +191,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">ACA Pera</label>
-          <input type="text" class="form-control" name="aca_pera">
+          <input type="text" class="form-control" name="acaPera">
         </div>
         <div class="col-md-6">
           <label class="form-label">Monthly Salary</label>
           <input type="text" class="form-control" name="monthly_salary">
         </div>
-      </div>
 
-      <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4">Submit</button>
+        <div class="mt-4 d-flex gap-2">
+        <button type="submit" onclick="/src/components/manage_regEmp.php" class="btn btn-primary px-4">Submit</button>
         <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
+      </div>
       </div>
     </form>
   </div>

@@ -1,7 +1,37 @@
 <?php
-// Load regular employee data
-$regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regulars.json"), true) : [];
+include_once __DIR__ . '/../../backend/db.php';
+$regulars = [];
+
+$result = $conn->query("
+  SELECT 
+    p.Emp_No,
+    p.full_name,
+    p.sex,
+    p.birthdate,
+    p.contact_number,
+    p.address,
+    p.position,
+    p.division,
+    r.plantillaNo,
+    s.salaryGrade,
+    s.step,
+    s.level,
+    r.acaPera,
+    s.monthlySalary
+  FROM reg_emp r
+  JOIN personnel p ON r.personnel_id = p.personnel_id
+  JOIN salary s ON r.salary_id = s.salary_id
+  ORDER BY p.Emp_No DESC, p.full_name DESC
+
+");
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $regulars[] = $row;
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,9 +44,13 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <style>
-    body { font-family: Arial; }
+    body { 
+      font-family: Arial; 
+      font-size: 14px
+    }
     .content {
       padding: 30px;
     }
@@ -42,10 +76,25 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
       text-decoration: underline;
     }
     .table-container {
-      margin-top: 15px;
+      margin-top: 5px;
     }
     .search-buttons-container {
       margin-top: 25px;
+    }
+    .shadow-custom {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .table {
+      table-layout: auto; /* Ensures columns resize based on content */
+      width: 100%; /* Ensures the table takes full width of the container */
+      margin: 0 auto; /* Centers the table itself within its parent container */
+    }
+    .table td, .table th {
+      text-align: center; /* Centers text inside the table cells */
+      vertical-align: middle;
+    }
+    #personnelTable_wrapper {
+      overflow-x: auto; /* Makes the table horizontally scrollable if it overflows */
     }
   </style>
 </head>
@@ -60,7 +109,7 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
       <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
         <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Personnel</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Manage Regular</li>
+        <li class="breadcrumb-item active" aria-current="page">Regular</li>
       </ol>
     </nav>
   </div>
@@ -74,6 +123,10 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
         <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_regular_employee.php'"><i class="fas fa-plus"></i> Add</button>
+        <button class="btn btn-success btn-sm shadow-custom text-white" style="background-color: success;" data-bs-toggle="modal" data-bs-target="#uploadModal">
+          <i class="fas fa-upload"></i> Upload File
+        </button>
+
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
         <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
@@ -88,10 +141,13 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
         <tr>
           <th>Emp No</th>
           <th>Full Name</th>
+          <th>Sex</th>
+          <th>Birthdate</th>
+          <th>Contact Number</th>
+          <th>Address</th>
           <th>Position</th>
           <th>Division</th>
           <th>Plantilla Number</th>
-          <th>Contact Number</th>
           <th>Salary Grade</th>
           <th>Step</th>
           <th>Level</th>
@@ -101,22 +157,25 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($regulars as $emp): ?>
-          <tr>
-            <td><?= htmlspecialchars($emp['Emp No'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($emp['full_name']) ?></td>
-            <td><?= htmlspecialchars($emp['position']) ?></td>
-            <td><?= htmlspecialchars($emp['division']) ?></td>
-            <td><?= htmlspecialchars($emp['plantilla_number']) ?></td>
-            <td><?= htmlspecialchars($emp['contact_number']) ?></td>
-            <td><?= htmlspecialchars($emp['salary_grade']) ?></td>
-            <td><?= htmlspecialchars($emp['step']) ?></td>
-            <td><?= htmlspecialchars($emp['level']) ?></td>
-            <td><?= htmlspecialchars($emp['aca_pera']) ?></td>
-            <td><?= htmlspecialchars($emp['monthly_salary']) ?></td>
-            <td><a href="/src/components/profile.php" class="view-link">View Profile</a></td>
-          </tr>
-        <?php endforeach; ?>
+      <?php foreach ($regulars as $index => $p): ?>
+        <tr>
+          <td><?= htmlspecialchars($p['Emp_No']) ?></td>
+          <td><?= htmlspecialchars($p['full_name']) ?></td>
+          <td><?= htmlspecialchars($p['sex']) ?></td>
+          <td><?= htmlspecialchars($p['birthdate']) ?></td>
+          <td><?= htmlspecialchars($p['contact_number']) ?></td>
+          <td><?= htmlspecialchars($p['address']) ?></td>
+          <td><?= htmlspecialchars($p['position']) ?></td>
+          <td><?= htmlspecialchars($p['division']) ?></td>
+          <td><?= htmlspecialchars($p['plantillaNo']) ?></td>
+          <td><?= htmlspecialchars($p['salaryGrade']) ?></td>
+          <td><?= htmlspecialchars($p['step']) ?></td>
+          <td><?= htmlspecialchars($p['level']) ?></td>
+          <td><?= htmlspecialchars($p['acaPera']) ?></td>
+          <td><?= htmlspecialchars($p['monthlySalary']) ?></td>
+          <td><a href="/src/components/profile.php" class="view-link">View Profile</a></td>
+        </tr>
+      <?php endforeach; ?>  
       </tbody>
     </table>
   </div>
@@ -136,6 +195,7 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
 <script>
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
+      "pageLength": 10, // Limit to 10 entries per page
       dom:
         "<'d-none'f>" +
         "<'row'<'col-12'tr>>" +
@@ -156,5 +216,30 @@ $regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regula
     });
   });
 </script>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow">
+      <form action="/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="uploadModalLabel">Upload Regular Employee JSON File</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="data_file" class="form-label">Choose JSON File</label>
+            <input type="file" class="form-control" id="data_file" name="data_file" accept=".json" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Upload</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -1,8 +1,49 @@
 <?php
-// Start PHP session (Optional, if needed for authentication)
 session_start();
 
+// Include the database connection
+include('../../backend/db.php');
+
+// Initialize error message
+$error_message = "";
+
+// Check if form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get the email and password from the form
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+
+    // Use prepared statement to avoid SQL injection
+    $sql = "SELECT * FROM user WHERE email = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $email);  // "s" means it's a string parameter
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check if the user exists
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+
+        // Check if the password is correct (hashing should have been done in phpMyAdmin)
+        if ($password == $user['password']) {
+            // If password is correct, start the session and redirect to dashboard
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['email'] = $user['email'];
+
+            // Redirect to dashboard
+            header("Location: ../index.php");  // Or your desired landing page
+            exit();
+        } else {
+            // Incorrect password error message
+            $error_message = "Incorrect password!";
+        }
+    } else {
+        // User does not exist error message
+        $error_message = "Email address not found.";
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,15 +107,15 @@ session_start();
         }
 
         .login-container {
-        position: absolute;
-        right: 250px;
-        top: 50%;
-        transform: translateY(-48%); 
-        display: flex;
-        flex-direction: column;
-        align-items: center; 
-        justify-content: center;
-        width: 400px; 
+            position: absolute;
+            right: 250px;
+            top: 50%;
+            transform: translateY(-48%); 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            width: 400px; 
         }
 
         .login-section {
@@ -87,16 +128,15 @@ session_start();
         }
 
         .login-section h2 {
-        font-size: 28px;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 700;
-        color: #1F3C88;
-        text-transform: uppercase;
-        margin-bottom: 5px; 
-        transform: translateY(-25%);
-        line-height: 1.2;
+            font-size: 28px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #1F3C88;
+            text-transform: uppercase;
+            margin-bottom: 5px; 
+            transform: translateY(-25%);
+            line-height: 1.2;
         }
-
 
         .login-section p {
             color: #ADB5BD;
@@ -105,24 +145,24 @@ session_start();
         }
 
         .input-group {
-        width: 85%; 
-        background: #EEF1F5;
-        border-radius: 10px;
-        border: 1px solid #E9ECEF;
-        display: flex;
-        align-items: center;
-        padding: 10px; 
-        margin: 15px 0; 
-        transform: translateX(5%); 
+            width: 85%; 
+            background: #EEF1F5;
+            border-radius: 10px;
+            border: 1px solid #E9ECEF;
+            display: flex;
+            align-items: center;
+            padding: 10px; 
+            margin: 15px 0; 
+            transform: translateX(5%); 
         }
 
         .input-group input {
-        border: none;
-        background: none;
-        outline: none;
-        padding: 8px; 
-        width: 100%; 
-        font-size: 14px; 
+            border: none;
+            background: none;
+            outline: none;
+            padding: 8px; 
+            width: 100%; 
+            font-size: 14px; 
         }
 
         .icon {
@@ -131,17 +171,25 @@ session_start();
             margin-right: 10px;
         }
 
+        /* Error Message */
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
         /* Forgot Password */
         .forgot-password {
-        color: #1F3C88;
-        font-size: 14px;
-        text-decoration: none;
-        display: block;
-        margin-top: 20px;
-        text-align: left; 
-        transform: translateX(8%); 
-        width: 100%;  
-         }
+            color: #1F3C88;
+            font-size: 14px;
+            text-decoration: none;
+            display: block;
+            margin-top: 20px;
+            text-align: left; 
+            transform: translateX(8%); 
+            width: 100%;  
+        }
 
         .forgot-password:hover {
             text-decoration: underline;
@@ -188,7 +236,7 @@ session_start();
 
     <!-- Branding (Logo + Title) -->
     <div class="branding">
-    <img src="/assets/logo.png" alt="Iligan City Waterworks System">
+        <img src="/assets/logo.png" alt="Iligan City Waterworks System">
         <div class="branding-text">
             <h1>ILIGAN CITY WATERWORKS SYSTEM</h1>
             <p>“Water is Life. Conserving it now, will save the future.”</p>
@@ -212,10 +260,17 @@ session_start();
                     <input type="password" name="password" placeholder="Password" required>
                 </div>
 
-                <a href="#" class="forgot-password">I forgot my password</a>
+                <!-- Display error message if there is one -->
+                <?php if (!empty($error_message)): ?>
+                    <div class="error-message">
+                        <?php echo $error_message; ?>
+                    </div>
+                <?php endif; ?>
 
+                <a href="#" class="forgot-password">I forgot my password</a>
                 <button type="submit" class="login-btn">Sign In</button>
             </form>
+
         </div>
     </div>
 </body>

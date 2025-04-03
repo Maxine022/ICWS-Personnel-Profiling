@@ -13,6 +13,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $remarks = $_POST["remarks"];
 
     $success = true;
+
+    $file = 'jo.json';
+    $existingData = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
+    $existingData[] = $newEmployee;
+    file_put_contents($file, json_encode($existingData, JSON_PRETTY_PRINT));
+
+    header("Location: manage_jo.php");
+    exit();
 }
 ?>
 
@@ -21,7 +29,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
   <meta charset="UTF-8">
   <title>Add New Job Order Employee</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
   <style>
     body {
       margin: 0;
@@ -95,23 +107,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">ICWS</div>
-  <div class="profile">
-    <img src="https://via.placeholder.com/60" class="rounded-circle mb-2" alt="Profile"><br>
-    John Ryan Dela Cruz
-  </div>
-  <a href="#" class="nav-link">Dashboard</a>
-  <a href="#" class="nav-link">Profile</a>
-  <a href="#" class="nav-link">Personnel</a>
-  <a href="#" class="nav-link ms-3">Regular</a>
-  <a href="#" class="nav-link active ms-3">Job Order</a>
-  <a href="#" class="nav-link ms-3">Contract of Service</a>
-  <a href="#" class="nav-link ms-3">Intern</a>
-  <a href="#" class="nav-link">Logout</a>
-</div>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <!-- Main Content -->
 <div class="main">
