@@ -21,15 +21,17 @@ $result = $conn->query("
   FROM reg_emp r
   JOIN personnel p ON r.personnel_id = p.personnel_id
   JOIN salary s ON r.salary_id = s.salary_id
-  ORDER BY p.Emp_No DESC, p.full_name DESC
+  ORDER BY p.personnel_id ASC, p.full_name ASC
+  ");
 
-");
-
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $regulars[] = $row;
-    }
-}
+  if ($result && $result->num_rows > 0) {
+      while ($row = $result->fetch_assoc()) {
+          $regulars[] = $row;
+      }
+  }  else {
+    echo "No records found.";
+    var_dump($result); // Log the result
+  }
 ?>
 
 <!DOCTYPE html>
@@ -49,13 +51,10 @@ if ($result && $result->num_rows > 0) {
   <style>
     body { 
       font-family: Arial; 
-      font-size: 14px
+      font-size: 14px;
     }
     .content {
       padding: 30px;
-    }
-    .table-bordered td, .table-bordered th {
-      border: 1px solid #dee2e6 !important;
     }
     .breadcrumb-link {
       color: inherit;
@@ -75,26 +74,29 @@ if ($result && $result->num_rows > 0) {
       color: #0a58ca;
       text-decoration: underline;
     }
-    .table-container {
-      margin-top: 5px;
-    }
     .search-buttons-container {
       margin-top: 25px;
     }
     .shadow-custom {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    .table {
+    .table-container {
       table-layout: auto; /* Ensures columns resize based on content */
       width: 100%; /* Ensures the table takes full width of the container */
-      margin: 0 auto; /* Centers the table itself within its parent container */
+      margin: 0 auto; /* Centers the table within its parent container */
     }
     .table td, .table th {
-      text-align: center; /* Centers text inside the table cells */
-      vertical-align: middle;
+      text-align: center; /* Ensures content is centered in the cells */
+      vertical-align: middle; /* Ensures vertical alignment of text */
+      word-wrap: break-word; /* Prevents content from overflowing */
+      padding: 10px; /* Adds padding to table cells for better readability */
+    }
+    .table-container table {
+      width: 100%; /* Ensures the table width fits the container */
+      table-layout: auto; /* Auto-adjust the table layout based on the content */
     }
     #personnelTable_wrapper {
-      overflow-x: auto; /* Makes the table horizontally scrollable if it overflows */
+      overflow-x: auto; /* Enables horizontal scrolling if the table overflows */
     }
   </style>
 </head>
@@ -173,7 +175,7 @@ if ($result && $result->num_rows > 0) {
           <td><?= htmlspecialchars($p['level']) ?></td>
           <td><?= htmlspecialchars($p['acaPera']) ?></td>
           <td><?= htmlspecialchars($p['monthlySalary']) ?></td>
-          <td><a href="/src/components/profile.php" class="view-link">View Profile</a></td>
+          <td><a href="profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a></td>
         </tr>
       <?php endforeach; ?>  
       </tbody>
@@ -223,12 +225,12 @@ if ($result && $result->num_rows > 0) {
     <div class="modal-content shadow">
       <form action="/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
         <div class="modal-header bg-light">
-          <h5 class="modal-title" id="uploadModalLabel">Upload Regular Employee JSON File</h5>
+          <h5 class="modal-title" id="uploadModalLabel">Upload Regular Employee File</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="data_file" class="form-label">Choose JSON File</label>
+            <label for="data_file" class="form-label">Choose File</label>
             <input type="file" class="form-control" id="data_file" name="data_file" accept=".json" required>
           </div>
         </div>

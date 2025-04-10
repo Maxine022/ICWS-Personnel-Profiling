@@ -144,9 +144,6 @@ $email = $_SESSION['email'] ?? 'Guest';
     </a><a href="/src/components/manage_coc.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_coc.php') ? 'active' : ''; ?>">
         <i class="fas fa-users"></i> COC
     </a>
-    </a><a href="/src/components/settings.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/settings.php') ? 'active' : ''; ?>">
-        <i class="fas fa-cog"></i> Settings
-    </a>
     <a href="/src/components/login.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>
 

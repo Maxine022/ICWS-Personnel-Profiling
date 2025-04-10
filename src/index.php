@@ -1,9 +1,18 @@
 <?php
 session_start();
 
-// Load personnel data
-$personnelJson = file_get_contents('personnel.json');
-$personnelData = json_decode($personnelJson, true);
+include_once __DIR__ . '/../backend/db.php';
+
+// Fetch personnel data from the database
+$personnelData = [];
+$sql = "SELECT emp_type FROM personnel";
+$result = $conn->query($sql);
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $personnelData[] = $row;
+    }
+}
 
 // Initialize counts
 $internCount = $regularCount = $jobOrderCount = $contractCount = 0;
@@ -11,10 +20,9 @@ $internCount = $regularCount = $jobOrderCount = $contractCount = 0;
 if (is_array($personnelData)) {
     foreach ($personnelData as $person) {
         switch ($person['type']) {
-            case 'Regular Employee': $regularCount++; break;
+            case 'Regular': $regularCount++; break;
             case 'Job Order': $jobOrderCount++; break;
-            case 'Contract of Service': $contractCount++; break;
-            case 'Intern': $internCount++; break;
+            case 'Contract': $contractCount++; break;
         }
     }
 }
@@ -199,5 +207,11 @@ if (is_array($personnelData)) {
             display: block;
             margin-top: 3px;
             text-align: center;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            margin-top: 0px;
+            transition: margin-left 0.3s ease;
         }
 </style>

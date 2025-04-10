@@ -1,68 +1,68 @@
 <?php
 session_start();
+include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection file
 
-if (
-  $_SERVER['REQUEST_METHOD'] === 'POST' &&
-  isset($_FILES['profile_picture']) &&
-  $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK
-) {
-  $targetDir = 'uploads/';
-  if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
+// Assume the employee's Emp_No is passed via GET parameter
+$emp_no = $_GET['Emp_No'] ?? null; // Get Emp_No from GET parameter
 
-  $fileName = basename($_FILES['profile_picture']['name']);
-  $targetFilePath = $targetDir . time() . '_' . $fileName;
-  $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
-
-  $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
-  if (in_array($fileType, $allowedTypes)) {
-    if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $targetFilePath)) {
-      $_SESSION['uploaded_photo'] = $targetFilePath;
-    } else {
-      echo "<script>alert('Failed to upload file.');</script>";
-    }
-  } else {
-    echo "<script>alert('Only JPG, JPEG, PNG, GIF are allowed.');</script>";
-  }
+if (!$emp_no) {
+    echo "Employee not found.";
+    exit();
 }
 
-$user = [
-  'name' => 'John Ryan Dela Cruz',
-  'email' => 'johnryan.delacruz@gmail.com',
-  'location' => 'Iligan City',
-  'phone' => '09123456789',
-  'details' => [
-    'Affiliation' => 'College Graduate',
-    'Status' => 'Active',
-    'Sex' => 'Male',
-    'Civil Status' => 'Married',
-    'Citizenship' => 'Filipino',
-    'Birthdate' => '2025-02-17',
-    'Birthplace' => 'Unknown',
-    'Religion' => 'Unknown',
-    'Permanent Address' => 'Iligan City'
-  ]
-];
+// Query to get employee details from 'personnel' table
+$query = $conn->prepare("SELECT * FROM personnel WHERE Emp_No = ?");
+$query->bind_param("s", $emp_no);
+$query->execute();
+$result = $query->get_result();
+$employee = $result->fetch_assoc();
 
-$adminData = [
-  'employee_number' => '2025-0001',
-  'position' => 'Engineer IV',
-  'division' => 'Admin'
-];
+if (!$employee) {
+    echo "Employee not found.";
+    exit();
+}
 
-$serviceRecords = [
-  ['start' => '2020-01-01', 'end' => '2022-12-31', 'position' => 'Engineer IV', 'division' => 'Admin'],
-  ['start' => '2018-06-15', 'end' => '2019-12-31', 'position' => 'Senior Developer', 'division' => 'IT'],
-  ['start' => '2015-03-10', 'end' => '2018-06-14', 'position' => 'Software Developer', 'division' => 'IT']
-];
+// Query to get salary details from 'salary' table
+$query_salary = $conn->prepare("SELECT * FROM salary WHERE personnel_id = ?");
+$query_salary->bind_param("i", $employee['personnel_id']);
+$query_salary->execute();
+$salary = $query_salary->get_result()->fetch_assoc();
 
-$recordsPerPage = 2;
-$totalRecords = count($serviceRecords);
-$totalPages = ceil($totalRecords / $recordsPerPage);
-$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$currentPage = max(1, min($currentPage, $totalPages));
-$offset = ($currentPage - 1) * $recordsPerPage;
-$pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
+// Query to get reg_emp details from 'reg_emp' table
+$query_reg_emp = $conn->prepare("SELECT * FROM reg_emp WHERE personnel_id = ?");
+$query_reg_emp->bind_param("i", $employee['personnel_id']);
+$query_reg_emp->execute();
+$reg_emp = $query_reg_emp->get_result()->fetch_assoc();
+
+// Check employment type (e.g., 'regular', 'job_order', 'contract')
+$employment_type = ''; // Default to empty string
+if (isset($reg_emp['plantillaNo']) && !empty($reg_emp['plantillaNo'])) {
+    $employment_type = 'regular';
+} elseif (isset($employee['job_order']) && !empty($employee['job_order'])) {
+    $employment_type = 'job_order';
+} elseif (isset($employee['contract_status']) && !empty($employee['contract_status'])) {
+    $employment_type = 'contract';
+}
+
+// Query to get job order details from 'job_order' table if applicable
+$job_orders = [];
+if ($employment_type === 'job_order') {
+    $query_jo = $conn->prepare("SELECT * FROM job_order WHERE personnel_id = ?");
+    $query_jo->bind_param("i", $employee['personnel_id']);
+    $query_jo->execute();
+    $job_orders = $query_jo->get_result();
+}
+
+// Query to get contract details from 'contract_service' table if applicable
+$contracts = [];
+if ($employment_type === 'contract') {
+    $query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ?");
+    $query_cos->bind_param("i", $employee['personnel_id']);
+    $query_cos->execute();
+    $contracts = $query_cos->get_result();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,8 +71,13 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
   <title>Profile</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; }
+     body { font-family: Arial, sans-serif; margin: 0; }
     .header {
       background: #2C3E50;
       color: white;
@@ -143,6 +148,9 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
     .upload-overlay i { font-size: 18px; margin-bottom: 5px; }
     .profile-pic-container:hover .upload-overlay { opacity: 1; }
     .btn-container { text-align: right; }
+    .information-details p, .personnel-details p {
+      margin-bottom: 5px; /* Decrease the space between <p> tags */
+    }
     @media (max-width: 768px) {
       .content.shifted { margin-left: 0; }
     }
@@ -150,120 +158,95 @@ $pagedRecords = array_slice($serviceRecords, $offset, $recordsPerPage);
   </style>
 </head>
 <body>
+  <?php include __DIR__ . '/../hero/navbar.php'; ?>
+  <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
-<?php include __DIR__ . '/../hero/navbar.php'; ?>
-<?php include __DIR__ . '/../hero/sidebar.php'; ?>
+  <div class="content" id="content">
+    <!-- Header and Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+      <h4 class="mb-0" style="font-weight: bold;">Profile</h4>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Profile</li>
+        </ol>
+      </nav>
+    </div>
 
-<div class="content" id="content">
-  <!-- Header and Breadcrumb -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
-            <h4 class="mb-0" style="font-weight: bold;">Profile</h4>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Profile</li>
-            </ol>
-        </nav>
-        </div>
-  <div class="container mt-4">
-    <div class="row">
-      <div class="col-md-3">
-        <div class="card profile-card text-center">
-          <form method="POST" enctype="multipart/form-data">
-            <div class="profile-pic-container">
-              <img
-                id="profileImage"
-                src="<?php echo isset($_SESSION['uploaded_photo']) ? $_SESSION['uploaded_photo'] : '/assets/profile.jpg'; ?>"
-                alt="Profile Picture"
-                class="profile-img-preview"
-                style="object-position: 50% 50%;"
-              >
-              <label for="profileUpload" class="upload-overlay">
-                <i class="fas fa-camera"></i> Update Photo
-              </label>
-              <input
-                type="file"
-                id="profileUpload"
-                name="profile_picture"
-                accept="image/*"
-                class="d-none"
-                onchange="this.form.submit()"
-              >
-            </div>
-          </form>
-          <h5 class="mt-2"><?php echo $user['name']; ?></h5>
-          <p class="text-muted"><i><?php echo $user['email']; ?></i></p>
-          <hr>
-          <p><i class="fas fa-map-marker-alt"></i> <?php echo $user['location']; ?> &nbsp;|&nbsp; <i class="fas fa-phone"></i> <?php echo $user['phone']; ?></p>
-        </div>
-
-        <div class="card details-card mt-3">
-          <h6 class="fw-bold" style="font-size: 18px;">Personal Details</h6>
-          <hr>
-          <?php foreach ($user['details'] as $key => $value) { ?>
-            <p><strong><?php echo $key; ?>:</strong> <?php echo $value; ?></p>
-          <?php } ?>
-        </div>
-      </div>
-
-      <div class="col-md-9">
-        <div class="card p-3 profile-card">
-          <div class="btn-container">
-          <a href="/src/components/edit_regular.php" class="btn btn-success">Update</a>
-            <button class="btn btn-warning">Print</button>
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card profile-card text-center">
+            <form method="POST" enctype="multipart/form-data">
+              <div class="profile-pic-container">
+                <img
+                  id="profileImage"
+                  src="<?php echo isset($_SESSION['uploaded_photo']) ? $_SESSION['uploaded_photo'] : '/assets/profile.jpg'; ?>"
+                  alt="Profile Picture"
+                  class="profile-img-preview"
+                  style="object-position: 50% 50%;"
+                >
+                <label for="profileUpload" class="upload-overlay">
+                  <i class="fas fa-camera"></i> Update Photo
+                </label>
+                <input
+                  type="file"
+                  id="profileUpload"
+                  name="profile_picture"
+                  accept="image/*"
+                  class="d-none"
+                  onchange="this.form.submit()"
+                >
+              </div>
+            </form>
+            <h5 class="mt-2"><?php echo $employee['full_name']; ?></h5>
+            <p class="text-muted"><i><?php echo $employee['Emp_No']; ?></i></p>
+            <hr>
+            <p><i class="fas fa-map-marker-alt"></i> <?php echo $employee['address']; ?> &nbsp;|&nbsp; <i class="fas fa-phone"></i> <?php echo $employee['contact_number']; ?></p>
           </div>
-          <h5 class="fw-bold mt-3">Admin Data</h5>
-          <p><strong>Employee Number:</strong> <?php echo $adminData['employee_number']; ?></p>
-          <p><strong>Position:</strong> <?php echo $adminData['position']; ?></p>
-          <p><strong>Division:</strong> <?php echo $adminData['division']; ?></p>
 
-          <hr>
-          <h5 class="fw-bold">Service Record</h5>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Starting Date</th>
-                <th>Ending Date</th>
-                <th>Position</th>
-                <th>Division</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($pagedRecords as $record) { ?>
-                <tr>
-                  <td><?php echo $record['start']; ?></td>
-                  <td><?php echo $record['end']; ?></td>
-                  <td><?php echo $record['position']; ?></td>
-                  <td><?php echo $record['division']; ?></td>
-                </tr>
-              <?php } ?>
-            </tbody>
-          </table>
-          <nav class="pagination-container">
-            <ul class="pagination pagination-sm justify-content-center">
-              <?php if ($currentPage > 1): ?>
-                <li class="page-item">
-                  <a class="page-link prev-next" href="?page=<?php echo $currentPage - 1; ?>">« Prev</a>
-                </li>
-              <?php endif; ?>
-              <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <li class="page-item <?php echo ($i == $currentPage) ? 'active' : ''; ?>">
-                  <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                </li>
-              <?php endfor; ?>
-              <?php if ($currentPage < $totalPages): ?>
-                <li class="page-item">
-                  <a class="page-link prev-next" href="?page=<?php echo $currentPage + 1; ?>">Next »</a>
-                </li>
-              <?php endif; ?>
-            </ul>
-          </nav>
+          <div class="card details-card mt-3">
+            <h6 class="fw-bold" style="font-size: 18px;">Personal Details</h6>
+            <hr>
+            <p><strong>Sex:</strong> <?php echo $employee['sex']; ?></p>
+            <p><strong>Birthdate:</strong> <?php echo $employee['birthdate']; ?></p>
+          </div>
+        </div>
+
+        <div class="col-md-9">
+          <div class="card p-3 profile-card">
+            <div class="btn-container">
+              <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
+              <a href="/src/components/edit_regular.php" class="btn btn-success btn-sm">Update</a>
+              <a href="javascript:window.print()" class="btn btn-warning btn-sm">Print</a>
+            </div>
+
+            <!-- Salary Information (Always shown) -->
+            <h5 class="fw-bold mt-3">Information Details</h5>
+            <div class="information-details row">
+              <div class="col-md-6">
+              <p><strong>Position:</strong> <?php echo $employee['position']; ?></p>
+              <p><strong>Step:</strong> <?php echo $salary['step']; ?></p>
+              </div>
+              <div class="col-md-6">
+              <p><strong>Division:</strong> <?php echo $employee['division']; ?></p>
+              <p><strong>Level:</strong> <?php echo $salary['level']; ?></p>
+              </div>
+              <div class="col-md-6">
+              <p><strong>Salary Grade:</strong> <?php echo $salary['salaryGrade']; ?></p>
+              <p><strong>Monthly Salary:</strong> <?php echo $salary['monthlySalary']; ?></p>
+              </div>
+            </div>
+
+            <hr>
+
+            <?php include __DIR__ . '/service_record.php'; ?>
         </div>
       </div>
     </div>
   </div>
+
   <?php include __DIR__ . '/../hero/footer.php'; ?>
 </div>
-
 </body>
 </html>

@@ -1,35 +1,64 @@
 <?php
-$regulars = file_exists("regulars.json") ? json_decode(file_get_contents("regulars.json"), true) ?? [] : [];
-$jo = file_exists("jo.json") ? json_decode(file_get_contents("jo.json"), true) ?? [] : [];
-$cos = file_exists("cos.json") ? json_decode(file_get_contents("cos.json"), true) ?? [] : [];
+include_once __DIR__ . '/../../backend/db.php';
 
-if (is_array($regulars)) {
-    foreach ($regulars as &$r) {
-        $r['employment_type'] = 'Regular';
+// Fetch the personnel, salary, and reg_emp tables
+$personnel = [];
+$regulars = [];
+$job_order = [];
+$contract_service = [];
+
+$result = $conn->query("
+  SELECT 
+    p.Emp_No,
+    p.full_name,
+    p.contact_number,
+    p.position,
+    p.division,
+    r.plantillaNo
+    s.salaryGrade,
+    s.step,
+    s.level,
+    r.acaPera,
+    s.monthlySalary,
+    'Regular' AS employment_type
+  FROM reg_emp r
+  JOIN personnel p ON r.personnel_id = p.personnel_id
+  JOIN salary s ON r.salary_id = s.salary_id
+  UNION
+  SELECT 
+    p.Emp_No,
+    p.full_name,
+    p.contact_number,
+    p.position,
+    p.division,
+    s.salaryGrade,
+    s.step, -- Placeholder for missing column
+    s.level, -- Placeholder for missing column
+    s.extra_column_2, -- Placeholder for missing column
+    s.monthlySalary,
+    'Job Order' AS employment_type
+  FROM job_order r
+  JOIN personnel p ON r.personnel_id = p.personnel_id
+  JOIN salary s ON r.salary_id = s.salary_id
+  UNION
+  SELECT 
+    p.Emp_No,
+    p.full_name,
+    p.contact_number,
+    p.position,
+    p.division,
+    s.salaryRate,
+    'Contract of Service' AS employment_type
+  FROM contract_service r
+  JOIN personnel p ON r.personnel_id = p.personnel_id
+");
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $personnel[] = $row;
     }
-} else {
-    $regulars = [];
 }
-
-if (is_array($jo)) {
-    foreach ($jo as &$j) {
-        $j['employment_type'] = 'Job Order';
-    }
-} else {
-    $jo = [];
-}
-
-if (is_array($cos)) {
-    foreach ($cos as &$c) {
-        $c['employment_type'] = 'Contract of Service';
-    }
-} else {
-    $cos = [];
-}
-
-$personnel = array_merge($regulars, $jo, $cos);
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -172,5 +201,6 @@ $personnel = array_merge($regulars, $jo, $cos);
     });
   });
 </script>
+
 </body>
 </html>

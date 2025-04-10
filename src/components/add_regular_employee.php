@@ -2,6 +2,19 @@
 session_start();
 include_once __DIR__ . '/../../backend/db.php';
 
+// Fetch the ENUM values for the "sex" column
+$enum_values = [];
+$enum_query = $conn->query("SHOW COLUMNS FROM personnel LIKE 'sex'");
+$enum_result = $enum_query->fetch_assoc();
+if ($enum_result) {
+    preg_match('/^enum\((.*)\)$/', $enum_result['Type'], $matches);
+    if (isset($matches[1])) {
+        $enum_values = explode(",", $matches[1]);
+        // Remove the single quotes around each value
+        $enum_values = array_map(fn($value) => trim($value, "'"), $enum_values);
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $Emp_No = $_POST["Emp_No"] ?? '';
     $full_name = $_POST["full_name"] ?? '';
@@ -17,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $step = $_POST["step"] ?? '';
     $level = $_POST["level"] ?? '';
     $monthlySalary = $_POST["monthly_salary"] ?? '';
-
+    
     // Check if Emp_No already exists to prevent duplication
     $check = $conn->prepare("SELECT Emp_No FROM personnel WHERE Emp_No = ?");
     $check->bind_param("s", $Emp_No);
@@ -25,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $check->store_result();
     if ($check->num_rows > 0) {
         echo "<script>alert('Employee number already exists.');</script>";
+        echo "<script>window.location.href = '/src/components/manage_regEmp.php';</script>";
         exit();
     }
     $check->close();
@@ -37,8 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $personnel_id = $stmt1->insert_id;
 
         // Insert into salary
-        $stmt2 = $conn->prepare("INSERT INTO salary (personnel_id, salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
-        $stmt2->bind_param("iiiss", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
+        $stmt2 = $conn->prepare("INSERT INTO salary (salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
+        $stmt2->bind_param("iiiii", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
 
         if ($stmt2->execute()) {
             $salary_id = $stmt2->insert_id;
@@ -51,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 header("Location: manage_regEmp.php");
                 exit();
             } else {
-              echo "<script>alert('Error inserting into reg_emp: " . $stmt3->error . "');</script>";
+                echo "<script>alert('Error inserting into reg_emp: {$stmt3->error}');</script>";
             }
             $stmt3->close();
         } else {
@@ -117,15 +131,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <h5 class="fw-semibold mb-0">Add New Regular Employee</h5>
     <div class="breadcrumb-custom text-end">
       <a href="/src/index.php" class="breadcrumb-link">Home</a> /
-      <a href="#" class="breadcrumb-link">Manage</a> /
+      <a href="/src/components/manage_regEmp.php" class="breadcrumb-link">Manage</a> /
       <span class="text-dark">Add New Regular Employee</span>
     </div>
   </div>
 
   <div class="form-section">
     <form method="POST" action="">
-      <div class="row g-3">
-        <div class="col-md-6">
+      <div class="row g-2">
+        <div class="col-md-5">
           <label class="form-label">Emp_No</label>
           <input type="text" class="form-control" name="Emp_No" required>
         </div>
@@ -161,12 +175,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <div class="col-md-2">
             <label class="form-label">Sex</label>
             <select class="form-select" name="sex" required>
-              <option value="">Select</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
+              <option value="">Select Sex</option>
+              <?php
+                if ($enum_values) {
+                    foreach ($enum_values as $value) {
+                        echo "<option value=\"$value\">$value</option>";
+                    }
+                }
+              ?>
             </select>
-          </div>
-
+        </div>
           <div class="col-md-4">
             <label class="form-label">Birthdate</label>
             <input type="date" class="form-control" name="birthdate" required>
