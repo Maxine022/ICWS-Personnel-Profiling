@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 31, 2025 at 09:42 AM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Generation Time: Apr 10, 2025 at 08:15 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -84,7 +84,7 @@ CREATE TABLE `intern` (
 --
 
 CREATE TABLE `job_order` (
-  `jobOrder_id` int(5) NOT NULL,
+  `jo_id` int(5) NOT NULL,
   `personnel_id` int(5) DEFAULT NULL,
   `salary_id` int(5) DEFAULT NULL,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -99,15 +99,37 @@ CREATE TABLE `job_order` (
 
 CREATE TABLE `personnel` (
   `personnel_id` int(5) NOT NULL,
+  `Emp_No` varchar(10) NOT NULL,
+  `emp_type` enum('Regular','Job Order','Contract') NOT NULL,
+  `emp_status` enum('Active','Inactive') NOT NULL,
   `full_name` varchar(255) DEFAULT NULL,
   `position` varchar(255) DEFAULT NULL,
   `division` varchar(255) DEFAULT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
-  `sex` enum('M','F') DEFAULT NULL,
+  `sex` enum('Male','Female') DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
-  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel`
+--
+
+INSERT INTO `personnel` (`personnel_id`, `Emp_No`, `emp_type`, `emp_status`, `full_name`, `position`, `division`, `contact_number`, `sex`, `birthdate`, `address`, `createdAt`, `updatedAt`) VALUES
+(0, 'ICWS 001', 'Regular', 'Active', 'Maxine Joyce Lesondra', 'HR Officer', 'IT Division', '23', 'Female', '2322-02-23', '2', '2025-04-10 06:05:38', '2025-04-10 06:05:38');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `personnel_history`
+--
+
+CREATE TABLE `personnel_history` (
+  `history_id` int(5) NOT NULL,
+  `personnel_id` int(5) NOT NULL,
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -126,6 +148,13 @@ CREATE TABLE `reg_emp` (
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `reg_emp`
+--
+
+INSERT INTO `reg_emp` (`regEmp_id`, `personnel_id`, `salary_id`, `plantillaNo`, `acaPera`, `createdAt`, `updatedAt`) VALUES
+(0, 0, 0, 321, 2, '2025-04-10 06:05:38', '2025-04-10 06:05:38');
+
 -- --------------------------------------------------------
 
 --
@@ -138,9 +167,31 @@ CREATE TABLE `salary` (
   `salaryGrade` int(2) DEFAULT NULL,
   `step` enum('1','2','3','4','5','6','7','8') DEFAULT NULL,
   `level` int(10) DEFAULT NULL,
-  `monthlySalary` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `monthlySalary` bigint(8) NOT NULL,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `salary`
+--
+
+INSERT INTO `salary` (`salary_id`, `personnel_id`, `salaryGrade`, `step`, `level`, `monthlySalary`, `createdAt`, `updatedAt`) VALUES
+(0, 0, 2, '2', 2, 2, '2025-04-10 06:05:38', '2025-04-10 06:05:38');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `service_record`
+--
+
+CREATE TABLE `service_record` (
+  `record_id` int(5) NOT NULL,
+  `personnel_id` int(5) NOT NULL,
+  `startDate` date NOT NULL,
+  `endDate` date NOT NULL,
+  `position` varchar(255) NOT NULL,
+  `division` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -157,6 +208,13 @@ CREATE TABLE `user` (
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `remember_token` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user`
+--
+
+INSERT INTO `user` (`user_id`, `email`, `password`, `createdAt`, `updatedAt`, `remember_token`) VALUES
+(1, 'thea@gmail.com', '123', '2025-04-04 03:33:39', '2025-04-04 03:33:39', NULL);
 
 --
 -- Indexes for dumped tables
@@ -186,7 +244,7 @@ ALTER TABLE `intern`
 -- Indexes for table `job_order`
 --
 ALTER TABLE `job_order`
-  ADD PRIMARY KEY (`jobOrder_id`),
+  ADD PRIMARY KEY (`jo_id`),
   ADD KEY `personnel_id` (`personnel_id`),
   ADD KEY `salary_id` (`salary_id`);
 
@@ -195,6 +253,12 @@ ALTER TABLE `job_order`
 --
 ALTER TABLE `personnel`
   ADD PRIMARY KEY (`personnel_id`);
+
+--
+-- Indexes for table `personnel_history`
+--
+ALTER TABLE `personnel_history`
+  ADD PRIMARY KEY (`history_id`);
 
 --
 -- Indexes for table `reg_emp`
@@ -210,6 +274,13 @@ ALTER TABLE `reg_emp`
 ALTER TABLE `salary`
   ADD PRIMARY KEY (`salary_id`),
   ADD KEY `fk_salary_personnel` (`personnel_id`);
+
+--
+-- Indexes for table `service_record`
+--
+ALTER TABLE `service_record`
+  ADD PRIMARY KEY (`record_id`),
+  ADD KEY `personnel_id` (`personnel_id`);
 
 --
 -- Indexes for table `user`
@@ -243,25 +314,25 @@ ALTER TABLE `intern`
 -- AUTO_INCREMENT for table `job_order`
 --
 ALTER TABLE `job_order`
-  MODIFY `jobOrder_id` int(5) NOT NULL AUTO_INCREMENT;
+  MODIFY `jo_id` int(5) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `personnel`
+-- AUTO_INCREMENT for table `personnel_history`
 --
-ALTER TABLE `personnel`
-  MODIFY `personnel_id` int(5) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `personnel_history`
+  MODIFY `history_id` int(5) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `reg_emp`
+-- AUTO_INCREMENT for table `service_record`
 --
-ALTER TABLE `reg_emp`
-  MODIFY `regEmp_id` int(5) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `service_record`
+  MODIFY `record_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(5) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -271,7 +342,7 @@ ALTER TABLE `user`
 -- Constraints for table `coc`
 --
 ALTER TABLE `coc`
-  ADD CONSTRAINT `coc_ibfk_1` FOREIGN KEY (`jobOrder_id`) REFERENCES `job_order` (`jobOrder_id`);
+  ADD CONSTRAINT `coc_ibfk_1` FOREIGN KEY (`jobOrder_id`) REFERENCES `job_order` (`jo_id`);
 
 --
 -- Constraints for table `contract_service`
@@ -298,6 +369,12 @@ ALTER TABLE `reg_emp`
 --
 ALTER TABLE `salary`
   ADD CONSTRAINT `fk_salary_personnel` FOREIGN KEY (`personnel_id`) REFERENCES `personnel` (`personnel_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `service_record`
+--
+ALTER TABLE `service_record`
+  ADD CONSTRAINT `personnel_id` FOREIGN KEY (`personnel_id`) REFERENCES `personnel` (`personnel_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
