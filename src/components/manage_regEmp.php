@@ -4,7 +4,7 @@ $regulars = [];
 
 $result = $conn->query("
   SELECT 
-    p.Emp_No,
+    p.emp_no,
     p.full_name,
     p.sex,
     p.birthdate,
