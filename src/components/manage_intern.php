@@ -94,7 +94,6 @@ $interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.
           <th>Hours</th>
           <th>Division</th>
           <th>Supervisor</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -107,7 +106,6 @@ $interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.
             <td><?= htmlspecialchars($intern['number_of_hours']) ?></td>
             <td><?= htmlspecialchars($intern['division']) ?></td>
             <td><?= htmlspecialchars($intern['supervisor']) ?></td>
-            <td><a href="#" class="view-link">View Profile</a></td>
           </tr>
         <?php endforeach; ?>
       </tbody>

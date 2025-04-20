@@ -5,7 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $email = $_SESSION['email'] ?? 'Guest';
 ?>
-
 <style>
 /* Sidebar styles */
     .sidebar {

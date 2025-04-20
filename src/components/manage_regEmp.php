@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__ . '/../../backend/db.php';
+
 $regulars = [];
 
 $result = $conn->query("
@@ -51,7 +52,6 @@ $result = $conn->query("
   <style>
     body { 
       font-family: Arial; 
-      font-size: 14px;
     }
     .content {
       padding: 30px;
@@ -80,23 +80,8 @@ $result = $conn->query("
     .shadow-custom {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    .table-container {
-      table-layout: auto; /* Ensures columns resize based on content */
-      width: 100%; /* Ensures the table takes full width of the container */
-      margin: 0 auto; /* Centers the table within its parent container */
-    }
-    .table td, .table th {
-      text-align: center; /* Ensures content is centered in the cells */
-      vertical-align: middle; /* Ensures vertical alignment of text */
-      word-wrap: break-word; /* Prevents content from overflowing */
-      padding: 10px; /* Adds padding to table cells for better readability */
-    }
-    .table-container table {
-      width: 100%; /* Ensures the table width fits the container */
-      table-layout: auto; /* Auto-adjust the table layout based on the content */
-    }
     #personnelTable_wrapper {
-      overflow-x: auto; /* Enables horizontal scrolling if the table overflows */
+    overflow-x: auto; /* Enables horizontal scrolling if the table overflows */
     }
   </style>
 </head>
@@ -197,24 +182,24 @@ $result = $conn->query("
 <script>
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
-      "pageLength": 10, // Limit to 10 entries per page
-      dom:
-        "<'d-none'f>" +
-        "<'row'<'col-12'tr>>" +
-        "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
-      buttons: [
-        { extend: 'csv', className: 'd-none', title: 'Regular Employees' },
-        { extend: 'pdf', className: 'd-none', title: 'Regular Employees' },
-        { extend: 'print', className: 'd-none', title: 'Regular Employees' }
-      ]
+        "pageLength": 10,
+        dom:
+            "<'d-none'f>" +
+            "<'row'<'col-12'tr>>" +
+            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
+        buttons: [
+            { extend: 'csv', className: 'd-none', title: 'Regular Employees' },
+            { extend: 'pdf', className: 'd-none', title: 'Regular Employees' },
+            { extend: 'print', className: 'd-none', title: 'Regular Employees' }
+        ]
     });
 
     $('#customSearchContainer').append($('#personnelTable_filter input'));
     $('#personnelTable_filter').remove();
 
     $('.export-btn').on('click', function () {
-      const type = $(this).data('type');
-      table.button(`.buttons-${type}`).trigger();
+        const type = $(this).data('type');
+        table.button(`.buttons-${type}`).trigger();
     });
   });
 </script>

@@ -217,7 +217,7 @@ if ($employment_type === 'contract') {
           <div class="card p-3 profile-card">
             <div class="btn-container">
               <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
-              <a href="/src/components/edit_regular.php" class="btn btn-success btn-sm">Update</a>
+                <a href="/src/components/edit_regular.php?Emp_No=<?php echo $employee['Emp_No']; ?>" class="btn btn-success btn-sm">Update</a>
               <a href="javascript:window.print()" class="btn btn-warning btn-sm">Print</a>
             </div>
 
@@ -239,14 +239,12 @@ if ($employment_type === 'contract') {
             </div>
 
             <hr>
-
+            
             <?php include __DIR__ . '/service_record.php'; ?>
         </div>
       </div>
     </div>
-  </div>
-
-  <?php include __DIR__ . '/../hero/footer.php'; ?>
+  </div>  
 </div>
 </body>
 </html>

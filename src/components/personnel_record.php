@@ -10,16 +10,17 @@ $contract_service = [];
 $result = $conn->query("
   SELECT 
     p.Emp_No,
+    p.emp_status AS employment_status,
     p.full_name,
     p.contact_number,
     p.position,
     p.division,
-    r.plantillaNo
-    s.salaryGrade,
-    s.step,
-    s.level,
-    r.acaPera,
-    s.monthlySalary,
+    r.plantillaNo AS plantillaNo,
+    s.salaryGrade AS salaryGrade,
+    s.step AS step,
+    s.level AS level,
+    r.acaPera AS acaPera,
+    s.monthlySalary AS monthlySalary,
     'Regular' AS employment_type
   FROM reg_emp r
   JOIN personnel p ON r.personnel_id = p.personnel_id
@@ -27,15 +28,17 @@ $result = $conn->query("
   UNION
   SELECT 
     p.Emp_No,
+    p.emp_status AS employment_status,
     p.full_name,
     p.contact_number,
     p.position,
     p.division,
-    s.salaryGrade,
-    s.step, -- Placeholder for missing column
-    s.level, -- Placeholder for missing column
-    s.extra_column_2, -- Placeholder for missing column
-    s.monthlySalary,
+    NULL AS plantillaNo,
+    s.salaryGrade AS salaryGrade,
+    s.step AS step,
+    s.level AS level,
+    NULL AS acaPera,
+    s.monthlySalary AS monthlySalary,
     'Job Order' AS employment_type
   FROM job_order r
   JOIN personnel p ON r.personnel_id = p.personnel_id
@@ -43,14 +46,21 @@ $result = $conn->query("
   UNION
   SELECT 
     p.Emp_No,
+    p.emp_status AS employment_status,
     p.full_name,
     p.contact_number,
     p.position,
     p.division,
-    s.salaryRate,
+    NULL AS plantillaNo,
+    NULL AS salaryGrade,
+    NULL AS step,
+    NULL AS level,
+    NULL AS acaPera,
+    r.salaryRate AS monthlySalary,
     'Contract of Service' AS employment_type
   FROM contract_service r
   JOIN personnel p ON r.personnel_id = p.personnel_id
+  ORDER BY Emp_No DESC, full_name ASC
 ");
 
 if ($result && $result->num_rows > 0) {
@@ -74,7 +84,9 @@ if ($result && $result->num_rows > 0) {
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
   <style>
-    body { font-family: Arial; }
+    body { 
+      font-family: Arial;   
+    }
     .content {
       padding: 30px;
     }
@@ -100,7 +112,7 @@ if ($result && $result->num_rows > 0) {
       text-decoration: underline;
     }
     .table-container {
-      margin-top: 15px;
+      margin-top: 0px;
     }
     .search-buttons-container {
       margin-top: 25px;
@@ -144,23 +156,30 @@ if ($result && $result->num_rows > 0) {
           <th>Emp No</th>
           <th>Full Name</th>
           <th>Contact Number</th>
-          <th>Employment Type</th>
           <th>Position</th>
           <th>Division</th>
+          <th>Type</th>
+          <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($personnel as $index => $p): ?>
           <tr>
-            <td><?= $index + 1 ?></td>
+            <td><?= htmlspecialchars($p['Emp_No']) ?></td>
             <td><?= htmlspecialchars($p['full_name']) ?></td>
             <td><?= htmlspecialchars($p['contact_number']) ?></td>
-            <td><?= htmlspecialchars($p['employment_type']) ?></td>
             <td><?= htmlspecialchars($p['position']) ?></td>
             <td><?= htmlspecialchars($p['division']) ?></td>
-            <td><a href="#" class="view-link">View Profile</a></td>
-          </tr>
+            <td><?= htmlspecialchars($p['employment_type']) ?></td>
+            <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
+            <td>
+            <?php if (!empty($p['Emp_No'])): ?>
+              <a href="/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
+            <?php else: ?>
+              <span class="text-muted">Employee Not Found</span>
+            <?php endif; ?>
+          </td></tr>
         <?php endforeach; ?>
       </tbody>
     </table>

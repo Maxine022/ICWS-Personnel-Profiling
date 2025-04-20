@@ -1,153 +1,238 @@
 <?php
+include_once __DIR__ . '/../../backend/db.php';
+
+// Check database connection
+if ($conn->connect_error) {
+    die("Database connection failed: {$conn->connect_error}");
+}
+
+// Get the Emp_No from the query string
+$emp_no = $_GET['Emp_No'] ?? null;
+
+if (!$emp_no) {
+    die("<div class='alert alert-danger'>Emp_No is missing in the query string. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+}
+
+// Retrieve employee details from the database
+$query = $conn->prepare("
+    SELECT 
+        p.personnel_id, p.Emp_No, p.full_name, p.position, p.division, p.contact_number, 
+        r.plantillaNo, r.acaPera, 
+        s.salaryGrade, s.step, s.level, s.monthlySalary
+    FROM personnel p
+    LEFT JOIN reg_emp r ON p.personnel_id = r.personnel_id
+    LEFT JOIN salary s ON r.salary_id = s.salary_id
+    WHERE p.Emp_No = ?
+");
+$query->bind_param("s", $emp_no);
+
+if (!$query->execute()) {
+    die("Query execution failed: {$query->error}");
+}
+
+$result = $query->get_result();
+$employee = $result->fetch_assoc();
+
+if (!$employee) {
+    die("<div class='alert alert-danger'>Employee not found in the database. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+}
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fullName = $_POST["full_name"];
-    $position = $_POST["position"];
-    $division = $_POST["division"];
-    $plantillaNumber = $_POST["plantilla_number"];
-    $contactNumber = $_POST["contact_number"];
-    $salaryGrade = $_POST["salary_grade"];
-    $step = $_POST["step"];
-    $level = $_POST["level"];
-    $acaPera = $_POST["aca_pera"];
-    $monthlySalary = $_POST["monthly_salary"];
+    // Retrieve form data with default values to avoid warnings
+    $fullName = $_POST["full_name"] ?? null;
+    $position = $_POST["position"] ?? null;
+    $division = $_POST["division"] ?? null;
+    $plantillaNo = $_POST["plantilla_no"] ?? null;
+    $contactNumber = $_POST["contact_number"] ?? null;
+    $salaryGrade = $_POST["salary_grade"] ?? null;
+    $step = $_POST["step"] ?? null;
+    $level = $_POST["level"] ?? null;
+    $acaPera = $_POST["aca_pera"] ?? null;
+    $monthlySalary = $_POST["monthly_salary"] ?? null;
 
+    // Validate required fields
+    if (!$fullName || !$position || !$division) {
+        die("<div class='alert alert-danger'>Full Name, Position, and Division are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+    }
+
+    // Update the employee details in the database
+    $updatePersonnel = $conn->prepare("
+        UPDATE personnel 
+        SET full_name = ?, position = ?, division = ?, contact_number = ?
+        WHERE Emp_No = ?
+    ");
+    $updatePersonnel->bind_param(
+        "sssss",
+        $fullName,
+        $position,
+        $division,
+        $contactNumber,
+        $emp_no
+    );
+
+    $updateRegEmp = $conn->prepare("
+        UPDATE reg_emp 
+        SET plantillaNo = ?, acaPera = ?
+        WHERE personnel_id = ?
+    ");
+    $updateRegEmp->bind_param(
+        "iii",
+        $plantillaNo,
+        $acaPera,
+        $employee['personnel_id']
+    );
+
+    $updateSalary = $conn->prepare("
+        UPDATE salary 
+        SET salaryGrade = ?, step = ?, level = ?, monthlySalary = ?
+        WHERE personnel_id = ?
+    ");
+    $updateSalary->bind_param(
+        "iiiii",
+        $salaryGrade,
+        $step,
+        $level,
+        $monthlySalary,
+        $employee['personnel_id']
+    );
+
+    // Execute updates
     $success = true;
+    if (!$updatePersonnel->execute()) {
+        $success = false;
+        echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
+    }
+    if (!$updateRegEmp->execute()) {
+        $success = false;
+        echo "<div class='alert alert-danger'>Failed to update reg_emp details: {$updateRegEmp->error}</div>";
+    }
+    if (!$updateSalary->execute()) {
+        $success = false;
+        echo "<div class='alert alert-danger'>Failed to update salary details: {$updateSalary->error}</div>";
+    }
+
+    if ($success) {
+      echo "<div class='alert alert-success text-end' style='position: fixed; top: 10px; right: 10px; z-index: 1050; cursor: pointer;' onclick='this.style.display=\"none\";'>
+            <i class='fa fa-check-circle me-2'></i>Employee details have been successfully updated!
+        </div>";
+    }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Edit New Regular Employee</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .breadcrumb-custom {
-      font-size: 14px;
-      color: #6c757d;
-    }
-    .form-section {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    .btn-cancel {
-      background-color: #fff;
-      border: 1px solid #ced4da;
-      color: #000;
-    }
-    .btn-cancel:hover {
-      background-color: #f1f1f1;
-    }
-    .breadcrumb-link:hover {
-    color: #0d6efd; 
-    }
-    .breadcrumb-link {
-    transition: color 0.3s ease;
-    color: #6c757d;
-    }
-  </style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Employee</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Add custom styles for input fields */
+        input.form-control {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+        input.form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            background-color: #ffffff;
+        }
+        label.form-label {
+            font-weight: bold;
+            color: #black;
+        }
+        .breadcrumb-custom {
+          font-size: 14px;
+        }
+        .breadcrumb-link {
+          color: #6c757d;
+          text-decoration: none;
+        }
+        .breadcrumb-link:hover {
+          color: #0d6efd;
+        }
+    </style>
+  </head>
 <body>
-  <?php include __DIR__ . '/../hero/navbar.php'; ?>
-  <?php include __DIR__ . '/../hero/sidebar.php'; ?>
+<?php include_once __DIR__ . '/../hero/navbar.php'; ?>
+<?php include_once __DIR__ . '/../hero/sidebar.php'; ?>
 
-  <!-- Main Content -->
-  <div class="content" id="content">
-    <!-- Top Navigation Row with Breadcrumb aligned to the right -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="fw-bold fs-5">Update Regular Employee Information</div>
-    <div class="breadcrumb-custom text-end">
-      <a href="/src/index.php" class="text-decoration-none breadcrumb-link">Home</a>
-      <span class="mx-1">/</span>
-      <a href="#" class="text-decoration-none breadcrumb-link">Manage</a>
-      <span class="mx-1">/</span>
-      <span class="text-dark">Update Information</span>
+<div class="content" id="content">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <h4 class="mb-0" style="font-weight: bold;">Edit Employee</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+                <li class="breadcrumb mb-0"><a class="breadcrumb-link" href="/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>"> / Profile </a></li>
+                <li class="breadcrumb-item active" aria-current="page"> / Edit Employee</li>
+            </ol>     
+        </nav>
     </div>
-  </div>
-
-    <?php if (!empty($success)): ?>
-      <div class="alert alert-success">Employee details has been successfully updated!</div>
-    <?php endif; ?>
-
-    <div class="form-section">
-      <form method="POST" action="">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Full Name</label>
-            <input type="text" class="form-control" name="full_name" required>
+    <div class="row mt-3">
+        <form method="POST" action="">
+          <div class="mb-1">
+            <label for="Emp_No" class="form-label">Employee Number</label>
+            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Position</label>
-            <select class="form-select" name="position" required>
-              <option value="">Select Position</option>
-              <option value="HR Officer">HR Officer</option>
-              <option value="Admin Assistant">Admin Assistant</option>
-            </select>
+          <div class="mb-1">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Division</label>
-            <select class="form-select" name="division" required>
-              <option value="">Select Division</option>
-              <option value="IT Division">IT Division</option>
-              <option value="HR Division">HR Division</option>
-            </select>
+          <div class="mb-1">
+            <label for="position" class="form-label">Position</label>
+            <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($employee['position']); ?>" required>
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Plantilla Number</label>
-            <input type="text" class="form-control" name="plantilla_number">
+          <div class="mb-1">
+            <label for="division" class="form-label">Division</label>
+            <input type="text" class="form-control" id="division" name="division" value="<?php echo htmlspecialchars($employee['division']); ?>" required>
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Contact Number</label>
-            <input type="text" class="form-control" name="contact_number">
+          <div class="mb-1">
+            <label for="plantilla_no" class="form-label">Plantilla Number</label>
+            <input type="text" class="form-control" id="plantilla_no" name="plantilla_no" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
           </div>
-
-          <div class="col-md-2">
-            <label class="form-label">Salary Grade</label>
-            <input type="text" class="form-control" name="salary_grade">
+          <div class="mb-1">
+            <label for="contact_number" class="form-label">Contact Number</label>
+            <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
           </div>
-
-          <div class="col-md-2">
-            <label class="form-label">Step</label>
-            <input type="text" class="form-control" name="step">
+          <div class="mb-1">
+            <label for="salary_grade" class="form-label">Salary Grade</label>
+            <input type="text" class="form-control" id="salary_grade" name="salary_grade" value="<?php echo htmlspecialchars($employee['salaryGrade']); ?>">
           </div>
-
-          <div class="col-md-2">
-            <label class="form-label">Level</label>
-            <input type="text" class="form-control" name="level">
+          <div class="mb-1">
+            <label for="step" class="form-label">Step</label>
+            <input type="text" class="form-control" id="step" name="step" value="<?php echo htmlspecialchars($employee['step']); ?>">
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">ACA Pera</label>
-            <input type="text" class="form-control" name="aca_pera">
+          <div class="mb-1">
+            <label for="level" class="form-label">Level</label>
+            <input type="text" class="form-control" id="level" name="level" value="<?php echo htmlspecialchars($employee['level']); ?>">
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Monthly Salary</label>
-            <input type="text" class="form-control" name="monthly_salary">
+          <div class="mb-1">
+            <label for="aca_pera" class="form-label">ACA Pera</label>
+            <input type="text" class="form-control" id="aca_pera" name="aca_pera" value="<?php echo htmlspecialchars($employee['acaPera']); ?>">
           </div>
-        </div>
-
-        <div class="mt-4 d-flex gap-2">
-          <button type="submit" class="btn btn-success px-4">Save Changes</button>
-          <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
-        </div>
-      </form>
+          <div class="mb-1">
+            <label for="monthly_salary" class="form-label">Monthly Salary</label>
+            <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <?php
+          if ($_SERVER["REQUEST_METHOD"] == "POST" && $success) {
+            ob_start(); // Start output buffering
+            header("Location: /ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no));
+            exit();
+          }
+          ?>
+          <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+        </form>
+      </div>
     </div>
-  </div>
-
+</div>
 </body>
 </html>

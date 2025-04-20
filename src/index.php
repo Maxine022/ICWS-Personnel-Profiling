@@ -19,7 +19,7 @@ $internCount = $regularCount = $jobOrderCount = $contractCount = 0;
 
 if (is_array($personnelData)) {
     foreach ($personnelData as $person) {
-        switch ($person['type']) {
+        switch ($person['emp_type']) {
             case 'Regular': $regularCount++; break;
             case 'Job Order': $jobOrderCount++; break;
             case 'Contract': $contractCount++; break;
@@ -42,19 +42,18 @@ if (is_array($personnelData)) {
     <link rel="stylesheet" href="css/style.css">
     <!-- Bootstrap Bundle with Popper (must be loaded before dropdowns work) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </head>
 <body>
     <div class="content" id="content">
         <!-- Header and Breadcrumb -->
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <h4 class="mb-0" style="font-weight: bold;">Dashboard</h4>
-        <nav aria-label="breadcrumb">
+            <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
             </ol>
-        </nav>
+            </nav>
         </div>
 
         <div class="row mt-3">
@@ -71,7 +70,7 @@ if (is_array($personnelData)) {
             <div class="col-md-3">
                 <div class="card bg-success p-4">
                     <i class="fas fa-user"></i>
-                    <div class="text-start ms-4">
+                    <div class="text-start ms-1">
                         <h5 class="m-0">Job Order</h5>
                         <h3 class="m-0 fw-bold"><?php echo $jobOrderCount; ?></h3>
                     </div>
@@ -91,7 +90,7 @@ if (is_array($personnelData)) {
             <div class="col-md-3">
                 <div class="card bg-danger p-4">
                     <i class="fas fa-user"></i>
-                    <div class="text-start ms-4">
+                    <div class="text-start ms-1">
                         <h5 class="m-0">Intern</h5>
                         <h3 class="m-0 fw-bold"><?php echo $internCount; ?></h3>
                     </div>
@@ -101,7 +100,6 @@ if (is_array($personnelData)) {
         </div>
         <hr/>
     </div>
-    <?php include './hero/footer.php'; ?>
 </div>
 
     <script>
@@ -147,7 +145,7 @@ if (is_array($personnelData)) {
             height: 120px; 
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 15px; /* Add consistent spacing between the icon and text */
         }
         .card i {
             font-size: 50px;
@@ -155,6 +153,12 @@ if (is_array($personnelData)) {
             top: 25px;
             left: 15px;
         }
+        .card .text-start {
+        display: flex;
+        flex-direction: column; /* Stack the text vertically */
+        justify-content: center; /* Center the text vertically */
+        gap: 5px; /* Add spacing between the <h5> and <h3> */
+    }
         .card-overlay {
             position: absolute;
             bottom: 0;

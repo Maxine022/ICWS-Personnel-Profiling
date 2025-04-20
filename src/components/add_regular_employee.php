@@ -31,13 +31,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $level = $_POST["level"] ?? '';
     $monthlySalary = $_POST["monthly_salary"] ?? '';
     
-    // Check if Emp_No already exists to prevent duplication
-    $check = $conn->prepare("SELECT Emp_No FROM personnel WHERE Emp_No = ?");
-    $check->bind_param("s", $Emp_No);
+    // Check if Emp_No or full_name already exists to prevent duplication
+    $check = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ? OR full_name = ?");
+    $check->bind_param("ss", $Emp_No, $full_name);
     $check->execute();
     $check->store_result();
     if ($check->num_rows > 0) {
-        echo "<script>alert('Employee number already exists.');</script>";
+        echo "<script>alert('Employee number or name already exists.');</script>";
         echo "<script>window.location.href = '/src/components/manage_regEmp.php';</script>";
         exit();
     }
@@ -51,9 +51,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $personnel_id = $stmt1->insert_id;
 
         // Insert into salary
-        $stmt2 = $conn->prepare("INSERT INTO salary (salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
-        $stmt2->bind_param("iiiii", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
-
+        $stmt2 = $conn->prepare("INSERT INTO salary (personnel_id, salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
+        $stmt2->bind_param("iisis", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
+        
         if ($stmt2->execute()) {
             $salary_id = $stmt2->insert_id;
 
@@ -149,19 +149,45 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <input type="text" class="form-control" name="full_name" required>
         </div>
         <div class="col-md-6">
+        <?php
+          $positionFilePath = __DIR__ . '/ideas/position.php';
+          if (!file_exists($positionFilePath)) {
+              die("Error: position.php file not found.");
+          }
+          include_once $positionFilePath;
+        ?>
           <label class="form-label">Position</label>
           <select class="form-select" name="position" required>
             <option value="">Select Position</option>
-            <option value="HR Officer">HR Officer</option>
-            <option value="Admin Assistant">Admin Assistant</option>
+            <?php
+            if (class_exists('Position')) {
+          foreach (Position::cases() as $position) {
+              echo "<option value=\"{$position->value}\">{$position->value}</option>";
+          }
+            } else {
+          echo "<option value=\"\">Error: Position class not found.</option>";
+            }
+            ?>
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label">Division</label>
           <select class="form-select" name="division" required>
             <option value="">Select Division</option>
-            <option value="IT Division">IT Division</option>
-            <option value="HR Division">HR Division</option>
+            <?php
+            $divisionFilePath = __DIR__ . '/ideas/division.php';
+            if (!file_exists($divisionFilePath)) {
+          die("Error: division.php file not found.");
+            }
+            include_once $divisionFilePath;
+            if (class_exists('Division')) {
+          foreach (Division::cases() as $division) {
+              echo "<option value=\"{$division->value}\">{$division->value}</option>";
+          }
+            } else {
+          echo "<option value=\"\">Error: Division class not found.</option>";
+            }
+            ?>
           </select>
         </div>
         <div class="col-md-6">
@@ -199,21 +225,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <label class="form-label">Salary Grade</label>
           <input type="text" class="form-control" name="salaryGrade">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
           <label class="form-label">Step</label>
           <input type="text" class="form-control" name="step">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
           <label class="form-label">Level</label>
           <input type="text" class="form-control" name="level">
         </div>
+        <div class="col-md-2">
+          <label class="form-label">Monthly Salary</label>
+          <input type="text" class="form-control" name="monthly_salary">
+        </div>
+        
         <div class="col-md-6">
           <label class="form-label">ACA Pera</label>
           <input type="text" class="form-control" name="acaPera">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Monthly Salary</label>
-          <input type="text" class="form-control" name="monthly_salary">
         </div>
 
         <div class="mt-4 d-flex gap-2">
