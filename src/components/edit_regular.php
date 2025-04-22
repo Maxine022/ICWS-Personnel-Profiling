@@ -38,6 +38,7 @@ if (!$employee) {
 }
 
 // Handle form submission
+$success = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve form data with default values to avoid warnings
     $fullName = $_POST["full_name"] ?? null;
@@ -113,9 +114,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if ($success) {
-      echo "<div class='alert alert-success text-end' style='position: fixed; top: 10px; right: 10px; z-index: 1050; cursor: pointer;' onclick='this.style.display=\"none\";'>
-            <i class='fa fa-check-circle me-2'></i>Employee details have been successfully updated!
-        </div>";
+        echo "<div class='alert alert-success' role='alert'>
+                Employee details have been successfully updated!
+              </div>";
+        echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+        exit();
     }
 }
 ?>
@@ -158,6 +161,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .breadcrumb-link:hover {
           color: #0d6efd;
         }
+        .form-action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-start;
+        }
     </style>
   </head>
 <body>
@@ -176,7 +185,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </nav>
     </div>
     <div class="row mt-3">
-        <form method="POST" action="">
+        <form method="POST" action=" ">
           <div class="mb-1">
             <label for="Emp_No" class="form-label">Employee Number</label>
             <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
@@ -201,35 +210,145 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label for="contact_number" class="form-label">Contact Number</label>
             <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
           </div>
-          <div class="mb-1">
-            <label for="salary_grade" class="form-label">Salary Grade</label>
-            <input type="text" class="form-control" id="salary_grade" name="salary_grade" value="<?php echo htmlspecialchars($employee['salaryGrade']); ?>">
-          </div>
-          <div class="mb-1">
-            <label for="step" class="form-label">Step</label>
-            <input type="text" class="form-control" id="step" name="step" value="<?php echo htmlspecialchars($employee['step']); ?>">
-          </div>
-          <div class="mb-1">
-            <label for="level" class="form-label">Level</label>
-            <input type="text" class="form-control" id="level" name="level" value="<?php echo htmlspecialchars($employee['level']); ?>">
-          </div>
+          
+          <?php
+            // Include salary.php for salary data
+            $salaryFilePath = __DIR__ . '/ideas/salary.php'; // Adjust the path to the actual location of salary.php
+            if (!file_exists($salaryFilePath)) {
+                die("Error: salary.php file not found.");
+            }
+            include_once $salaryFilePath;
+
+            // Example employee data (replace this with your actual database fetching logic)
+            $employee = [
+                'salaryGrade' => 5,
+                'step' => 3,
+                'level' => 'Level 1',
+                'monthlySalary' => 0, // This will be calculated dynamically
+            ];
+
+            // Calculate the monthly salary based on the grade and step
+            if (
+                isset($employee['salaryGrade'], $employee['step']) &&
+                class_exists('SalaryGrade')
+            ) {
+                $salaryGrade = SalaryGrade::tryFrom((int)$employee['salaryGrade']);
+                if ($salaryGrade) {
+                    $steps = SalaryGrade::getStepsForGrade($salaryGrade);
+                    $stepIndex = (int)$employee['step'] - 1; // Step is 1-based index
+                    if (isset($steps[$stepIndex])) {
+                        $employee['monthlySalary'] = $steps[$stepIndex];
+                    }
+                }
+            }
+            ?>
+              <div class="mb-1">
+                  <label for="salary_grade" class="form-label">Salary Grade</label>
+                  <select class="form-control" id="salary_grade" name="salary_grade" required>
+                      <option value="">Select Grade</option>
+                      <?php
+                      foreach (SalaryGrade::cases() as $grade) {
+                          $selected = ((int)$employee['salaryGrade'] === $grade->value) ? 'selected' : '';
+                          echo "<option value=\"{$grade->value}\" $selected>Grade {$grade->value}</option>";
+                      }
+                      ?>
+                  </select>
+              </div>
+              <div class="mb-1">
+                  <label for="step" class="form-label">Step</label>
+                  <select class="form-control" id="step" name="step" required>
+                      <option value="">Select Step</option>
+                      <?php
+                      if (isset($salaryGrade)) {
+                          $steps = SalaryGrade::getStepsForGrade($salaryGrade);
+                          foreach ($steps as $index => $salary) {
+                              $stepNumber = $index + 1;
+                              $selected = ((int)$employee['step'] === $stepNumber) ? 'selected' : '';
+                              echo "<option value=\"$stepNumber\" $selected>Step $stepNumber</option>";
+                          }
+                      }
+                      ?>
+                  </select>
+              </div>
+              <div class="mb-1">
+                  <label for="level" class="form-label">Level</label>
+                  <input type="text" class="form-control" id="level" name="level" value="<?php echo htmlspecialchars($employee['level']); ?>" required>
+              </div>
+              <div class="mb-1">
+                  <label for="monthly_salary" class="form-label">Monthly Salary</label>
+                  <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>" readonly>
+              </div>
+
+            <script>
+                document.getElementById('salary_grade').addEventListener('change', function () {
+                    const salaryGrade = this.value;
+                    const stepSelect = document.getElementById('step');
+                    const monthlySalaryInput = document.getElementById('monthly_salary');
+
+                    // Reset step selection and salary
+                    stepSelect.innerHTML = '<option value="">Select Step</option>';
+                    stepSelect.disabled = true;
+                    monthlySalaryInput.value = '';
+
+                    if (salaryGrade) {
+                        // Fetch steps dynamically using predefined PHP logic
+                        <?php
+                        $jsSalaryData = [];
+                        foreach (SalaryGrade::cases() as $grade) {
+                            $jsSalaryData[$grade->value] = SalaryGrade::getStepsForGrade($grade);
+                        }
+                        echo "const salaryData = " . json_encode($jsSalaryData) . ";";
+                        ?>
+
+                        if (salaryData[salaryGrade]) {
+                            salaryData[salaryGrade].forEach((salary, index) => {
+                                const stepOption = document.createElement('option');
+                                stepOption.value = index + 1; // Step index starts from 1
+                                stepOption.textContent = `Step ${index + 1}`;
+                                stepSelect.appendChild(stepOption);
+                            });
+
+                            stepSelect.disabled = false;
+                        }
+                    }
+                });
+
+                document.getElementById('step').addEventListener('change', function () {
+                    const salaryGrade = document.getElementById('salary_grade').value;
+                    const step = this.value;
+
+                    if (salaryGrade && step) {
+                        <?php
+                        echo "const salaryData = " . json_encode($jsSalaryData) . ";";
+                        ?>
+
+                        const monthlySalary = salaryData[salaryGrade][step - 1];
+                        document.getElementById('monthly_salary').value = monthlySalary ?? '';
+                    } else {
+                        document.getElementById('monthly_salary').value = '';
+                    }
+                });
+
+                // Trigger initial calculation if editing an existing employee
+                document.addEventListener('DOMContentLoaded', function () {
+                    const salaryGrade = document.getElementById('salary_grade').value;
+                    const step = document.getElementById('step').value;
+                    if (salaryGrade && step) {
+                        const event = new Event('change');
+                        document.getElementById('salary_grade').dispatchEvent(event);
+                    }
+                });
+            </script>
+
           <div class="mb-1">
             <label for="aca_pera" class="form-label">ACA Pera</label>
             <input type="text" class="form-control" id="aca_pera" name="aca_pera" value="<?php echo htmlspecialchars($employee['acaPera']); ?>">
           </div>
-          <div class="mb-1">
-            <label for="monthly_salary" class="form-label">Monthly Salary</label>
-            <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>">
-          </div>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-          <?php
-          if ($_SERVER["REQUEST_METHOD"] == "POST" && $success) {
-            ob_start(); // Start output buffering
-            header("Location: /ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no));
-            exit();
-          }
-          ?>
-          <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+          
+          <div class="form-action-buttons">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+        </div>
         </form>
       </div>
     </div>

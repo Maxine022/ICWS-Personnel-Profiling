@@ -221,22 +221,91 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <input type="text" class="form-control" name="address" required>
           </div>
 
-        <div class="col-md-2">
-          <label class="form-label">Salary Grade</label>
-          <input type="text" class="form-control" name="salaryGrade">
-        </div>
-        <div class="col-md-1">
-          <label class="form-label">Step</label>
-          <input type="text" class="form-control" name="step">
-        </div>
-        <div class="col-md-1">
-          <label class="form-label">Level</label>
-          <input type="text" class="form-control" name="level">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Monthly Salary</label>
-          <input type="text" class="form-control" name="monthly_salary">
-        </div>
+          <?php
+            $salaryFilePath = __DIR__ . '/ideas/salary.php'; // Adjust the path to the actual location of salary.php
+            if (!file_exists($salaryFilePath)) {
+                die("Error: salary.php file not found.");
+            }
+            include_once $salaryFilePath;
+            ?>
+            <div class="col-md-2">
+                <label class="form-label">Salary Grade</label>
+                <select class="form-select" id="salaryGrade" name="salaryGrade" required>
+                    <option value="">Select</option>
+                    <?php
+                    // Populate salary grades dynamically
+                    foreach (SalaryGrade::cases() as $grade) {
+                        $selected = (isset($_POST['salaryGrade']) && $_POST['salaryGrade'] == $grade->value) ? 'selected' : '';
+                        echo "<option value=\"{$grade->value}\" $selected>Grade {$grade->value}</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Step</label>
+                <select class="form-select" id="step" name="step" required disabled>
+                    <option value="">Select</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Level</label>
+                <input type="text" class="form-control" name="level" placeholder="Level" value="<?php echo $_POST['level'] ?? ''; ?>" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Monthly Salary</label>
+                <input type="text" class="form-control" id="monthlySalary" name="monthly_salary" value="<?php echo $_POST['monthly_salary'] ?? ''; ?>" readonly>
+            </div>
+
+            <script>
+                document.getElementById('salaryGrade').addEventListener('change', function () {
+                    const salaryGrade = this.value;
+                    const stepSelect = document.getElementById('step');
+                    const monthlySalaryInput = document.getElementById('monthlySalary');
+
+                    // Reset step selection and salary
+                    stepSelect.innerHTML = '<option value="">Select</option>';
+                    stepSelect.disabled = true;
+                    monthlySalaryInput.value = '';
+
+                    if (salaryGrade) {
+                        // Fetch steps dynamically using predefined PHP logic
+                        <?php
+                        $jsSalaryData = [];
+                        foreach (SalaryGrade::cases() as $grade) {
+                            $jsSalaryData[$grade->value] = SalaryGrade::getStepsForGrade($grade);
+                        }
+                        echo "const salaryData = " . json_encode($jsSalaryData) . ";";
+                        ?>
+
+                        if (salaryData[salaryGrade]) {
+                            salaryData[salaryGrade].forEach((salary, index) => {
+                                const stepOption = document.createElement('option');
+                                stepOption.value = index + 1; // Step index starts from 1
+                                stepOption.textContent = `${index + 1}`;
+                                stepSelect.appendChild(stepOption);
+                            });
+
+                            stepSelect.disabled = false;
+                        }
+                    }
+                });
+
+                document.getElementById('step').addEventListener('change', function () {
+                    const salaryGrade = document.getElementById('salaryGrade').value;
+                    const step = this.value;
+
+                    if (salaryGrade && step) {
+                        <?php
+                        echo "const salaryData = " . json_encode($jsSalaryData) . ";";
+                        ?>
+
+                        const monthlySalary = salaryData[salaryGrade][step - 1];
+                        document.getElementById('monthlySalary').value = monthlySalary ?? '';
+                    } else {
+                        document.getElementById('monthlySalary').value = '';
+                    }
+                });
+            </script>
         
         <div class="col-md-6">
           <label class="form-label">ACA Pera</label>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 10, 2025 at 08:15 AM
+-- Generation Time: Apr 20, 2025 at 09:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -118,7 +118,12 @@ CREATE TABLE `personnel` (
 --
 
 INSERT INTO `personnel` (`personnel_id`, `Emp_No`, `emp_type`, `emp_status`, `full_name`, `position`, `division`, `contact_number`, `sex`, `birthdate`, `address`, `createdAt`, `updatedAt`) VALUES
-(0, 'ICWS 001', 'Regular', 'Active', 'Maxine Joyce Lesondra', 'HR Officer', 'IT Division', '23', 'Female', '2322-02-23', '2', '2025-04-10 06:05:38', '2025-04-10 06:05:38');
+(1, 'ICWS 001', 'Regular', 'Active', 'Jielven Rose Baraquel', 'IT Officer', 'IT Division', '09361796032', 'Female', '1211-12-23', '23', '2025-04-20 04:53:49', '2025-04-20 04:53:49'),
+(2, 'ICWS 002', 'Regular', 'Active', 'Maxine Joyce Lesondra', 'HR Officer', 'IT Division', '2', 'Female', '3211-02-23', '2', '2025-04-17 14:27:35', '2025-04-17 14:27:35'),
+(3, 'ICWS 003', 'Regular', 'Active', 'Thea Ancog', 'HR Officer', 'IT Division', '32', 'Female', '3121-12-23', 'd', '2025-04-17 14:44:58', '2025-04-17 14:44:58'),
+(4, 'ICWS 004', 'Regular', 'Active', 'Danny Boy Loberanes', 'HR Officer', 'IT Division', '232', 'Male', '0312-02-23', '2', '2025-04-20 02:42:27', '2025-04-20 02:42:27'),
+(5, 'TMX 132', 'Regular', 'Active', 'Jielven', 'HR Officer', 'IT Division', '41', 'Female', '3433-03-24', 'yg', '2025-04-20 06:03:45', '2025-04-20 06:03:45'),
+(6, 'FJS2', 'Regular', 'Active', 'Jielven Rose Baraquel', 'HR Officer', 'IT Division', '09361796032', 'Female', '2002-10-17', 'Magoong, Linamon, Lanao del Nrote', '2025-04-20 06:37:14', '2025-04-20 06:37:14');
 
 -- --------------------------------------------------------
 
@@ -153,7 +158,13 @@ CREATE TABLE `reg_emp` (
 --
 
 INSERT INTO `reg_emp` (`regEmp_id`, `personnel_id`, `salary_id`, `plantillaNo`, `acaPera`, `createdAt`, `updatedAt`) VALUES
-(0, 0, 0, 321, 2, '2025-04-10 06:05:38', '2025-04-10 06:05:38');
+(1, 7, 2, 232, 2, '2025-04-17 14:16:46', '2025-04-17 14:16:46'),
+(2, 1, 4, 3, 0, '2025-04-17 14:27:13', '2025-04-20 04:27:24'),
+(3, 2, 5, 232, 2, '2025-04-17 14:27:35', '2025-04-17 14:27:35'),
+(4, 3, 6, 123, 2, '2025-04-17 14:44:58', '2025-04-17 14:44:58'),
+(5, 4, 7, 123, 2, '2025-04-20 02:42:27', '2025-04-20 02:42:27'),
+(6, 5, 8, 5, 2, '2025-04-20 06:03:45', '2025-04-20 06:03:45'),
+(7, 6, 9, 0, 2, '2025-04-20 06:37:14', '2025-04-20 06:38:03');
 
 -- --------------------------------------------------------
 
@@ -166,9 +177,9 @@ CREATE TABLE `salary` (
   `personnel_id` int(5) DEFAULT NULL,
   `salaryGrade` int(2) DEFAULT NULL,
   `step` enum('1','2','3','4','5','6','7','8') DEFAULT NULL,
-  `level` int(10) DEFAULT NULL,
+  `level` int(2) DEFAULT NULL,
   `monthlySalary` bigint(8) NOT NULL,
-  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -177,7 +188,14 @@ CREATE TABLE `salary` (
 --
 
 INSERT INTO `salary` (`salary_id`, `personnel_id`, `salaryGrade`, `step`, `level`, `monthlySalary`, `createdAt`, `updatedAt`) VALUES
-(0, 0, 2, '2', 2, 2, '2025-04-10 06:05:38', '2025-04-10 06:05:38');
+(2, 7, 22, '', 0, 2, '2025-04-17 14:16:46', '2025-04-17 14:16:46'),
+(3, 8, 2, '2', 2, 2, '2025-04-17 14:19:16', '2025-04-17 14:19:16'),
+(4, 1, 0, '2', 2, 0, '2025-04-20 04:30:22', '2025-04-20 04:30:22'),
+(5, 2, 2, '2', 2, 2, '2025-04-17 14:27:35', '2025-04-17 14:27:35'),
+(6, 3, 2, '2', 2, 2, '2025-04-17 14:44:58', '2025-04-17 14:44:58'),
+(7, 4, 2, '2', 2, 2, '2025-04-20 02:42:27', '2025-04-20 02:42:27'),
+(8, 5, 2, '2', 2, 2, '2025-04-20 06:03:45', '2025-04-20 06:03:45'),
+(9, 6, 2, '2', 2, 2, '2025-04-20 06:37:14', '2025-04-20 06:37:14');
 
 -- --------------------------------------------------------
 
@@ -193,6 +211,17 @@ CREATE TABLE `service_record` (
   `position` varchar(255) NOT NULL,
   `division` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `service_record`
+--
+
+INSERT INTO `service_record` (`record_id`, `personnel_id`, `startDate`, `endDate`, `position`, `division`) VALUES
+(29, 5, '2025-04-03', '2025-04-16', 'HR Assistant', 'HR '),
+(30, 5, '2025-04-03', '2025-04-16', 'HR Assistant', 'HR '),
+(31, 5, '2025-04-10', '2025-04-21', 'HR Assistant', 'HR '),
+(32, 5, '2025-04-10', '2025-04-21', 'HR Assistant', 'HR '),
+(33, 6, '2025-04-04', '2025-04-20', 'HR Assistant', 'HR ');
 
 -- --------------------------------------------------------
 
@@ -317,16 +346,34 @@ ALTER TABLE `job_order`
   MODIFY `jo_id` int(5) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `personnel`
+--
+ALTER TABLE `personnel`
+  MODIFY `personnel_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `personnel_history`
 --
 ALTER TABLE `personnel_history`
   MODIFY `history_id` int(5) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `reg_emp`
+--
+ALTER TABLE `reg_emp`
+  MODIFY `regEmp_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `salary`
+--
+ALTER TABLE `salary`
+  MODIFY `salary_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
 -- AUTO_INCREMENT for table `service_record`
 --
 ALTER TABLE `service_record`
-  MODIFY `record_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `record_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `user`

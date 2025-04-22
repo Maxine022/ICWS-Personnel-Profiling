@@ -239,7 +239,6 @@ if ($employment_type === 'contract') {
             </div>
 
             <hr>
-            
             <?php include __DIR__ . '/service_record.php'; ?>
         </div>
       </div>
