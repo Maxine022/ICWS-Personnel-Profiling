@@ -1,6 +1,32 @@
 <?php
-// Load interns data from JSON
-$interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.json"), true) : [];
+// Start session and include database connection
+session_start();
+include_once __DIR__ . '/../../backend/db.php';
+
+// Fetch interns data from the database
+$interns = [];
+$sql = "SELECT 
+            fullName,
+            contactNo,
+            school, 
+            course,
+            hoursNo,
+            startDate,
+            endDate,
+            division, 
+            supervisor
+        FROM intern";
+
+$result = $conn->query($sql);
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $interns[] = $row;
+    }
+} else {
+    // Handle no data or query error
+    $error = $conn->error ? "Database Error: {$conn->error}" : "No interns found.";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,6 +90,13 @@ $interns = file_exists("interns.json") ? json_decode(file_get_contents("interns.
       </ol>
     </nav>
   </div>
+
+  <!-- Display Error if Exists -->
+  <?php if (isset($error)): ?>
+    <div class="alert alert-danger" role="alert">
+        <?= htmlspecialchars($error) ?>
+    </div>
+  <?php endif; ?>
 
   <div class="search-buttons-container row align-items-center mb-4">
     <div class="col-md-6 d-flex align-items-center gap-2">

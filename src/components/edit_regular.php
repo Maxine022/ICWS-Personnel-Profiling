@@ -3,7 +3,7 @@ include_once __DIR__ . '/../../backend/db.php';
 
 // Check database connection
 if ($conn->connect_error) {
-    die("Database connection failed: {$conn->connect_error}");
+    die("<div class='alert alert-danger'>Database connection failed: {$conn->connect_error}</div>");
 }
 
 // Get the Emp_No from the query string
@@ -13,21 +13,39 @@ if (!$emp_no) {
     die("<div class='alert alert-danger'>Emp_No is missing in the query string. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
 }
 
+// Fetch the ENUM values for the "sex" column
+$enum_values = [];
+$enum_query = $conn->query("SHOW COLUMNS FROM personnel LIKE 'sex'");
+$enum_result = $enum_query->fetch_assoc();
+if ($enum_result) {
+    preg_match('/^enum\((.*)\)$/', $enum_result['Type'], $matches);
+    if (isset($matches[1])) {
+        $enum_values = explode(",", $matches[1]);
+        // Remove the single quotes around each value
+        $enum_values = array_map(fn($value) => trim($value, "'"), $enum_values);
+    }
+}
+
 // Retrieve employee details from the database
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.position, p.division, p.contact_number, 
-        r.plantillaNo, r.acaPera, 
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.division, p.emp_status, p.contact_number, p.address,
+        r.plantillaNo, r.acaPera, r.salary_id,
         s.salaryGrade, s.step, s.level, s.monthlySalary
     FROM personnel p
     LEFT JOIN reg_emp r ON p.personnel_id = r.personnel_id
     LEFT JOIN salary s ON r.salary_id = s.salary_id
     WHERE p.Emp_No = ?
 ");
+
+if (!$query) {
+    die("<div class='alert alert-danger'>Failed to prepare the query: {$conn->error}</div>");
+}
+
 $query->bind_param("s", $emp_no);
 
 if (!$query->execute()) {
-    die("Query execution failed: {$query->error}");
+    die("<div class='alert alert-danger'>Query execution failed: {$query->error}</div>");
 }
 
 $result = $query->get_result();
@@ -37,6 +55,17 @@ if (!$employee) {
     die("<div class='alert alert-danger'>Employee not found in the database. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
 }
 
+// Fetch salary data for dynamic dropdowns
+$jsSalaryData = [];
+include_once __DIR__ . '/ideas/salary.php';
+if (class_exists('SalaryGrade')) {
+    foreach (SalaryGrade::cases() as $grade) {
+        $jsSalaryData[$grade->value] = SalaryGrade::getStepsForGrade($grade);
+    }
+} else {
+    die("<div class='alert alert-danger'>Error: SalaryGrade class not found in salary.php.</div>");
+}
+
 // Handle form submission
 $success = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -44,31 +73,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST["full_name"] ?? null;
     $position = $_POST["position"] ?? null;
     $division = $_POST["division"] ?? null;
-    $plantillaNo = $_POST["plantilla_no"] ?? null;
+    $sex = $_POST["sex"] ?? null;
+    $birthdate = $_POST["birthdate"] ?? null;
+    $address = $_POST["address"] ?? null;
+    $emp_status = $_POST["emp_status"] ?? null;
+    $plantillaNo = $_POST["plantillaNo"] ?? null;
     $contactNumber = $_POST["contact_number"] ?? null;
     $salaryGrade = $_POST["salary_grade"] ?? null;
     $step = $_POST["step"] ?? null;
     $level = $_POST["level"] ?? null;
     $acaPera = $_POST["aca_pera"] ?? null;
-    $monthlySalary = $_POST["monthly_salary"] ?? null;
+    $monthlySalary = $_POST["monthly_salary"] ?? 0;
 
     // Validate required fields
-    if (!$fullName || !$position || !$division) {
-        die("<div class='alert alert-danger'>Full Name, Position, and Division are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+    if (!$fullName || !$position || !$division || !$sex || !$birthdate || !$emp_status) {
+        die("<div class='alert alert-danger'>Full Name, Position, Division, Sex, Birthdate, and Status are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
     }
 
-    // Update the employee details in the database
+    // Prepare statements for updating the database
     $updatePersonnel = $conn->prepare("
         UPDATE personnel 
-        SET full_name = ?, position = ?, division = ?, contact_number = ?
+        SET full_name = ?, position = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
         WHERE Emp_No = ?
     ");
+
+    if (!$updatePersonnel) {
+        die("<div class='alert alert-danger'>Failed to prepare personnel update query: {$conn->error}</div>");
+    }
+
     $updatePersonnel->bind_param(
-        "sssss",
+        "sssssssss",
         $fullName,
         $position,
         $division,
         $contactNumber,
+        $sex,
+        $birthdate,
+        $emp_status,
+        $address,
         $emp_no
     );
 
@@ -77,8 +119,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         SET plantillaNo = ?, acaPera = ?
         WHERE personnel_id = ?
     ");
+
+    if (!$updateRegEmp) {
+        die("<div class='alert alert-danger'>Failed to prepare reg_emp update query: {$conn->error}</div>");
+    }
+
     $updateRegEmp->bind_param(
-        "iii",
+        "isi",
         $plantillaNo,
         $acaPera,
         $employee['personnel_id']
@@ -87,15 +134,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $updateSalary = $conn->prepare("
         UPDATE salary 
         SET salaryGrade = ?, step = ?, level = ?, monthlySalary = ?
-        WHERE personnel_id = ?
+        WHERE salary_id = ?
     ");
+
+    if (!$updateSalary) {
+        die("<div class='alert alert-danger'>Failed to prepare salary update query: {$conn->error}</div>");
+    }
+
     $updateSalary->bind_param(
         "iiiii",
         $salaryGrade,
         $step,
         $level,
         $monthlySalary,
-        $employee['personnel_id']
+        $employee['salary_id']
     );
 
     // Execute updates
@@ -122,7 +174,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,8 +182,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Edit Employee</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         /* Add custom styles for input fields */
         input.form-control {
@@ -168,7 +217,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             justify-content: flex-start;
         }
     </style>
-  </head>
+</head>
 <body>
 <?php include_once __DIR__ . '/../hero/navbar.php'; ?>
 <?php include_once __DIR__ . '/../hero/sidebar.php'; ?>
@@ -184,174 +233,119 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </ol>     
         </nav>
     </div>
-    <div class="row mt-3">
-        <form method="POST" action=" ">
-          <div class="mb-1">
+    <form method="POST">
+        <div class="mb-3">
             <label for="Emp_No" class="form-label">Employee Number</label>
             <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
-          </div>
-          <div class="mb-1">
+        </div>
+        <div class="mb-3">
             <label for="full_name" class="form-label">Full Name</label>
             <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
-          </div>
-          <div class="mb-1">
+        </div>
+        <div class="mb-3">
+            <label for="sex" class="form-label">Sex</label>
+            <select class="form-control" id="sex" name="sex" required>
+                <option value="">Select Sex</option>
+                <option value="Male" <?php echo ($employee['sex'] === 'Male') ? 'selected' : ''; ?>>Male</option>
+                <option value="Female" <?php echo ($employee['sex'] === 'Female') ? 'selected' : ''; ?>>Female</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="birthdate" class="form-label">Birthdate</label>
+            <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <input type="address" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>" required>
+        </div>
+        <div class="mb-3">
             <label for="position" class="form-label">Position</label>
             <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($employee['position']); ?>" required>
-          </div>
-          <div class="mb-1">
+        </div>
+        <div class="mb-3">
             <label for="division" class="form-label">Division</label>
             <input type="text" class="form-control" id="division" name="division" value="<?php echo htmlspecialchars($employee['division']); ?>" required>
-          </div>
-          <div class="mb-1">
-            <label for="plantilla_no" class="form-label">Plantilla Number</label>
-            <input type="text" class="form-control" id="plantilla_no" name="plantilla_no" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
-          </div>
-          <div class="mb-1">
+        </div>
+        <div class="mb-3">
+            <label for="emp_status" class="form-label">Status</label>
+            <select class="form-control" id="emp_status" name="emp_status" required>
+                <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
+                <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="plantillaNo" class="form-label">Plantilla Number</label>
+            <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
+        </div>
+        <div class="mb-3">
             <label for="contact_number" class="form-label">Contact Number</label>
             <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
-          </div>
-          
-          <?php
-            // Include salary.php for salary data
-            $salaryFilePath = __DIR__ . '/ideas/salary.php'; // Adjust the path to the actual location of salary.php
-            if (!file_exists($salaryFilePath)) {
-                die("Error: salary.php file not found.");
-            }
-            include_once $salaryFilePath;
-
-            // Example employee data (replace this with your actual database fetching logic)
-            $employee = [
-                'salaryGrade' => 5,
-                'step' => 3,
-                'level' => 'Level 1',
-                'monthlySalary' => 0, // This will be calculated dynamically
-            ];
-
-            // Calculate the monthly salary based on the grade and step
-            if (
-                isset($employee['salaryGrade'], $employee['step']) &&
-                class_exists('SalaryGrade')
-            ) {
-                $salaryGrade = SalaryGrade::tryFrom((int)$employee['salaryGrade']);
-                if ($salaryGrade) {
-                    $steps = SalaryGrade::getStepsForGrade($salaryGrade);
-                    $stepIndex = (int)$employee['step'] - 1; // Step is 1-based index
-                    if (isset($steps[$stepIndex])) {
-                        $employee['monthlySalary'] = $steps[$stepIndex];
+        </div>
+        <div class="mb-3">
+            <label for="salary_grade" class="form-label">Salary Grade</label>
+            <select class="form-control" id="salary_grade" name="salary_grade" required>
+                <option value="">Select Grade</option>
+                <?php
+                foreach (SalaryGrade::cases() as $grade) {
+                    $selected = ((int)$employee['salaryGrade'] === $grade->value) ? 'selected' : '';
+                    echo "<option value=\"{$grade->value}\" $selected>Grade {$grade->value}</option>";
+                }
+                ?>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="step" class="form-label">Step</label>
+            <select class="form-control" id="step" name="step" required>
+                <option value="">Select Step</option>
+                <?php
+                $salaryGradeObj = SalaryGrade::tryFrom((int)$employee['salaryGrade']);
+                if ($salaryGradeObj) {
+                    $steps = SalaryGrade::getStepsForGrade($salaryGradeObj);
+                    foreach ($steps as $index => $salary) {
+                        $stepNumber = $index + 1;
+                        $selected = ((int)$employee['step'] === $stepNumber) ? 'selected' : '';
+                        echo "<option value=\"$stepNumber\" $selected>Step $stepNumber</option>";
                     }
                 }
-            }
-            ?>
-              <div class="mb-1">
-                  <label for="salary_grade" class="form-label">Salary Grade</label>
-                  <select class="form-control" id="salary_grade" name="salary_grade" required>
-                      <option value="">Select Grade</option>
-                      <?php
-                      foreach (SalaryGrade::cases() as $grade) {
-                          $selected = ((int)$employee['salaryGrade'] === $grade->value) ? 'selected' : '';
-                          echo "<option value=\"{$grade->value}\" $selected>Grade {$grade->value}</option>";
-                      }
-                      ?>
-                  </select>
-              </div>
-              <div class="mb-1">
-                  <label for="step" class="form-label">Step</label>
-                  <select class="form-control" id="step" name="step" required>
-                      <option value="">Select Step</option>
-                      <?php
-                      if (isset($salaryGrade)) {
-                          $steps = SalaryGrade::getStepsForGrade($salaryGrade);
-                          foreach ($steps as $index => $salary) {
-                              $stepNumber = $index + 1;
-                              $selected = ((int)$employee['step'] === $stepNumber) ? 'selected' : '';
-                              echo "<option value=\"$stepNumber\" $selected>Step $stepNumber</option>";
-                          }
-                      }
-                      ?>
-                  </select>
-              </div>
-              <div class="mb-1">
-                  <label for="level" class="form-label">Level</label>
-                  <input type="text" class="form-control" id="level" name="level" value="<?php echo htmlspecialchars($employee['level']); ?>" required>
-              </div>
-              <div class="mb-1">
-                  <label for="monthly_salary" class="form-label">Monthly Salary</label>
-                  <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>" readonly>
-              </div>
-
-            <script>
-                document.getElementById('salary_grade').addEventListener('change', function () {
-                    const salaryGrade = this.value;
-                    const stepSelect = document.getElementById('step');
-                    const monthlySalaryInput = document.getElementById('monthly_salary');
-
-                    // Reset step selection and salary
-                    stepSelect.innerHTML = '<option value="">Select Step</option>';
-                    stepSelect.disabled = true;
-                    monthlySalaryInput.value = '';
-
-                    if (salaryGrade) {
-                        // Fetch steps dynamically using predefined PHP logic
-                        <?php
-                        $jsSalaryData = [];
-                        foreach (SalaryGrade::cases() as $grade) {
-                            $jsSalaryData[$grade->value] = SalaryGrade::getStepsForGrade($grade);
-                        }
-                        echo "const salaryData = " . json_encode($jsSalaryData) . ";";
-                        ?>
-
-                        if (salaryData[salaryGrade]) {
-                            salaryData[salaryGrade].forEach((salary, index) => {
-                                const stepOption = document.createElement('option');
-                                stepOption.value = index + 1; // Step index starts from 1
-                                stepOption.textContent = `Step ${index + 1}`;
-                                stepSelect.appendChild(stepOption);
-                            });
-
-                            stepSelect.disabled = false;
-                        }
-                    }
-                });
-
-                document.getElementById('step').addEventListener('change', function () {
-                    const salaryGrade = document.getElementById('salary_grade').value;
-                    const step = this.value;
-
-                    if (salaryGrade && step) {
-                        <?php
-                        echo "const salaryData = " . json_encode($jsSalaryData) . ";";
-                        ?>
-
-                        const monthlySalary = salaryData[salaryGrade][step - 1];
-                        document.getElementById('monthly_salary').value = monthlySalary ?? '';
-                    } else {
-                        document.getElementById('monthly_salary').value = '';
-                    }
-                });
-
-                // Trigger initial calculation if editing an existing employee
-                document.addEventListener('DOMContentLoaded', function () {
-                    const salaryGrade = document.getElementById('salary_grade').value;
-                    const step = document.getElementById('step').value;
-                    if (salaryGrade && step) {
-                        const event = new Event('change');
-                        document.getElementById('salary_grade').dispatchEvent(event);
-                    }
-                });
-            </script>
-
-          <div class="mb-1">
+                ?>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="level" class="form-label">Level</label>
+            <input type="text" class="form-control" id="level" name="level" value="<?php echo htmlspecialchars($employee['level']); ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="monthly_salary" class="form-label">Monthly Salary</label>
+            <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>" readonly>
+        </div>
+        <div class="mb-3">
             <label for="aca_pera" class="form-label">ACA Pera</label>
             <input type="text" class="form-control" id="aca_pera" name="aca_pera" value="<?php echo htmlspecialchars($employee['acaPera']); ?>">
-          </div>
-          
-          <div class="form-action-buttons">
+        </div>
+        <div class="form-action-buttons">
             <button type="submit" class="btn btn-primary">Save Changes</button>
             <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
         </div>
-        </form>
-      </div>
-    </div>
+    </form>
 </div>
+<script>
+document.getElementById('salary_grade').addEventListener('change', function () {
+    const salaryGrade = this.value;
+    const stepSelect = document.getElementById('step');
+    const monthlySalaryInput = document.getElementById('monthly_salary');
+    stepSelect.innerHTML = '<option value="">Select Step</option>';
+    if (salaryGrade) {
+        <?php echo "const salaryData = " . json_encode($jsSalaryData) . ";"; ?>
+        if (salaryData[salaryGrade]) {
+            salaryData[salaryGrade].forEach((salary, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1;
+                option.textContent = `Step ${index + 1}`;
+                stepSelect.appendChild(option);
+            });
+        }
+    }
+});
+</script>
 </body>
 </html>

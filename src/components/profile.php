@@ -4,6 +4,7 @@ include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection fi
 
 // Assume the employee's Emp_No is passed via GET parameter
 $emp_no = $_GET['Emp_No'] ?? null; // Get Emp_No from GET parameter
+$action = $_GET['action'] ?? null;
 
 if (!$emp_no) {
     echo "Employee not found.";
@@ -34,6 +35,10 @@ $query_reg_emp->bind_param("i", $employee['personnel_id']);
 $query_reg_emp->execute();
 $reg_emp = $query_reg_emp->get_result()->fetch_assoc();
 
+// Access plantillaNo and acaPera
+$plantillaNo = $reg_emp['plantillaNo'] ?? null; // Handle case where it's null
+$acaPera = $reg_emp['acaPera'] ?? null; // Handle case where it's null
+
 // Check employment type (e.g., 'regular', 'job_order', 'contract')
 $employment_type = ''; // Default to empty string
 if (isset($reg_emp['plantillaNo']) && !empty($reg_emp['plantillaNo'])) {
@@ -60,6 +65,60 @@ if ($employment_type === 'contract') {
     $query_cos->bind_param("i", $employee['personnel_id']);
     $query_cos->execute();
     $contracts = $query_cos->get_result();
+}
+
+// If the action is not explicitly "delete," do not execute the delete logic
+if ($action === 'delete') {
+  // Begin database transaction
+  $conn->begin_transaction();
+
+  try {
+      // Query to get the personnel_id for the given Emp_No
+      $query_personnel = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ?");
+      $query_personnel->bind_param("s", $emp_no);
+      $query_personnel->execute();
+      $result = $query_personnel->get_result();
+      $personnel = $result->fetch_assoc();
+
+      if (!$personnel) {
+          throw new Exception("Employee not found.");
+      }
+
+      $personnel_id = $personnel['personnel_id'];
+
+      // Delete from dependent tables in the correct order
+      // Step 1: Delete from reg_emp table
+      $query_reg_emp = $conn->prepare("DELETE FROM reg_emp WHERE personnel_id = ?");
+      $query_reg_emp->bind_param("i", $personnel_id);
+      if (!$query_reg_emp->execute()) {
+          throw new Exception("Failed to delete from reg_emp: " . $query_reg_emp->error);
+      }
+
+      // Step 2: Delete from salary table
+      $query_salary = $conn->prepare("DELETE FROM salary WHERE salary_id = (SELECT salary_id FROM reg_emp WHERE personnel_id = ?)");
+      $query_salary->bind_param("i", $personnel_id);
+      if (!$query_salary->execute()) {
+          throw new Exception("Failed to delete from salary: " . $query_salary->error);
+      }
+
+      // Step 3: Delete from personnel table (parent table)
+      $query_personnel_delete = $conn->prepare("DELETE FROM personnel WHERE Emp_No = ?");
+      $query_personnel_delete->bind_param("s", $emp_no);
+      if (!$query_personnel_delete->execute()) {
+          throw new Exception("Failed to delete from personnel: " . $query_personnel_delete->error);
+      }
+
+      // Commit transaction
+      $conn->commit();
+
+      echo "<div class='alert alert-success'>Profile deleted successfully!</div>";
+      echo "<script>window.location.href='/src/components/manage_regEmp.php';</script>"; // Redirect to manage personnel page
+      exit();
+  } catch (Exception $e) {
+      // Rollback transaction on error
+      $conn->rollback();
+      echo "<div class='alert alert-danger'>Failed to delete the profile: " . $e->getMessage() . "</div>";
+  }
 }
 ?>
 
@@ -151,6 +210,9 @@ if ($employment_type === 'contract') {
     .information-details p, .personnel-details p {
       margin-bottom: 5px; /* Decrease the space between <p> tags */
     }
+    .text-muted {
+        margin: 0px;
+    }
     @media (max-width: 768px) {
       .content.shifted { margin-left: 0; }
     }
@@ -201,40 +263,67 @@ if ($employment_type === 'contract') {
             </form>
             <h5 class="mt-2"><?php echo $employee['full_name']; ?></h5>
             <p class="text-muted"><i><?php echo $employee['Emp_No']; ?></i></p>
-            <hr>
-            <p><i class="fas fa-map-marker-alt"></i> <?php echo $employee['address']; ?> &nbsp;|&nbsp; <i class="fas fa-phone"></i> <?php echo $employee['contact_number']; ?></p>
-          </div>
+            <p class="text-muted" style="text-align: center;">
+              <span class="badge" style="font-size: 14px; color: <?php echo $employee['emp_status'] === 'active' ? 'red' : 'green'; ?>;">
+                  <i class="fas fa-circle" style="margin-right: 5px;"></i>
+                  <?php echo ucfirst($employee['emp_status']); ?>
+              </span>
 
-          <div class="card details-card mt-3">
-            <h6 class="fw-bold" style="font-size: 18px;">Personal Details</h6>
+              <?php
+              // Define colors for each employee type
+              $emp_type_colors = [
+                  'regular' => 'blue',
+                  'job_order' => 'green',
+                  'contract' => 'yellow',
+                  'intern' => 'red'
+              ];
+
+              // Get the color based on the employee type, default to gray if type is unknown
+              $emp_type_color = $emp_type_colors[strtolower($employee['emp_type'])] ?? 'gray';
+              ?>
+              <span style="color: #6c757d; margin: 0 10px;">|</span>
+
+              <span style="font-size: 14px; color: <?php echo $emp_type_colors[strtolower($employee['emp_type'])] ?? 'gray'; ?>;">
+                  <i class="fas fa-user" style="margin-right: 5px;"></i>
+                  <?php echo ucfirst($employee['emp_type']); ?>
+              </span>
+            </p>
+            
             <hr>
-            <p><strong>Sex:</strong> <?php echo $employee['sex']; ?></p>
-            <p><strong>Birthdate:</strong> <?php echo $employee['birthdate']; ?></p>
+            <p style="text-align: justify;"><i class="fas fa-map-marker-alt"></i> <?php echo $employee['address']; ?> &nbsp;</p>
+            <p style="text-align: justify;"><i class="fas fa-phone"></i> <?php echo $employee['contact_number']; ?></p>
           </div>
         </div>
 
         <div class="col-md-9">
           <div class="card p-3 profile-card">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mt-3 mb-0">Personnel Information Details</h5>
             <div class="btn-container">
-              <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
+                <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
                 <a href="/src/components/edit_regular.php?Emp_No=<?php echo $employee['Emp_No']; ?>" class="btn btn-success btn-sm">Update</a>
-              <a href="javascript:window.print()" class="btn btn-warning btn-sm">Print</a>
+                <a href="?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>&action=delete" class="btn btn-danger btn-sm">Delete</a>
+                <a href="javascript:window.print()" class="btn btn-warning btn-sm">Print</a>
             </div>
+        </div>
 
             <!-- Salary Information (Always shown) -->
-            <h5 class="fw-bold mt-3">Information Details</h5>
-            <div class="information-details row">
+            <div class="information-details row mt-3">
               <div class="col-md-6">
+              <p><strong>Sex:</strong> <?php echo $employee['sex']; ?></p>
+              <p><strong>Birthdate:</strong> <?php echo $employee['birthdate']; ?></p>
+              <p><strong>Plantilla Number:</strong> <?php echo $plantillaNo ?? 'N/A'; ?></p>
               <p><strong>Position:</strong> <?php echo $employee['position']; ?></p>
-              <p><strong>Step:</strong> <?php echo $salary['step']; ?></p>
-              </div>
-              <div class="col-md-6">
               <p><strong>Division:</strong> <?php echo $employee['division']; ?></p>
-              <p><strong>Level:</strong> <?php echo $salary['level']; ?></p>
               </div>
               <div class="col-md-6">
               <p><strong>Salary Grade:</strong> <?php echo $salary['salaryGrade']; ?></p>
+              <p><strong>Step:</strong> <?php echo $salary['step']; ?></p>
+              <p><strong>Level:</strong> <?php echo $salary['level']; ?></p>
               <p><strong>Monthly Salary:</strong> <?php echo $salary['monthlySalary']; ?></p>
+              <p><strong>ACA Pera:</strong> <?php echo $acaPera ?? 'N/A'; ?></p>
+              </div>
+              <div class="col-md-6">
               </div>
             </div>
 
@@ -244,6 +333,14 @@ if ($employment_type === 'contract') {
       </div>
     </div>
   </div>  
+  <script>
+  function deleteProfile() {
+    if (confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
+        // Redirect to the delete_profile.php script with the Emp_No as a parameter
+        window.location.href = "/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
+    }
+  }
+</script>
 </div>
 </body>
 </html>

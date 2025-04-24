@@ -22,7 +22,7 @@ $result = $conn->query("
   FROM reg_emp r
   JOIN personnel p ON r.personnel_id = p.personnel_id
   JOIN salary s ON r.salary_id = s.salary_id
-  ORDER BY p.personnel_id ASC, p.full_name ASC
+  ORDER BY p.personnel_id DESC, p.full_name ASC
   ");
 
   if ($result && $result->num_rows > 0) {
@@ -138,8 +138,8 @@ $result = $conn->query("
           <th>Salary Grade</th>
           <th>Step</th>
           <th>Level</th>
-          <th>ACA Pera</th>
           <th>Monthly Salary</th>
+          <th>ACA Pera</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -158,8 +158,8 @@ $result = $conn->query("
           <td><?= htmlspecialchars($p['salaryGrade']) ?></td>
           <td><?= htmlspecialchars($p['step']) ?></td>
           <td><?= htmlspecialchars($p['level']) ?></td>
-          <td><?= htmlspecialchars($p['acaPera']) ?></td>
           <td><?= htmlspecialchars($p['monthlySalary']) ?></td>
+          <td><?= htmlspecialchars($p['acaPera']) ?></td>
           <td><a href="profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a></td>
         </tr>
       <?php endforeach; ?>  
@@ -216,7 +216,7 @@ $result = $conn->query("
         <div class="modal-body">
           <div class="mb-3">
             <label for="data_file" class="form-label">Choose File</label>
-            <input type="file" class="form-control" id="data_file" name="data_file" accept=".json" required>
+            <input type="file" class="form-control" id="data_file" name="data_file" accept=".csv" required>
           </div>
         </div>
         <div class="modal-footer">

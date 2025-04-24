@@ -159,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Salary Grade</label>
+          <label class="form-label">Salary</label>
           <input type="text" class="form-control" name="salary_grade">
         </div>
         <div class="col-12">

@@ -19,13 +19,16 @@ if ($emp_no) {
         WHERE p.Emp_No = ?
     ");
     $stmt->bind_param("s", $emp_no);
-    $stmt->execute();
+    $stmt->execute();   
     $result = $stmt->get_result();
     $pagedRecords = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 } else {
     $pagedRecords = []; // No records if Emp_No is not provided
 }
+
+// Initialize error message for validation feedback
+$error_message = "";
 
 // Handle Add, Edit, and Delete form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -142,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 setTimeout(() => {
                                     const modal = document.querySelector('div[style*=\"z-index: 1050\"]');
                                     if (modal) modal.remove();
-                                }, 5000);
+                                }, 10000);
                             </script>";
                         } else {
                             // Insert the service record
@@ -150,8 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->bind_param("issss", $personnel_id, $start_date, $end_date, $position, $company);
     
                             if ($stmt->execute()) {
-                                $stmt->close();
                                 echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                                $stmt->close();
                                 exit();
                             } else {
                                 echo "<script>alert('Error: Unable to add service record. {$stmt->error}');</script>";
@@ -253,7 +256,7 @@ ob_end_flush(); // Flush the output buffer
                     <th>Starting Date</th>
                     <th>Ending Date</th>
                     <th>Position</th>
-                    <th>Company</th>
+                    <th>Division</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -361,7 +364,7 @@ ob_end_flush(); // Flush the output buffer
                             <input type="text" class="form-control" id="position" name="position" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="company" class="form-label">Company</label>
+                            <label for="company" class="form-label">Division</label>
                             <input type="text" class="form-control" id="company" name="company" required>
                         </div>
                     </div>

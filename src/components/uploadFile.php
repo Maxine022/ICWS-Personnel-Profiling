@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection file
+include_once __DIR__ . '/ideas/salary.php'; // Include the SalaryGrade definition
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
     $file = $_FILES['data_file'];
@@ -15,29 +16,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                 // Assuming your CSV columns match the structure of your database
                 $Emp_No = $data[0];  // Employee Number
                 $full_name = $data[1];  // Full Name
-                $position = $data[2];  // Position
-                $division = $data[3];  // Division
+                $sex = $data[2];  // Sex
+                $birthdate = $data[3];  // Birthdate
                 $contact_number = $data[4];  // Contact Number
-                $sex = $data[5];  // Sex
-                $birthdate = $data[6];  // Birthdate
-                $address = $data[7];  // Address
+                $address = $data[5];  // Address
+                $position = $data[6];  // Position
+                $division = $data[7];  // Division
                 $plantilla_number = $data[8];  // Plantilla Number
-                $aca_pera = $data[9];  // ACA Pera
-                $salary_grade = $data[10];  // Salary Grade
-                $step = $data[11];  // Step
-                $level = $data[12];  // Level
-                $monthly_salary = $data[13];  // Monthly Salary
+                $salary_grade = (int)$data[9];  // Salary Grade
+                $step = (int)$data[10];  // Step
+                $level = $data[11];  // Level
+                $aca_pera = $data[12];  // ACA Pera
+
+                // Calculate Monthly Salary using SalaryGrade::getStepsForGrade
+                if (class_exists('SalaryGrade')) {
+                    $salaryGradeObj = SalaryGrade::tryFrom($salary_grade);
+                    $monthly_salary = $salaryGradeObj ? (SalaryGrade::getStepsForGrade($salaryGradeObj)[$step - 1] ?? 0) : 0;
+                } else {
+                    $monthly_salary = 0; // Default if SalaryGrade class is not found
+                }
 
                 // Check if Emp_No or full_name already exists in the database
                 $check = $conn->prepare("SELECT Emp_No, full_name FROM personnel WHERE Emp_No = ? OR full_name = ?");
                 $check->bind_param("ss", $Emp_No, $full_name);
                 $check->execute();
                 $check->store_result();
-                
+
                 if ($check->num_rows > 0) {
                     // If there's a match for either Emp_No or full_name
                     echo "<script>alert('Employee number or full name already exists.');</script>";
-                    echo "Inserting Emp_No: " . $Emp_No . "<br>";
                     echo "<script>window.location.href = '/src/components/manage_regEmp.php';</script>";
                     exit(); // Stop further execution
                 }
@@ -70,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
             exit(); // Make sure to call exit after header to stop script execution
         } else {
             $message = "Failed to open CSV file.";
-        }
+        } 
     } else {
         $message = "Only CSV files are allowed.";
     }

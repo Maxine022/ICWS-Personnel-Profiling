@@ -1,5 +1,7 @@
 <?php
+// Start session and include database connection
 session_start();
+include_once __DIR__ . '/../../backend/db.php';
 
 // Handle form submission and save to JSON file
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -7,21 +9,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         "full_name" => $_POST["full_name"],
         "contact_number" => $_POST["contact_number"],
         "school" => $_POST["school"],
-        "course_program" => $_POST["course_program"],
-        "number_of_hours" => $_POST["number_of_hours"],
-        "internship_start" => $_POST["internship_start"],
-        "internship_end" => $_POST["internship_end"],
+        "course_program" => $_POST["course"],
+        "number_of_hours" => $_POST["hoursNo"],
+        "internship_start" => $_POST["startDate"],
+        "internship_end" => $_POST["endDate"],
         "division" => $_POST["division"],
         "supervisor" => $_POST["supervisor"]
     ];
-
-    $file = 'interns.json';
-    $interns = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
-    $interns[] = $newIntern;
-    file_put_contents($file, json_encode($interns, JSON_PRETTY_PRINT));
-
-    header("Location: manage_intern.php");
-    exit();
 }
 ?>
 

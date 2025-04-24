@@ -200,6 +200,7 @@ if ($result && $result->num_rows > 0) {
 <script>
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
+      "pageLength": 20,
       dom:
         "<'d-none'f>" +
         "<'row'<'col-12'tr>>" +
