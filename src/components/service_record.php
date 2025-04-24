@@ -155,7 +155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             if ($stmt->execute()) {
                                 echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                                 $stmt->close();
-                                exit();
                             } else {
                                 echo "<script>alert('Error: Unable to add service record. {$stmt->error}');</script>";
                             }
@@ -171,19 +170,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<script>alert('Error: All fields are required.');</script>";
         }
     }
-    } elseif (isset($_POST['edit_service_record']) && $_POST['edit_service_record'] == '1') {
-        // Edit Service Record
+    } if (isset($_POST['edit_service_record']) && $_POST['edit_service_record'] == '1') {
         $record_id = $_POST['record_id'];
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
         $position = $_POST['position'];
         $company = $_POST['company'];
-
+    
         if (!empty($record_id) && !empty($start_date) && !empty($end_date) && !empty($position) && !empty($company)) {
             $stmt = $conn->prepare("UPDATE service_record SET startDate = ?, endDate = ?, position = ?, company = ? WHERE record_id = ?");
             $stmt->bind_param("ssssi", $start_date, $end_date, $position, $company, $record_id);
-
+    
             if ($stmt->execute()) {
+                error_log("Service Record Updated: ID $record_id"); // Debug: Log the updated record_id
                 $stmt->close();
                 echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                 exit();
@@ -193,14 +192,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo "<script>alert('Error: All fields are required for editing.');</script>";
         }
-    } elseif (isset($_POST['delete_service_record']) && $_POST['delete_service_record'] == '1') {
-        // Delete Service Record
+    } if (isset($_POST['delete_service_record']) && $_POST['delete_service_record'] == '1') {
         $record_id = $_POST['record_id'];
-
+    
         if (!empty($record_id)) {
+            error_log("Deleting Service Record with ID: $record_id"); // Debug: Log the record_id
             $stmt = $conn->prepare("DELETE FROM service_record WHERE record_id = ?");
             $stmt->bind_param("i", $record_id);
-
+    
             if ($stmt->execute()) {
                 $stmt->close();
                 echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
@@ -277,7 +276,7 @@ ob_end_flush(); // Flush the output buffer
                         <div class="modal-dialog modal-lg">
                             <form method="POST" action="">
                                 <input type="hidden" name="edit_service_record" value="1">
-                                <input type="hidden" name="record_id" value="<?= $record['record_id'] ?>">
+                                <input type="hidden" name="record_id" value="<?= htmlspecialchars($record['record_id']); ?>">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title">Edit Service Record</h5>
@@ -287,19 +286,19 @@ ob_end_flush(); // Flush the output buffer
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Start Date</label>
-                                                <input type="date" class="form-control" name="start_date" value="<?= htmlspecialchars($record['start']) ?>" required>
+                                                <input type="date" class="form-control" name="start_date" value="<?= htmlspecialchars($record['start']); ?>" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">End Date</label>
-                                                <input type="date" class="form-control" name="end_date" value="<?= htmlspecialchars($record['end']) ?>" required>
+                                                <input type="date" class="form-control" name="end_date" value="<?= htmlspecialchars($record['end']); ?>" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Position</label>
-                                                <input type="text" class="form-control" name="position" value="<?= htmlspecialchars($record['position']) ?>" required>
+                                                <input type="text" class="form-control" name="position" value="<?= htmlspecialchars($record['position']); ?>" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Company</label>
-                                                <input type="text" class="form-control" name="company" value="<?= htmlspecialchars($record['company']) ?>" required>
+                                                <input type="text" class="form-control" name="company" value="<?= htmlspecialchars($record['company']); ?>" required>
                                             </div>
                                         </div>
                                     </div>
@@ -316,7 +315,7 @@ ob_end_flush(); // Flush the output buffer
                         <div class="modal-dialog">
                             <form method="POST" action="">
                                 <input type="hidden" name="delete_service_record" value="1">
-                                <input type="hidden" name="record_id" value="<?= $record['record_id'] ?>">
+                                <input type="hidden" name="record_id" value="<?= htmlspecialchars($record['record_id']); ?>">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title">Delete Service Record</h5>

@@ -264,8 +264,8 @@ if ($action === 'delete') {
             <h5 class="mt-2"><?php echo $employee['full_name']; ?></h5>
             <p class="text-muted"><i><?php echo $employee['Emp_No']; ?></i></p>
             <p class="text-muted" style="text-align: center;">
-              <span class="badge" style="font-size: 14px; color: <?php echo $employee['emp_status'] === 'active' ? 'red' : 'green'; ?>;">
-                  <i class="fas fa-circle" style="margin-right: 5px;"></i>
+            <span class="badge" style="font-size: 14px; padding: 5px 10px; border-radius: 12px; display: inline-flex; align-items: center; font-weight: bold; color: white; background-color: <?php echo strtolower($employee['emp_status']) === 'active' ? 'green' : 'red'; ?>; border: 1px solid <?php echo strtolower($employee['emp_status']) === 'active' ? 'green' : 'red'; ?>;">
+                  <i class="fas fa-circle" style="margin-right: 5px; font-size: 10px;"></i>
                   <?php echo ucfirst($employee['emp_status']); ?>
               </span>
 
@@ -303,7 +303,7 @@ if ($action === 'delete') {
                 <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
                 <a href="/src/components/edit_regular.php?Emp_No=<?php echo $employee['Emp_No']; ?>" class="btn btn-success btn-sm">Update</a>
                 <a href="?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>&action=delete" class="btn btn-danger btn-sm">Delete</a>
-                <a href="javascript:window.print()" class="btn btn-warning btn-sm">Print</a>
+                <a href="/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
             </div>
         </div>
 
