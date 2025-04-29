@@ -1,16 +1,66 @@
 <?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fullName = $_POST["full_name"];
-    $contactNumber = $_POST["contact_number"];
-    $school = $_POST["school"];
-    $courseProgram = $_POST["course_program"];
-    $numberOfHours = $_POST["number_of_hours"];
-    $internshipStart = $_POST["internship_start"];
-    $internshipEnd = $_POST["internship_end"];
-    $division = $_POST["division"];
-    $supervisor = $_POST["supervisor"];
+include_once __DIR__ . '/../../backend/db.php';
 
-    $success = true;
+// Initialize variables
+$errors = [];
+$success = false;
+$intern = null;
+
+// Fetch the intern's data based on the ID passed in the query string
+if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["intern_id"])) {
+    $intern_id = intval($_GET["intern_id"]);
+
+    if ($intern_id > 0) {
+        $sql = "SELECT * FROM intern WHERE intern_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $intern_id);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
+                $intern = $result->fetch_assoc();
+            } else {
+                $errors[] = "Intern not found.";
+            }
+        } else {
+            $errors[] = "Error fetching intern data: " . $conn->error;
+        }
+        $stmt->close();
+    } else {
+        $errors[] = "Invalid intern ID.";
+    }
+}
+
+// Handle form submission for updating the intern's data
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
+    $intern_id = intval($_POST["intern_id"]);
+    $fullName = $conn->real_escape_string($_POST["full_name"]);
+    $contactNumber = $conn->real_escape_string($_POST["contact_number"]);
+    $school = $conn->real_escape_string($_POST["school"]);
+    $courseProgram = $conn->real_escape_string($_POST["course_program"]);
+    $numberOfHours = intval($_POST["number_of_hours"]);
+    $internshipStart = $conn->real_escape_string($_POST["internship_start"]);
+    $internshipEnd = $conn->real_escape_string($_POST["internship_end"]);
+    $division = $conn->real_escape_string($_POST["division"]);
+    $supervisor = $conn->real_escape_string($_POST["supervisor"]);
+
+    // Validate required fields
+    if (empty($fullName) || empty($contactNumber) || empty($school) || empty($courseProgram) || empty($numberOfHours) || empty($internshipStart) || empty($internshipEnd) || empty($division) || empty($supervisor)) {
+        $errors[] = "All fields are required.";
+    }
+
+    if (empty($errors)) {
+        $sql = "UPDATE intern SET fullName = ?, contactNo = ?, school = ?, course = ?, hoursNo = ?, startDate = ?, endDate = ?, division = ?, supervisorName = ? WHERE intern_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssissssi", $fullName, $contactNumber, $school, $courseProgram, $numberOfHours, $internshipStart, $internshipEnd, $division, $supervisor, $intern_id);
+
+        if ($stmt->execute()) {
+            $success = true;
+        } else {
+            $errors[] = "Error updating intern data: " . $conn->error;
+        }
+        $stmt->close();
+    }
 }
 ?>
 
@@ -18,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add New Intern</title>
+  <title>Edit Intern</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
@@ -69,82 +119,108 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
-<!-- Main Content -->
 <div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="mb-0 fw-semibold">Update Intern Information</h5>
-    <div class="breadcrumb-custom text-end">
-      <a href="#" class="breadcrumb-link">Home</a>
-      <span class="mx-1">/</span>
-      <a href="#" class="breadcrumb-link">Manage</a>
-      <span class="mx-1">/</span>
-      <span class="text-dark">Update Intern Information</span>
-    </div>
+    <h5 class="mb-0 fw-semibold">Edit Intern Information</h5>
   </div>
 
-  <?php if (!empty($success)): ?>
-    <div class="alert alert-success">Intern information has been successfully saved!</div>
+  <!-- Display success message -->
+  <?php if ($success): ?>
+    <div class="alert alert-success">
+      Intern information has been successfully updated! 
+      <a href="/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
+    </div>
   <?php endif; ?>
 
-  <div class="form-wrapper">
-    <form method="POST" action="">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-control" name="full_name" placeholder="Enter your Full Name" required>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" placeholder="Enter Contact Number">
-        </div>
+  <!-- Display errors -->
+  <?php if (!empty($errors)): ?>
+    <div class="alert alert-danger">
+      <ul>
+        <?php foreach ($errors as $error): ?>
+          <li><?= htmlspecialchars($error); ?></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  <?php endif; ?>
 
-        <div class="col-md-12">
-          <label class="form-label">School</label>
-          <input type="text" class="form-control" name="school" placeholder="Enter School Name">
+  <?php if ($intern): ?>
+    <div class="form-wrapper">
+      <form method="POST" action="">
+        <input type="hidden" name="intern_id" value="<?= htmlspecialchars($intern['intern_id']) ?>">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" name="full_name" value="<?= htmlspecialchars($intern['fullName']) ?>" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Contact Number</label>
+            <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" required>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">School</label>
+            <select class="form-select" name="school" required>
+                <option value="">Select School</option>
+                <?php
+                    $collegeFilePath = __DIR__ . '/ideas/course.php';
+                    if (!file_exists($collegeFilePath)) {
+                        die("Error: course.php file not found.");
+                    }
+                    include_once $collegeFilePath;
+                    if (class_exists('College')) {
+                        foreach (College::cases() as $college) {
+                            $selected = ($intern['school'] === $college->value) ? 'selected' : '';
+                            echo "<option value=\"{$college->value}\" $selected>{$college->value}</option>";
+                        }
+                    } else {
+                        echo "<option value=\"\">Error: College class not found.</option>";
+                    }
+                ?>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Course/Program</label>
+            <select class="form-select" name="course_program" required>
+                <option value="">Select Course</option>
+                <?php
+                    if (class_exists('CollegeCourse')) {
+                        foreach (CollegeCourse::cases() as $course) {
+                            $selected = ($intern['course'] === $course->value) ? 'selected' : '';
+                            echo "<option value=\"{$course->value}\" $selected>{$course->value}</option>";
+                        }
+                    } else {
+                        echo "<option value=\"\">Error: CollegeCourse class not found.</option>";
+                    }
+                ?>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Number of Hours</label>
+            <input type="number" class="form-control" name="number_of_hours" value="<?= htmlspecialchars($intern['hoursNo']) ?>" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Internship Start Date</label>
+            <input type="date" class="form-control" name="internship_start" value="<?= htmlspecialchars($intern['startDate']) ?>" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Internship End Date</label>
+            <input type="date" class="form-control" name="internship_end" value="<?= htmlspecialchars($intern['endDate']) ?>" required>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Assigned Division</label>
+            <input type="text" class="form-control" name="division" value="<?= htmlspecialchars($intern['division']) ?>" required>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Supervisor Name</label>
+            <input type="text" class="form-control" name="supervisor" value="<?= htmlspecialchars($intern['supervisorName']) ?>" required>
+          </div>
+          <div class="col-md-12 d-flex mt-5 gap-4">
+            <button type="submit" class="btn btn-success px-4">Save Changes</button>
+            <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
+          </div>
         </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Course/Program</label>
-          <input type="text" class="form-control" name="course_program" placeholder="Enter Course or Program">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Number of Hours</label>
-          <input type="text" class="form-control" name="number_of_hours" placeholder="Enter Number of Hours">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Internship Start Date</label>
-          <input type="date" class="form-control" name="internship_start">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Internship End Date</label>
-          <input type="date" class="form-control" name="internship_end">
-        </div>
-
-        <div class="col-md-12">
-          <label class="form-label">Assigned Division</label>
-          <select class="form-select" name="division">
-            <option value="">Please Select</option>
-            <option value="IT Division">IT Division</option>
-            <option value="Finance Division">Finance Division</option>
-            <option value="HR Division">HR Division</option>
-          </select>
-        </div>
-
-        <div class="col-md-12">
-          <label class="form-label">Supervisor Name</label>
-          <input type="text" class="form-control" name="supervisor" placeholder="Enter Name">
-        </div>
-
-        <div class="col-md-12 d-flex mt-5 gap-4">
-          <button type="submit" class="btn btn-success px-4">Save Changes</button>
-          <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
-        </div>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
+  <?php endif; ?>
 </div>
-
 </body>
 </html>

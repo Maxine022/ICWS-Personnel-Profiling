@@ -1,11 +1,10 @@
 <?php
-// Start session and include database connection
-session_start();
 include_once __DIR__ . '/../../backend/db.php';
 
 // Fetch interns data from the database
 $interns = [];
 $sql = "SELECT 
+            intern_id,
             fullName,
             contactNo,
             school, 
@@ -14,7 +13,7 @@ $sql = "SELECT
             startDate,
             endDate,
             division, 
-            supervisor
+            supervisorName
         FROM intern";
 
 $result = $conn->query($sql);
@@ -73,6 +72,12 @@ if ($result && $result->num_rows > 0) {
     .search-buttons-container {
       margin-top: 25px;
     }
+    .table-container table td:last-child {
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: visible; /* Allow content to overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+    max-width: 150px; /* Set a max width for the cell */
+    }
   </style>
 </head>
 <body>
@@ -107,8 +112,8 @@ if ($result && $result->num_rows > 0) {
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
         <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_intern.php'"><i class="fas fa-plus"></i> Add</button>
-        <button class="btn btn-success btn-sm" onclick="window.location.href='/src/components/edit_intern.php'"><i class="fas fa-edit"></i> Edit</button>
-        <span class="vr d-none d-md-inline"></span>
+
+      <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
         <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
         <button class="btn btn-warning export-btn btn-sm" data-type="print">Print</button>
@@ -125,23 +130,34 @@ if ($result && $result->num_rows > 0) {
           <th>School</th>
           <th>Course/Program</th>
           <th>Hours</th>
+          <th>Period</th>
           <th>Division</th>
           <th>Supervisor</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($interns as $intern): ?>
-          <tr>
-            <td><?= htmlspecialchars($intern['full_name']) ?></td>
-            <td><?= htmlspecialchars($intern['contact_number']) ?></td>
+    <?php foreach ($interns as $intern): ?>
+        <tr id="row-<?= htmlspecialchars($intern['intern_id']) ?>">
+            <td><?= htmlspecialchars($intern['fullName']) ?></td>
+            <td><?= htmlspecialchars($intern['contactNo']) ?></td>
             <td><?= htmlspecialchars($intern['school']) ?></td>
-            <td><?= htmlspecialchars($intern['course_program']) ?></td>
-            <td><?= htmlspecialchars($intern['number_of_hours']) ?></td>
+            <td><?= htmlspecialchars($intern['course']) ?></td>
+            <td><?= htmlspecialchars($intern['hoursNo']) ?></td>
+            <td><?= htmlspecialchars($intern['startDate']) ?> to <?= htmlspecialchars($intern['endDate']) ?></td>
             <td><?= htmlspecialchars($intern['division']) ?></td>
-            <td><?= htmlspecialchars($intern['supervisor']) ?></td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
+            <td><?= htmlspecialchars($intern['supervisorName']) ?></td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/edit_intern.php?intern_id=<?= urlencode($intern['intern_id']) ?>'">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteIntern(<?= htmlspecialchars($intern['intern_id']) ?>)">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
     </table>
   </div>
 </div>
@@ -158,6 +174,36 @@ if ($result && $result->num_rows > 0) {
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script>
+  function editIntern(id) {
+    window.location.href = `/src/components/edit_intern.php?id=${intern_id}`;
+  }
+
+  function deleteIntern(intern_id) {
+  if (confirm("Are you sure you want to delete this intern?")) {
+    fetch('/src/components/delete_intern.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ intern_id: intern_id }), // Corrected parameter name
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert(data.message);
+          // Remove the row from the table
+          document.querySelector(`#row-${intern_id}`).remove();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+      });
+  }
+}
+
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
       dom:

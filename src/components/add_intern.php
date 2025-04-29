@@ -1,21 +1,53 @@
 <?php
-// Start session and include database connection
-session_start();
-include_once __DIR__ . '/../../backend/db.php';
+include_once __DIR__ . '/../../backend/db.php'; // Include database connection
 
-// Handle form submission and save to JSON file
+// Define variables to store error messages
+$errors = [];
+$successMessage = "";
+
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $newIntern = [
-        "full_name" => $_POST["full_name"],
-        "contact_number" => $_POST["contact_number"],
-        "school" => $_POST["school"],
-        "course_program" => $_POST["course"],
-        "number_of_hours" => $_POST["hoursNo"],
-        "internship_start" => $_POST["startDate"],
-        "internship_end" => $_POST["endDate"],
-        "division" => $_POST["division"],
-        "supervisor" => $_POST["supervisor"]
-    ];
+    // Validate required fields
+    $requiredFields = ["fullName", "contactNo", "school", "course", "hoursNo", "startDate", "endDate", "division", "supervisorName"];
+    foreach ($requiredFields as $field) {
+        if (empty($_POST[$field])) {
+            $errors[] = ucfirst($field) . " is required.";
+        }
+    }
+
+    // If no errors, proceed to check for duplicates
+    if (empty($errors)) {
+        // Prepare data
+        $fullName = $conn->real_escape_string($_POST["fullName"]);
+        $contactNo = $conn->real_escape_string($_POST["contactNo"]);
+        $school = $conn->real_escape_string($_POST["school"]);
+        $course = $conn->real_escape_string($_POST["course"]);
+        $hoursNo = (int)$_POST["hoursNo"];
+        $startDate = $conn->real_escape_string($_POST["startDate"]);
+        $endDate = $conn->real_escape_string($_POST["endDate"]);
+        $division = $conn->real_escape_string($_POST["division"]);
+        $supervisorName = $conn->real_escape_string($_POST["supervisorName"]);
+
+        // Check for duplicate entry
+        $checkDuplicateSql = "SELECT * FROM intern WHERE fullName = '$fullName' AND contactNo = '$contactNo' AND school = '$school' AND course = '$course'";
+        $duplicateResult = $conn->query($checkDuplicateSql);
+
+        if ($duplicateResult && $duplicateResult->num_rows > 0) {
+            $errors[] = "Duplicate entry: An intern with the same details already exists.";
+        } else {
+            // Insert into database
+            $sql = "INSERT INTO intern (fullName, contactNo, school, course, hoursNo, startDate, endDate, division, supervisorName, createdAt) 
+                    VALUES ('$fullName', '$contactNo', '$school', '$course', $hoursNo, '$startDate', '$endDate', '$division', '$supervisorName', NOW())";
+
+            if ($conn->query($sql) === TRUE) {
+                $successMessage = "Intern added successfully!";
+                header("Location: /src/components/manage_intern.php"); // Redirect to manage interns page
+                exit;
+            } else {
+                $errors[] = "Error: " . $conn->error;
+            }
+        }
+    }
 }
 ?>
 
@@ -28,22 +60,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background-color: #f8f9fa;
     }
-    .breadcrumb-custom {
-      font-size: 14px;
-    }
     .breadcrumb-link {
-      color: #6c757d;
+      color: inherit;
       text-decoration: none;
-      transition: color 0.3s ease;
+      transition: color 0.2s ease;
     }
     .breadcrumb-link:hover {
-      color: #0d6efd;
+      color: #007bff;
+      text-decoration: underline;
     }
     .form-label {
       font-weight: 500;
@@ -69,70 +102,130 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <div class="content" id="content">
-  <!-- Top Navigation Row with Breadcrumb aligned to the right -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0 fw-semibold">Add New Intern</h5>
-    <div class="breadcrumb-custom text-end">
-      <a href="#" class="breadcrumb-link">Home</a>
-      <span class="mx-1">/</span>
-      <a href="#" class="breadcrumb-link">Manage</a>
-      <span class="mx-1">/</span>
-      <span class="text-dark">Add New Intern</span>
-    </div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Intern</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Add New Intern</li>
+      </ol>
+    </nav>
   </div>
 
   <div class="form-wrapper">
-    <form method="POST" action="">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-control" name="full_name" required>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number">
-        </div>
-        <div class="col-md-12">
-          <label class="form-label">School</label>
-          <input type="text" class="form-control" name="school">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Course/Program</label>
-          <input type="text" class="form-control" name="course_program">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Number of Hours</label>
-          <input type="text" class="form-control" name="number_of_hours">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Internship Start Date</label>
-          <input type="date" class="form-control" name="internship_start">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Internship End Date</label>
-          <input type="date" class="form-control" name="internship_end">
-        </div>
-        <div class="col-md-12">
-          <label class="form-label">Assigned Division</label>
-          <select class="form-select" name="division">
-            <option value="">Please Select</option>
-            <option value="IT Division">IT Division</option>
-            <option value="Finance Division">Finance Division</option>
-            <option value="HR Division">HR Division</option>
-          </select>
-        </div>
-        <div class="col-md-12">
-          <label class="form-label">Supervisor Name</label>
-          <input type="text" class="form-control" name="supervisor">
-        </div>
-        <div class="col-md-12 d-flex mt-5 gap-4">
-          <button type="submit" class="btn btn-primary px-4">Submit</button>
-          <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
-        </div>
+    <!-- Display success message -->
+    <?php if (!empty($successMessage)): ?>
+      <div class="alert alert-success">
+        <?= htmlspecialchars($successMessage); ?>
       </div>
+    <?php endif; ?>
+
+    <!-- Display errors -->
+    <?php if (!empty($errors)): ?>
+      <div class="alert alert-danger">
+        <ul>
+          <?php foreach ($errors as $error): ?>
+            <li><?= htmlspecialchars($error); ?></li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+    <?php endif; ?>
+
+    <form method="POST" action="">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" name="fullName" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Contact Number</label>
+        <input type="text" class="form-control" name="contactNo" required 
+              maxlength="11" pattern="\d{11}" 
+              title="Contact number must be exactly 11 digits" 
+              onkeypress="return isNumberKey(event)">
+      </div>
+      <div class="col-md-12">
+        <label class="form-label">School</label>
+        <select class="form-select" name="school" required>
+            <option value="">Select School</option>
+            <?php
+                $collegeFilePath = __DIR__ . '/ideas/course.php';
+                if (!file_exists($collegeFilePath)) {
+                    die("Error: course.php file not found.");
+                }
+                include_once $collegeFilePath;
+                if (class_exists('College')) {
+                    foreach (College::cases() as $college) {
+                        echo "<option value=\"{$college->value}\">{$college->value}</option>";
+                    }
+                } else {
+                    echo "<option value=\"\">Error: College class not found.</option>";
+                }
+            ?>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Course/Program</label>
+        <select class="form-select" name="course" required>
+            <option value="">Select Course</option>
+            <?php
+                if (class_exists('CollegeCourse')) {
+                    foreach (CollegeCourse::cases() as $course) {
+                        echo "<option value=\"{$course->value}\">{$course->value}</option>";
+                    }
+                } else {
+                    echo "<option value=\"\">Error: CollegeCourse class not found.</option>";
+                }
+            ?>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Number of Hours</label>
+        <input type="number" class="form-control" name="hoursNo" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Internship Start Date</label>
+        <input type="date" class="form-control" name="startDate" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Internship End Date</label>
+        <input type="date" class="form-control" name="endDate" required>
+      </div>
+      <div class="col-md-12">
+          <label class="form-label">Division</label>
+          <select class="form-select" name="division" required>
+            <option value="">Select Division</option>
+            <?php
+                $divisionFilePath = __DIR__ . '/ideas/division.php';
+                if (!file_exists($divisionFilePath)) {
+              die("Error: division.php file not found.");
+                }
+                include_once $divisionFilePath;
+                if (class_exists('Division')) {
+              foreach (Division::cases() as $division) {
+                  echo "<option value=\"{$division->value}\">{$division->value}</option>";
+              }
+                } else {
+              echo "<option value=\"\">Error: Division class not found.</option>";
+                }
+            ?>
+          </select>
+      </div>
+      <div class="col-md-12">
+        <label class="form-label">Supervisor Name</label>
+        <input type="text" class="form-control" name="supervisorName" required>
+      </div>
+  
+      <div class="col-md-12 d-flex mt-5 gap-4">
+        <button type="submit" onclick="/src/components/manage_intern.php" class="btn btn-primary px-4">Submit</button>
+        <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
+      </div>    
+    </div>
+    </div>
+    </div>
     </form>
   </div>
 </div>
-
 </body>
 </html>

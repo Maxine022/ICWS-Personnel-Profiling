@@ -196,7 +196,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number">
+          <input type="text" class="form-control" name="contactNo" required 
+                maxlength="11" pattern="\d{11}" 
+                title="Contact number must be exactly 11 digits" 
+                onkeypress="return isNumberKey(event)">
         </div>
         <div class="col-md-2">
             <label class="form-label">Sex</label>
