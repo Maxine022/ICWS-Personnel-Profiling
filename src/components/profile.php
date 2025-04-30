@@ -59,21 +59,32 @@ if (!empty($reg_emp['plantillaNo'])) {
     $employment_type = 'regular';
 } elseif (!empty($job_order['salaryRate'])) {
     $employment_type = 'job_order';
-} elseif (!empty($contract_service['contract_status'])) {
+} elseif (!empty($contract_service['salaryRate'])) {
     $employment_type = 'contract';
 }
 
 // Normalize emp_type for logic and display
 $emp_type = strtolower(str_replace(' ', '_', $employee['emp_type'] ?? $employment_type ?? 'unknown'));
 
+$success = false;
+$errors = [];
+
 // If the action is not explicitly "delete," do not execute the delete logic
 if ($action === 'delete') {
+    // Show confirmation prompt if not confirmed yet
+    if (!isset($_GET['confirm'])) {
+        echo "<script>
+            showDeleteModal();
+        </script>";
+        exit();
+    }
+
     // Begin database transaction
     $conn->begin_transaction();
 
     try {
         // Query to get the personnel_id for the given Emp_No
-        $query_personnel = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ?");
+        $query_personnel = $conn->prepare("SELECT personnel_id, emp_type FROM personnel WHERE Emp_No = ?");
         $query_personnel->bind_param("s", $emp_no);
         $query_personnel->execute();
         $result = $query_personnel->get_result();
@@ -84,32 +95,77 @@ if ($action === 'delete') {
         }
 
         $personnel_id = $personnel['personnel_id'];
+        $emp_type_redirect = strtolower(str_replace(' ', '', $personnel['emp_type']));
 
         // Delete from dependent tables in the correct order
-        $query_reg_emp = $conn->prepare("DELETE FROM reg_emp WHERE personnel_id = ?");
-        $query_reg_emp->bind_param("i", $personnel_id);
-        $query_reg_emp->execute();
 
-        $query_salary = $conn->prepare("DELETE FROM salary WHERE personnel_id = ?");
-        $query_salary->bind_param("i", $personnel_id);
-        $query_salary->execute();
+        $stmt = $conn->prepare("DELETE FROM reg_emp WHERE personnel_id = ?");
+        if ($stmt === false) throw new Exception("Prepare failed for reg_emp: " . $conn->error);
+        $stmt->bind_param("i", $personnel_id);
+        $stmt->execute();
+
+        $stmt = $conn->prepare("DELETE FROM job_order WHERE personnel_id = ?");
+        if ($stmt === false) throw new Exception("Prepare failed for job_order: " . $conn->error);
+        $stmt->bind_param("i", $personnel_id);
+        $stmt->execute();
+
+        $stmt = $conn->prepare("DELETE FROM contract_service WHERE personnel_id = ?");
+        if ($stmt === false) throw new Exception("Prepare failed for contract_service: " . $conn->error);
+        $stmt->bind_param("i", $personnel_id);
+        $stmt->execute();
+
+        $stmt = $conn->prepare("DELETE FROM salary WHERE personnel_id = ?");
+        if ($stmt === false) throw new Exception("Prepare failed for salary: " . $conn->error);
+        $stmt->bind_param("i", $personnel_id);
+        $stmt->execute();
 
         $query_personnel_delete = $conn->prepare("DELETE FROM personnel WHERE Emp_No = ?");
+        if ($query_personnel_delete === false) throw new Exception("Prepare failed for personnel: " . $conn->error);
         $query_personnel_delete->bind_param("s", $emp_no);
         $query_personnel_delete->execute();
 
         // Commit transaction
         $conn->commit();
+        $success = true;
 
-        echo "<div class='alert alert-success'>Profile deleted successfully!</div>";
-        echo "<script>window.location.href='/src/components/manage_regEmp.php';</script>";
+        // Redirect to the appropriate manage page
+        $redirect_map = [
+            'regular' => '/src/components/manage_regEmp.php',
+            'joborder' => '/src/components/manage_jo.php',
+            'contract' => '/src/components/manage_cos.php'
+        ];
+        $redirect_url = $redirect_map[$emp_type_redirect] ?? '/src/components/personnel_record.php';
+
+        echo "<script>
+            alert('Profile deleted successfully!');
+            window.location.href = '$redirect_url';
+        </script>";
         exit();
     } catch (Exception $e) {
         $conn->rollback();
-        echo "<div class='alert alert-danger'>Failed to delete the profile: " . $e->getMessage() . "</div>";
+        $errors[] = "Failed to delete the profile: " . $e->getMessage();
     }
 }
 ?>
+
+<!-- Display success message -->
+<?php if (!empty($success)): ?>
+  <div class="alert alert-success">
+    Profile deleted successfully!
+    <a href="<?= htmlspecialchars($redirect_url ?? '/src/components/personnel_record.php') ?>" class="alert-link">Go to Manage Page</a>.
+  </div>
+<?php endif; ?>
+
+<!-- Display errors -->
+<?php if (!empty($errors)): ?>
+  <div class="alert alert-danger">
+    <ul>
+      <?php foreach ($errors as $error): ?>
+        <li><?= htmlspecialchars($error); ?></li>
+      <?php endforeach; ?>
+    </ul>
+  </div>
+<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -207,6 +263,63 @@ if ($action === 'delete') {
     }
     .pagination-container { margin-top: 50px; }
   </style>
+  <!-- Add this CSS in your <head> section -->
+  <style>
+  /* Custom modal overlay */
+  #deleteModalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(44, 62, 80, 0.7);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Custom modal box */
+  #deleteModalBox {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 32px 28px 24px 28px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    animation: fadeInScale 0.3s;
+  }
+
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.85);}
+    to { opacity: 1; transform: scale(1);}
+  }
+
+  #deleteModalBox h5 {
+    font-weight: bold;
+    color: #c0392b;
+    margin-bottom: 18px;
+  }
+
+  #deleteModalBox p {
+    color: #444;
+    margin-bottom: 28px;
+  }
+
+  #deleteModalBox .btn {
+    min-width: 90px;
+    margin: 0 8px;
+  }
+
+  #deleteModalBox .btn-cancel {
+    background: #bdc3c7;
+    color: #fff;
+  }
+
+  #deleteModalBox .btn-delete {
+    background: #e74c3c;
+    color: #fff;
+  }
+  </style>
 </head>
 <body>
   <?php include __DIR__ . '/../hero/navbar.php'; ?>
@@ -301,7 +414,7 @@ if ($action === 'delete') {
                         echo 'javascript:void(0);'; // Default action if emp_type is unknown
                     }
                 ?>" class="btn btn-success btn-sm">Update</a>
-                <a href="?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>&action=delete" class="btn btn-danger btn-sm">Delete</a>
+                <a href="javascript:void(0);" onclick="showDeleteModal()" class="btn btn-danger btn-sm">Delete</a>
                 <a href="/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
             </div>
         </div>
@@ -393,6 +506,28 @@ if ($action === 'delete') {
                   window.location.href = "/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
               }
             }
+</script>
+<!-- Place this HTML just before </body> -->
+<div id="deleteModalOverlay">
+  <div id="deleteModalBox">
+    <h5><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h5>
+    <p>Are you sure you want to delete this profile?<br>This action cannot be undone.</p>
+    <button class="btn btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+    <button class="btn btn-delete" onclick="confirmDeleteProfile()">Delete</button>
+  </div>
+</div>
+
+<!-- Place this JS at the end of your file or after your other scripts -->
+<script>
+function showDeleteModal() {
+  document.getElementById('deleteModalOverlay').style.display = 'flex';
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModalOverlay').style.display = 'none';
+}
+function confirmDeleteProfile() {
+  window.location.href = "?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>&action=delete&confirm=1";
+}
 </script>
 </div>
 </body>

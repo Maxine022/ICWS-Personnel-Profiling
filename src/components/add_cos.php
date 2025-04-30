@@ -170,11 +170,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <input type="date" class="form-control" name="birthdate">
         </div>
         <div class="col-md-6">
+        <?php
+          $positionFilePath = __DIR__ . '/ideas/position.php';
+          if (!file_exists($positionFilePath)) {
+              die("Error: position.php file not found.");
+          }
+          include_once $positionFilePath;
+        ?>
           <label class="form-label">Position</label>
-          <select class="form-select" name="designation">
-            <option value="">Please Select</option>
-            <option value="Field Staff">Field Staff</option>
-            <option value="Office Staff">Office Staff</option>
+          <select class="form-select" name="position" required>
+            <option value="">Select Position</option>
+            <?php
+            if (class_exists('Position')) {
+          foreach (Position::cases() as $position) {
+              echo "<option value=\"{$position->value}\">{$position->value}</option>";
+          }
+            } else {
+          echo "<option value=\"\">Error: Position class not found.</option>";
+            }
+            ?>
           </select>
         </div>
         <div class="col-md-6">

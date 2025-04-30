@@ -118,7 +118,7 @@ $result = $conn->query("
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
         <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
-        <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/print_regular.php'"">
+        <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/print.php'"">
           Print
         </button>
 

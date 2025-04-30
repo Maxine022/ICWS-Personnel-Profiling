@@ -47,9 +47,6 @@ if (is_array($personnelData)) {
 }
 ?>
 
-<?php include './hero/sidebar.php'; ?>
-<?php include './hero/navbar.php'; ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,19 +55,113 @@ if (is_array($personnelData)) {
     <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial;   
+        }
+        .content {
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            height: 120px; 
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Add consistent spacing between the icon and text */
+        }
+        .card i {
+            font-size: 50px;
+            position: absolute;
+            top: 25px;
+            left: 15px;
+        }
+        .card .text-start {
+            display: flex;
+            flex-direction: column; /* Stack the text vertically */
+            justify-content: center; /* Center the text vertically */
+            gap: 5px; /* Add spacing between the <h5> and <h3> */
+        }
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .breadcrumb-link {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .breadcrumb-link:hover {
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .view-link {
+            color: #0d6efd;
+            text-decoration: none;
+            transition: color 0.2s ease, text-decoration 0.2s ease;
+        }
+        .view-link:hover {
+            color: #0a58ca;
+            text-decoration: underline;
+        }
+        .profile-manage-container {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            margin-top: 5px; 
+        }
+        .square-box {
+            width: 70px;  
+            height: 70px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, color 0.3s;
+            padding: 5px;
+        }
+        .square-box i {
+            font-size: 24px; 
+            line-height: 1;
+        }
+        .square-box:hover {
+            background: #007BFF;
+            color: white;
+        }
+        .square-box span {
+            font-size: 12px; 
+            display: block;
+            margin-top: 3px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
+    <?php include './hero/sidebar.php'; ?>
+    <?php include './hero/navbar.php'; ?>
+
     <div class="content" id="content">
         <!-- Header and Breadcrumb -->
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <h4 class="mb-0" style="font-weight: bold;">Dashboard</h4>
             <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
-            </ol>
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
             </nav>
         </div>
 
@@ -120,87 +211,3 @@ if (is_array($personnelData)) {
     </div>
 </body>
 </html>
-
-<style>
-    .card {
-    border: none;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    height: 120px; 
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Add consistent spacing between the icon and text */
-    }
-    .card i {
-    font-size: 50px;
-    position: absolute;
-    top: 25px;
-    left: 15px;
-    }
-    .card .text-start {
-    display: flex;
-    flex-direction: column; /* Stack the text vertically */
-    justify-content: center; /* Center the text vertically */
-    gap: 5px; /* Add spacing between the <h5> and <h3> */
-    }
-    .card-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 25px;
-    background: rgba(0, 0, 0, 0.2);
-    }
-    .breadcrumb-custom {
-    font-size: 14px;
-    }
-    .breadcrumb-link {
-    color: #6c757d;
-    text-decoration: none;
-    transition: color 0.3s ease;
-    }
-    .breadcrumb-link:hover {
-    color: #0d6efd;
-    }
-    .profile-manage-container {
-    display: flex;
-    justify-content: flex-start;
-    gap: 20px;
-    margin-top: 5px; 
-    }
-    .square-box {
-    width: 70px;  
-    height: 70px;
-    background: #f8f9fa;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background 0.3s, color 0.3s;
-    padding: 5px;
-    }
-    .square-box i {
-    font-size: 24px; 
-    line-height: 1;
-    }
-    .square-box:hover {
-    background: #007BFF;
-    color: white;
-    }
-    .square-box span {
-    font-size: 12px; 
-    display: block;
-    margin-top: 3px;
-    text-align: center;
-    }
-    .content {
-    margin-left: 250px;
-    padding: 20px;
-    margin-top: 0px;
-    transition: margin-left 0.3s ease;
-    }
-</style>
