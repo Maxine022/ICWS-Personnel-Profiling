@@ -16,19 +16,18 @@ $result = $conn->query("
     cs.salaryRate AS salaryRate
   FROM contract_service cs
   JOIN personnel p ON cs.personnel_id = p.personnel_id
+  WHERE p.emp_type = 'Contract' AND p.emp_status = 'Active'
   ORDER BY p.personnel_id ASC, p.full_name ASC
-  ");
+");
 
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $contract[] = $row;
     }
 } else {
-    echo "No records found.";
-    var_dump($result); // Log the result
+    echo "<div class='alert alert-warning'>No records found.</div>";
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -112,7 +111,7 @@ if ($result && $result->num_rows > 0) {
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
         <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_cos.php'"><i class="fas fa-plus"></i> Add</button>
-        <button class="btn btn-success btn-sm shadow-custom text-white" style="background-color: success;" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        <button class="btn btn-success btn-sm shadow-custom text-white" data-bs-toggle="modal" data-bs-target="#uploadModal">
           <i class="fas fa-upload"></i> Upload File
         </button>
 
@@ -141,18 +140,18 @@ if ($result && $result->num_rows > 0) {
         </tr>
       </thead>
       <tbody>
-      <?php foreach ($contract as $index => $contract): ?>
+      <?php foreach ($contract as $index => $cos): ?>
         <tr>
-          <td><?= htmlspecialchars($contract['Emp_No']) ?></td>
-          <td><?= htmlspecialchars($contract['full_name']) ?></td>
-          <td><?= htmlspecialchars($contract['sex']) ?></td>
-          <td><?= htmlspecialchars($contract['birthdate']) ?></td>
-          <td><?= htmlspecialchars($contract['contact_number']) ?></td>
-          <td><?= htmlspecialchars($contract['address']) ?></td>
-          <td><?= htmlspecialchars($contract['position']) ?></td>
-          <td><?= htmlspecialchars($contract['division']) ?></td>
-          <td><?= htmlspecialchars($contract['salaryRate']) ?></td>
-          <td><a href="profile.php?Emp_No=<?= urlencode($contract['Emp_No']) ?>" class="view-link">View Profile</a></td>
+          <td><?= htmlspecialchars($cos['Emp_No']) ?></td>
+          <td><?= htmlspecialchars($cos['full_name']) ?></td>
+          <td><?= htmlspecialchars($cos['sex']) ?></td>
+          <td><?= htmlspecialchars($cos['birthdate']) ?></td>
+          <td><?= htmlspecialchars($cos['contact_number']) ?></td>
+          <td><?= htmlspecialchars($cos['address']) ?></td>
+          <td><?= htmlspecialchars($cos['position']) ?></td>
+          <td><?= htmlspecialchars($cos['division']) ?></td>
+          <td><?= htmlspecialchars($cos['salaryRate']) ?></td>
+          <td><a href="profile.php?Emp_No=<?= urlencode($cos['Emp_No']) ?>" class="view-link">View Profile</a></td>
         </tr>
       <?php endforeach; ?>  
       </tbody>
@@ -202,13 +201,13 @@ if ($result && $result->num_rows > 0) {
     <div class="modal-content shadow">
       <form action="/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
         <div class="modal-header bg-light">
-          <h5 class="modal-title" id="uploadModalLabel">Upload Job Order Employee File</h5>
+          <h5 class="modal-title" id="uploadModalLabel">Upload Contract of Service Employee File</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
             <label for="data_file" class="form-label">Choose File</label>
-            <input type="file" class="form-control" id="data_file" name="data_file" accept=".json" required>
+            <input type="file" class="form-control" id="data_file" name="data_file" accept=".csv" required>
           </div>
         </div>
         <div class="modal-footer">

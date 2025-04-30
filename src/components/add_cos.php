@@ -42,7 +42,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Insert into personnel
         $stmt_personnel = $conn->prepare("INSERT INTO personnel (Emp_No, full_name, contact_number, birthdate, sex, position, division, address, emp_type, emp_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Contract', 'Active')");
-        $stmt_personnel->bind_param("ssssssss", $Emp_No, $full_name, $contact_number, $birthdate, $sex, $position, $division, $address);
+        $stmt_personnel->bind_param(
+            "ssssssss",
+            $Emp_No,
+            $full_name,
+            $contact_number,
+            $birthdate,
+            $sex,
+            $position,
+            $division,
+            $address
+        );
 
         if ($stmt_personnel->execute()) {
             $personnel_id = $conn->insert_id;
@@ -52,15 +62,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_contract->bind_param("ii", $personnel_id, $salaryRate);
 
             if ($stmt_contract->execute()) {
-                // Use header redirect for a smooth process and to avoid output before header
                 header("Location: /src/components/manage_cos.php");
                 exit();
             } else {
-                $errors[] = "Error adding contract_service: " . $conn->error;
+                $errors[] = "Error adding contract_service: " . $stmt_contract->error;
             }
             $stmt_contract->close();
         } else {
-            $errors[] = "Error adding personnel: " . $conn->error;
+            $errors[] = "Error adding personnel: " . $stmt_personnel->error;
         }
         $stmt_personnel->close();
     }
@@ -124,7 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
         <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/manage_cos.php">Manage</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Job Order</li>
+        <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
   </div>
