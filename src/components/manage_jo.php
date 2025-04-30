@@ -13,14 +13,9 @@ $result = $conn->query("
     p.address,
     p.position,
     p.division,
-    jo.salary_id,
-    s.salaryGrade,
-    s.step,
-    s.level,
-    s.monthlySalary
+    jo.salaryRate AS salaryRate
   FROM job_order jo
   JOIN personnel p ON jo.personnel_id = p.personnel_id
-  JOIN salary s ON jo.salary_id = s.salary_id
   ORDER BY p.personnel_id ASC, p.full_name ASC
   ");
 
@@ -42,18 +37,27 @@ if ($result && $result->num_rows > 0) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- CSS Libraries -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" rel="stylesheet">
+  
   <style>
     body { 
       font-family: Arial; 
     }
     .content {
       padding: 30px;
+    }
+    .container {
+    margin-top: 20px;
+    }
+    .form-label {
+      font-weight: bold;
+    }
+    .table-container {
+      margin-top: 30px;
     }
     .breadcrumb-link {
       color: inherit;
@@ -102,13 +106,13 @@ if ($result && $result->num_rows > 0) {
 
   <div class="search-buttons-container row align-items-center mb-4">
     <div class="col-md-6 d-flex align-items-center gap-2">
-      <label for="searchInput" class="form-label mb-0"><strong>Search:</strong></label>
+      <label for="searchInput" class="form-label mb-0">Search:</label>
       <div id="customSearchContainer"></div>
     </div>
 
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-        <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_job_order.php'"><i class="fas fa-plus"></i> Add</button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_jo.php'"><i class="fas fa-plus"></i> Add</button>
         <button class="btn btn-success btn-sm shadow-custom text-white" style="background-color: success;" data-bs-toggle="modal" data-bs-target="#uploadModal">
           <i class="fas fa-upload"></i> Upload File
         </button>
@@ -133,10 +137,7 @@ if ($result && $result->num_rows > 0) {
           <th>Address</th>
           <th>Position</th>
           <th>Division</th>
-          <th>Salary Grade</th>
-          <th>Step</th>
-          <th>Level</th>
-          <th>Monthly Salary</th>
+          <th>Salary Rate</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -151,10 +152,7 @@ if ($result && $result->num_rows > 0) {
           <td><?= htmlspecialchars($jo['address']) ?></td>
           <td><?= htmlspecialchars($jo['position']) ?></td>
           <td><?= htmlspecialchars($jo['division']) ?></td>
-          <td><?= htmlspecialchars($jo['salaryGrade']) ?></td>
-          <td><?= htmlspecialchars($jo['step']) ?></td>
-          <td><?= htmlspecialchars($jo['level']) ?></td>
-          <td><?= htmlspecialchars($jo['monthlySalary']) ?></td>
+          <td><?= htmlspecialchars($jo['salaryRate']) ?></td>
           <td><a href="profile.php?Emp_No=<?= urlencode($jo['Emp_No']) ?>" class="view-link">View Profile</a></td>
         </tr>
       <?php endforeach; ?>  

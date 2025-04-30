@@ -34,15 +34,14 @@ $result = $conn->query("
     p.position,
     p.division,
     NULL AS plantillaNo,
-    s.salaryGrade AS salaryGrade,
-    s.step AS step,
-    s.level AS level,
+    NULL AS salaryGrade,
+    NULL AS step,
+    NULL AS level,
     NULL AS acaPera,
-    s.monthlySalary AS monthlySalary,
+    r.salaryRate AS monthlySalary,
     'Job Order' AS employment_type
   FROM job_order r
   JOIN personnel p ON r.personnel_id = p.personnel_id
-  JOIN salary s ON r.salary_id = s.salary_id
   UNION
   SELECT 
     p.Emp_No,
@@ -60,7 +59,7 @@ $result = $conn->query("
     'Contract of Service' AS employment_type
   FROM contract_service r
   JOIN personnel p ON r.personnel_id = p.personnel_id
-  ORDER BY Emp_No DESC, full_name ASC
+  ORDER BY Emp_No ASC, full_name ASC
 ");
 
 if ($result && $result->num_rows > 0) {

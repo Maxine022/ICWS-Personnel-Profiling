@@ -102,13 +102,6 @@ $email = $_SESSION['email'] ?? 'Guest';
     </div>
 
     <hr class="sidebar-divider">
-
-    <div class="d-flex align-items-center justify-content-start mb-3 ps-3">
-        <img src="/assets/profile.jpg" class="rounded-circle" alt="User Profile" width="40" height="40">
-        <p class="m-0 ms-2"><?php echo htmlspecialchars($email); ?></p>
-    </div>
-
-    <hr class="sidebar-divider">
     
     <a href="/src/index.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/index.php') ? 'active' : ''; ?>">
         <i class="fas fa-home"></i> Dashboard
@@ -139,9 +132,6 @@ $email = $_SESSION['email'] ?? 'Guest';
     
     </a><a href="/src/components/manage_intern.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_intern.php') ? 'active' : ''; ?>">
         <i class="fas fa-users"></i> Intern
-    </a>
-    </a><a href="/src/components/manage_coc.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_coc.php') ? 'active' : ''; ?>">
-        <i class="fas fa-users"></i> COC
     </a>
     <a href="/src/components/login.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>
@@ -177,4 +167,5 @@ $email = $_SESSION['email'] ?? 'Guest';
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
 

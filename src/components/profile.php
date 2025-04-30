@@ -2,7 +2,6 @@
 session_start();
 include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection file
 
-// Assume the employee's Emp_No is passed via GET parameter
 $emp_no = $_GET['Emp_No'] ?? null; // Get Emp_No from GET parameter
 $action = $_GET['action'] ?? null;
 
@@ -29,96 +28,86 @@ $query_salary->bind_param("i", $employee['personnel_id']);
 $query_salary->execute();
 $salary = $query_salary->get_result()->fetch_assoc();
 
-// Query to get reg_emp details from 'reg_emp' table
+// Query to get reg_emp details
 $query_reg_emp = $conn->prepare("SELECT * FROM reg_emp WHERE personnel_id = ?");
 $query_reg_emp->bind_param("i", $employee['personnel_id']);
 $query_reg_emp->execute();
-$reg_emp = $query_reg_emp->get_result()->fetch_assoc();
+$reg_emp_result = $query_reg_emp->get_result();
+$reg_emp = $reg_emp_result->fetch_assoc() ?: [];
 
 // Access plantillaNo and acaPera
-$plantillaNo = $reg_emp['plantillaNo'] ?? null; // Handle case where it's null
-$acaPera = $reg_emp['acaPera'] ?? null; // Handle case where it's null
+$plantillaNo = $reg_emp['plantillaNo'] ?? null;
+$acaPera = $reg_emp['acaPera'] ?? null;
 
-// Check employment type (e.g., 'regular', 'job_order', 'contract')
-$employment_type = ''; // Default to empty string
-if (isset($reg_emp['plantillaNo']) && !empty($reg_emp['plantillaNo'])) {
+// Query to get job order details
+$query_job_order = $conn->prepare("SELECT * FROM job_order WHERE personnel_id = ?");
+$query_job_order->bind_param("i", $employee['personnel_id']);
+$query_job_order->execute();
+$job_order_result = $query_job_order->get_result();
+$job_order = $job_order_result->fetch_assoc() ?: [];
+
+// Query to get contract details
+$query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ?");
+$query_cos->bind_param("i", $employee['personnel_id']);
+$query_cos->execute();
+$contracts_result = $query_cos->get_result();
+$contract_service = $contracts_result->fetch_assoc() ?: [];
+
+// Determine employment type
+$employment_type = '';
+if (!empty($reg_emp['plantillaNo'])) {
     $employment_type = 'regular';
-} elseif (isset($employee['job_order']) && !empty($employee['job_order'])) {
+} elseif (!empty($job_order['salaryRate'])) {
     $employment_type = 'job_order';
-} elseif (isset($employee['contract_status']) && !empty($employee['contract_status'])) {
+} elseif (!empty($contract_service['contract_status'])) {
     $employment_type = 'contract';
 }
 
-// Query to get job order details from 'job_order' table if applicable
-$job_orders = [];
-if ($employment_type === 'job_order') {
-    $query_jo = $conn->prepare("SELECT * FROM job_order WHERE personnel_id = ?");
-    $query_jo->bind_param("i", $employee['personnel_id']);
-    $query_jo->execute();
-    $job_orders = $query_jo->get_result();
-}
-
-// Query to get contract details from 'contract_service' table if applicable
-$contracts = [];
-if ($employment_type === 'contract') {
-    $query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ?");
-    $query_cos->bind_param("i", $employee['personnel_id']);
-    $query_cos->execute();
-    $contracts = $query_cos->get_result();
-}
+// Normalize emp_type for logic and display
+$emp_type = strtolower(str_replace(' ', '_', $employee['emp_type'] ?? $employment_type ?? 'unknown'));
 
 // If the action is not explicitly "delete," do not execute the delete logic
 if ($action === 'delete') {
-  // Begin database transaction
-  $conn->begin_transaction();
+    // Begin database transaction
+    $conn->begin_transaction();
 
-  try {
-      // Query to get the personnel_id for the given Emp_No
-      $query_personnel = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ?");
-      $query_personnel->bind_param("s", $emp_no);
-      $query_personnel->execute();
-      $result = $query_personnel->get_result();
-      $personnel = $result->fetch_assoc();
+    try {
+        // Query to get the personnel_id for the given Emp_No
+        $query_personnel = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ?");
+        $query_personnel->bind_param("s", $emp_no);
+        $query_personnel->execute();
+        $result = $query_personnel->get_result();
+        $personnel = $result->fetch_assoc();
 
-      if (!$personnel) {
-          throw new Exception("Employee not found.");
-      }
+        if (!$personnel) {
+            throw new Exception("Employee not found.");
+        }
 
-      $personnel_id = $personnel['personnel_id'];
+        $personnel_id = $personnel['personnel_id'];
 
-      // Delete from dependent tables in the correct order
-      // Step 1: Delete from reg_emp table
-      $query_reg_emp = $conn->prepare("DELETE FROM reg_emp WHERE personnel_id = ?");
-      $query_reg_emp->bind_param("i", $personnel_id);
-      if (!$query_reg_emp->execute()) {
-          throw new Exception("Failed to delete from reg_emp: " . $query_reg_emp->error);
-      }
+        // Delete from dependent tables in the correct order
+        $query_reg_emp = $conn->prepare("DELETE FROM reg_emp WHERE personnel_id = ?");
+        $query_reg_emp->bind_param("i", $personnel_id);
+        $query_reg_emp->execute();
 
-      // Step 2: Delete from salary table
-      $query_salary = $conn->prepare("DELETE FROM salary WHERE salary_id = (SELECT salary_id FROM reg_emp WHERE personnel_id = ?)");
-      $query_salary->bind_param("i", $personnel_id);
-      if (!$query_salary->execute()) {
-          throw new Exception("Failed to delete from salary: " . $query_salary->error);
-      }
+        $query_salary = $conn->prepare("DELETE FROM salary WHERE personnel_id = ?");
+        $query_salary->bind_param("i", $personnel_id);
+        $query_salary->execute();
 
-      // Step 3: Delete from personnel table (parent table)
-      $query_personnel_delete = $conn->prepare("DELETE FROM personnel WHERE Emp_No = ?");
-      $query_personnel_delete->bind_param("s", $emp_no);
-      if (!$query_personnel_delete->execute()) {
-          throw new Exception("Failed to delete from personnel: " . $query_personnel_delete->error);
-      }
+        $query_personnel_delete = $conn->prepare("DELETE FROM personnel WHERE Emp_No = ?");
+        $query_personnel_delete->bind_param("s", $emp_no);
+        $query_personnel_delete->execute();
 
-      // Commit transaction
-      $conn->commit();
+        // Commit transaction
+        $conn->commit();
 
-      echo "<div class='alert alert-success'>Profile deleted successfully!</div>";
-      echo "<script>window.location.href='/src/components/manage_regEmp.php';</script>"; // Redirect to manage personnel page
-      exit();
-  } catch (Exception $e) {
-      // Rollback transaction on error
-      $conn->rollback();
-      echo "<div class='alert alert-danger'>Failed to delete the profile: " . $e->getMessage() . "</div>";
-  }
+        echo "<div class='alert alert-success'>Profile deleted successfully!</div>";
+        echo "<script>window.location.href='/src/components/manage_regEmp.php';</script>";
+        exit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo "<div class='alert alert-danger'>Failed to delete the profile: " . $e->getMessage() . "</div>";
+    }
 }
 ?>
 
@@ -128,13 +117,13 @@ if ($action === 'delete') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
      body { font-family: Arial, sans-serif; margin: 0; }
     .header {
@@ -279,11 +268,11 @@ if ($action === 'delete') {
               ];
 
               // Get the color based on the employee type, default to gray if type is unknown
-              $emp_type_color = $emp_type_colors[strtolower($employee['emp_type'])] ?? 'gray';
+              $emp_type_color = $emp_type_colors[$emp_type] ?? 'gray';
               ?>
               <span style="color: #6c757d; margin: 0 10px;">|</span>
 
-              <span style="font-size: 14px; color: <?php echo $emp_type_colors[strtolower($employee['emp_type'])] ?? 'gray'; ?>;">
+              <span style="font-size: 14px; color: <?php echo $emp_type_color; ?>;">
                   <i class="fas fa-user" style="margin-right: 5px;"></i>
                   <?php echo ucfirst($employee['emp_type']); ?>
               </span>
@@ -301,7 +290,17 @@ if ($action === 'delete') {
             <h5 class="fw-bold mt-3 mb-0">Personnel Information Details</h5>
             <div class="btn-container">
                 <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
-                <a href="/src/components/edit_regular.php?Emp_No=<?php echo $employee['Emp_No']; ?>" class="btn btn-success btn-sm">Update</a>
+                <a href="<?php 
+                    if ($emp_type === 'regular') {
+                        echo '/src/components/edit_regular.php?Emp_No=' . urlencode($employee['Emp_No']);
+                    } elseif ($emp_type === 'job_order') {
+                        echo '/src/components/edit_jo.php?Emp_No=' . urlencode($employee['Emp_No']);
+                    } elseif ($emp_type === 'contract') {
+                        echo '/src/components/edit_cos.php?Emp_No=' . urlencode($employee['Emp_No']);
+                    } else {
+                        echo 'javascript:void(0);'; // Default action if emp_type is unknown
+                    }
+                ?>" class="btn btn-success btn-sm">Update</a>
                 <a href="?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>&action=delete" class="btn btn-danger btn-sm">Delete</a>
                 <a href="/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
             </div>
@@ -312,34 +311,88 @@ if ($action === 'delete') {
               <div class="col-md-6">
               <p><strong>Sex:</strong> <?php echo $employee['sex']; ?></p>
               <p><strong>Birthdate:</strong> <?php echo $employee['birthdate']; ?></p>
-              <p><strong>Plantilla Number:</strong> <?php echo $plantillaNo ?? 'N/A'; ?></p>
               <p><strong>Position:</strong> <?php echo $employee['position']; ?></p>
               <p><strong>Division:</strong> <?php echo $employee['division']; ?></p>
               </div>
               <div class="col-md-6">
-              <p><strong>Salary Grade:</strong> <?php echo $salary['salaryGrade']; ?></p>
-              <p><strong>Step:</strong> <?php echo $salary['step']; ?></p>
-              <p><strong>Level:</strong> <?php echo $salary['level']; ?></p>
-              <p><strong>Monthly Salary:</strong> <?php echo $salary['monthlySalary']; ?></p>
-              <p><strong>ACA Pera:</strong> <?php echo $acaPera ?? 'N/A'; ?></p>
-              </div>
+              <?php if ($emp_type === 'regular'): ?>
+                <p><strong>Plantilla Number:</strong> <?php echo $plantillaNo ?? 'N/A'; ?></p>
+                <p><strong>Salary Grade:</strong> <?php echo $salary['salaryGrade']; ?></p>
+                <p><strong>Step:</strong> <?php echo $salary['step']; ?></p>
+                <p><strong>Level:</strong> <?php echo $salary['level']; ?></p>
+                <p><strong>Monthly Salary:</strong> <?php echo $salary['monthlySalary']; ?></p>
+                <p><strong>ACA Pera:</strong> <?php echo $acaPera ?? 'N/A'; ?></p>
+              <?php elseif ($emp_type === 'job_order'): ?>
+                <p><strong>Salary Rate:</strong> <?php echo $job_order['salaryRate'] ?? 'N/A'; ?></p>
+              <?php elseif ($emp_type === 'contract'): ?>
+                  <p><strong>Salary Rate:</strong> <?php echo $contract['salaryRate'] ?? 'N/A'; ?></p>
+              <?php endif; ?>
+            </div>
               <div class="col-md-6">
               </div>
             </div>
 
             <hr>
-            <?php include __DIR__ . '/service_record.php'; ?>
-        </div>
-      </div>
-    </div>
-  </div>  
-  <script>
-  function deleteProfile() {
-    if (confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
-        // Redirect to the delete_profile.php script with the Emp_No as a parameter
-        window.location.href = "/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
-    }
-  }
+            <?php
+                // Set visibility flags based on emp_type
+                $show_service_record = false;
+                $show_service_contract = false;
+                $show_contract_record = false;
+
+                if ($emp_type === 'regular') {
+                    $show_service_record = true;
+                } elseif ($emp_type === 'job_order') {
+                    $show_service_contract = true;
+                } elseif ($emp_type === 'contract') {
+                    $show_contract_record = true;
+                }
+            ?>
+
+          <!-- Display the appropriate section based on the parameters -->
+          <?php if ($show_service_record): ?>
+              <?php 
+              $service_record_path = __DIR__ . '/service_record.php';
+              if (file_exists($service_record_path)) {
+                  include $service_record_path; 
+              } else {
+                  echo "<p>Error: service_record.php not found.</p>";
+              }
+              ?>
+          <?php endif; ?>
+
+          <?php if ($show_service_contract): ?>
+              <?php 
+              $service_contract_path = __DIR__ . '/service_contract.php';
+              if (file_exists($service_contract_path)) {
+                  include $service_contract_path; 
+              } else {
+                  echo "<p>Error: service_contract.php not found.</p>";
+              }
+              ?>
+          <?php endif; ?>
+
+          <?php if ($show_contract_record): ?>
+              <?php 
+              $contract_record_path = __DIR__ . '/service_contractRecord.php';
+              if (file_exists($contract_record_path)) {
+                  include $contract_record_path; 
+              } else {
+                  echo "<p>Error: service_contractRecord.php not found.</p>";
+              }
+              ?>
+          <?php endif; ?>
+          <?php echo "<!-- emp_type: $emp_type | employee[emp_type]: " . ($employee['emp_type'] ?? 'NOT SET') . " | employment_type: $employment_type -->"; ?>
+                  </div>
+                </div>
+              </div>
+            </div>  
+            <script>
+            function deleteProfile() {
+              if (confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
+                  // Redirect to the delete_profile.php script with the Emp_No as a parameter
+                  window.location.href = "/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
+              }
+            }
 </script>
 </div>
 </body>
