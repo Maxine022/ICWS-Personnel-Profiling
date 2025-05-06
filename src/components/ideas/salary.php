@@ -77,3 +77,23 @@ enum SalaryGrade: int {
         return $salaryData[$salaryGrade->value] ?? [];
     }
 }
+
+enum Level: string {
+    case FirstLevelNS = '1st Level NS';
+    case SecondLevelNS = '2nd Level NS';
+    case SecondLevelS = '2nd Level S';
+    case SecondLevelM = '2nd Level M';
+    case ThirdLevelCES = '3rd Level CES';
+
+    public static function getDescription(self $level): string {
+        $descriptions = [
+            self::FirstLevelNS->value => 'First Level Non-Supervisory',
+            self::SecondLevelNS->value => 'Second Level Non-Supervisory',
+            self::SecondLevelS->value => 'Second Level Supervisory',
+            self::SecondLevelM->value => 'Second Level Managerial',
+            self::ThirdLevelCES->value => 'Third Level Career Executive Service',
+        ];
+
+        return $descriptions[$level->value] ?? 'Unknown Level';
+    }
+}

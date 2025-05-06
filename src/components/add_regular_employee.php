@@ -196,7 +196,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contactNo" required 
+          <input type="text" class="form-control" name="contact_number" required 
                 maxlength="11" pattern="\d{11}" 
                 title="Contact number must be exactly 11 digits" 
                 onkeypress="return isNumberKey(event)">
@@ -251,8 +251,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </select>
             </div>
             <div class="col-md-1">
-                <label class="form-label">Level</label>
-                <input type="text" class="form-control" name="level" placeholder="Level" value="<?php echo $_POST['level'] ?? ''; ?>" required>
+              <label class="form-label">Level</label>
+              <select class="form-select" name="level" required>
+                <option value="">Select Level</option>
+                <?php
+                $salaryFilePath = __DIR__ . '/ideas/salary.php';
+                if (!file_exists($salaryFilePath)) {
+                  die("Error: salary.php file not found.");
+                }
+                include_once $salaryFilePath;
+
+                if (class_exists('Level')) {
+                  foreach (Level::cases() as $level) {
+                    $selected = (isset($_POST['level']) && $_POST['level'] == $level->value) ? 'selected' : '';
+                    echo "<option value=\"{$level->value}\" $selected>{$level->value}</option>";
+                  }
+                } else {
+                  echo "<option value=\"\">Error: Level class not found.</option>";
+                }
+                ?>
+              </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Monthly Salary</label>

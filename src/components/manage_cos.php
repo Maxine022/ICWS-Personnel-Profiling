@@ -13,19 +13,18 @@ $result = $conn->query("
     p.address,
     p.position,
     p.division,
-    cs.salaryRate AS salaryRate
+    cs.salaryRate
   FROM contract_service cs
   JOIN personnel p ON cs.personnel_id = p.personnel_id
   WHERE p.emp_type = 'Contract' AND p.emp_status = 'Active'
   ORDER BY p.personnel_id ASC, p.full_name ASC
+  LIMIT 50
 ");
 
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $contract[] = $row;
     }
-} else {
-    echo "<div class='alert alert-warning'>No records found.</div>";
 }
 ?>
 
@@ -42,48 +41,16 @@ if ($result && $result->num_rows > 0) {
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
   <style>
-    body { 
-      font-family: Arial; 
-    }
-    .content {
-      padding: 30px;
-    }
-    .container {
-    margin-top: 20px;
-    }
-    .form-label {
-      font-weight: bold;
-    }
-    .table-container {
-      margin-top: 30px;
-    }
-    .breadcrumb-link {
-      color: inherit;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-    .breadcrumb-link:hover {
-      color: #007bff;
-      text-decoration: underline;
-    }
-    .view-link {
-      color: #0d6efd;
-      text-decoration: none;
-      transition: color 0.2s ease, text-decoration 0.2s ease;
-    }
-    .view-link:hover {
-      color: #0a58ca;
-      text-decoration: underline;
-    }
-    .search-buttons-container {
-      margin-top: 25px;
-    }
-    .shadow-custom {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    #personnelTable_wrapper {
-      overflow-x: auto; /* Enables horizontal scrolling if the table overflows */
-    }
+    body { font-family: Arial; }
+    .content { padding: 30px; }
+    .table-container { margin-top: 30px; }
+    .breadcrumb-link { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+    .breadcrumb-link:hover { color: #007bff; text-decoration: underline; }
+    .view-link { color: #0d6efd; text-decoration: none; transition: color 0.2s ease, text-decoration 0.2s ease; }
+    .view-link:hover { color: #0a58ca; text-decoration: underline; }
+    .search-buttons-container { margin-top: 25px; }
+    .shadow-custom { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+    #personnelTable_wrapper { overflow-x: auto; }
   </style>
 </head>
 <body>
@@ -114,13 +81,10 @@ if ($result && $result->num_rows > 0) {
         <button class="btn btn-success btn-sm shadow-custom text-white" data-bs-toggle="modal" data-bs-target="#uploadModal">
           <i class="fas fa-upload"></i> Upload File
         </button>
-
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
         <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
-        <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/print.php'"">
-          Print
-        </button>
+        <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/print.php'">Print</button>
       </div>
     </div>
   </div>
@@ -142,20 +106,20 @@ if ($result && $result->num_rows > 0) {
         </tr>
       </thead>
       <tbody>
-      <?php foreach ($contract as $index => $cos): ?>
-        <tr>
-          <td><?= htmlspecialchars($cos['Emp_No']) ?></td>
-          <td><?= htmlspecialchars($cos['full_name']) ?></td>
-          <td><?= htmlspecialchars($cos['sex']) ?></td>
-          <td><?= htmlspecialchars($cos['birthdate']) ?></td>
-          <td><?= htmlspecialchars($cos['contact_number']) ?></td>
-          <td><?= htmlspecialchars($cos['address']) ?></td>
-          <td><?= htmlspecialchars($cos['position']) ?></td>
-          <td><?= htmlspecialchars($cos['division']) ?></td>
-          <td><?= htmlspecialchars($cos['salaryRate']) ?></td>
-          <td><a href="profile.php?Emp_No=<?= urlencode($cos['Emp_No']) ?>" class="view-link">View Profile</a></td>
-        </tr>
-      <?php endforeach; ?>  
+        <?php foreach ($contract as $index => $cos): ?>
+          <tr>
+            <td><?= htmlspecialchars($cos['Emp_No']) ?></td>
+            <td><?= htmlspecialchars($cos['full_name']) ?></td>
+            <td><?= htmlspecialchars($cos['sex']) ?></td>
+            <td><?= htmlspecialchars($cos['birthdate']) ?></td>
+            <td><?= htmlspecialchars($cos['contact_number']) ?></td>
+            <td><?= htmlspecialchars($cos['address']) ?></td>
+            <td><?= htmlspecialchars($cos['position']) ?></td>
+            <td><?= htmlspecialchars($cos['division']) ?></td>
+            <td><?= htmlspecialchars(number_format($cos['salaryRate'], 2)) ?></td>
+            <td><a href="profile.php?Emp_No=<?= urlencode($cos['Emp_No']) ?>" class="view-link">View Profile</a></td>
+          </tr>
+        <?php endforeach; ?>
       </tbody>
     </table>
   </div>
@@ -165,61 +129,14 @@ if ($result && $result->num_rows > 0) {
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script>
   $(document).ready(function () {
-    const table = $('#personnelTable').DataTable({
-        "pageLength": 10,
-        dom:
-            "<'d-none'f>" +
-            "<'row'<'col-12'tr>>" +
-            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
-        buttons: [
-            { extend: 'csv', className: 'd-none', title: 'Contract of Service Employees' },
-            { extend: 'pdf', className: 'd-none', title: 'Contract of Service Employees' },
-            { extend: 'print', className: 'd-none', title: 'Contract of Service Employees' }
-        ]
-    });
-
-    $('#customSearchContainer').append($('#personnelTable_filter input'));
-    $('#personnelTable_filter').remove();
-
-    $('.export-btn').on('click', function () {
-        const type = $(this).data('type');
-        table.button(`.buttons-${type}`).trigger();
+    $('#personnelTable').DataTable({
+      "pageLength": 20,
+      dom: "<'row'<'col-12'tr>>" +
+           "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>"
     });
   });
 </script>
-
-<!-- Upload Modal -->
-<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow">
-      <form action="/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
-        <div class="modal-header bg-light">
-          <h5 class="modal-title" id="uploadModalLabel">Upload Contract of Service Employee File</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="data_file" class="form-label">Choose File</label>
-            <input type="file" class="form-control" id="data_file" name="data_file" accept=".csv" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Upload</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>

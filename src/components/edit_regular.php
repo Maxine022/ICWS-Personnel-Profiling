@@ -173,6 +173,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 }
+
+// Fetch position data for dynamic dropdowns
+$jsPositionData = [];
+include_once __DIR__ . '/ideas/position.php';
+if (class_exists('Position')) {
+  foreach (Position::cases() as $position) {
+    $jsPositionData[] = $position->value;
+  }
+} else {
+  die("<div class='alert alert-danger'>Error: Position class not found in position.php.</div>");
+}
+
+// Fetch division data for dynamic dropdowns
+$jsDivisionData = [];
+include_once __DIR__ . '/ideas/division.php';
+if (class_exists('Division')) {
+  foreach (Division::cases() as $division) {
+    $jsDivisionData[] = $division->value;
+  }
+} else {
+  die("<div class='alert alert-danger'>Error: Division class not found in division.php.</div>");
+}
+
+// Fetch level data for dynamic dropdowns
+$jsLevelData = [];
+include_once __DIR__ . '/ideas/salary.php';
+if (class_exists('Level')) {
+    foreach (Level::cases() as $level) {
+        $jsLevelData[$level->value] = Level::getDescription($level);
+    }
+} else {
+    die("<div class='alert alert-danger'>Error: Level class not found in salary.php.</div>");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -184,31 +217,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Add custom styles for input fields */
-        input.form-control {
+        input.form-control, select.form-control {
             border: 1px solid #ced4da;
             border-radius: 5px;
             padding: 10px;
             font-size: 14px;
             background-color: #f9f9f9;
         }
-        input.form-control:focus {
+        input.form-control:focus, select.form-control:focus {
             border-color: #007bff;
             box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
             background-color: #ffffff;
         }
         label.form-label {
             font-weight: bold;
-            color: #black;
-        }
-        .breadcrumb-custom {
-          font-size: 14px;
-        }
-        .breadcrumb-link {
-          color: #6c757d;
-          text-decoration: none;
-        }
-        .breadcrumb-link:hover {
-          color: #0d6efd;
+            color: #000;
         }
         .form-action-buttons {
             display: flex;
@@ -216,8 +239,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-top: 20px;
             justify-content: flex-start;
         }
+        .form-section {
+            margin-top: 20px;
+        }
+        .row.g-3 > .col-md-6, .row.g-3 > .col-md-3 {
+            margin-bottom: 15px;
+        }
+        .breadcrumb-link { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+        .breadcrumb-link:hover { color: #007bff; text-decoration: underline; }
+        .view-link { color: #0d6efd; text-decoration: none; transition: color 0.2s ease, text-decoration 0.2s ease; }
+        .view-link:hover { color: #0a58ca; text-decoration: underline; }
+        .search-buttons-container { margin-top: 25px; }
+        .shadow-custom { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
     </style>
 </head>
+
 <body>
 <?php include_once __DIR__ . '/../hero/navbar.php'; ?>
 <?php include_once __DIR__ . '/../hero/sidebar.php'; ?>
@@ -228,99 +264,125 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-                <li class="breadcrumb mb-0"><a class="breadcrumb-link" href="/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>"> / Profile </a></li>
-                <li class="breadcrumb-item active" aria-current="page"> / Edit Employee</li>
-            </ol>     
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Employee</li>
+            </ol>
         </nav>
     </div>
     <form method="POST">
-        <div class="mb-3">
-            <label for="Emp_No" class="form-label">Employee Number</label>
-            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="full_name" class="form-label">Full Name</label>
-            <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
-        </div>
-        <div class="mb-3">
-            <label for="sex" class="form-label">Sex</label>
-            <select class="form-control" id="sex" name="sex" required>
-                <option value="">Select Sex</option>
-                <option value="Male" <?php echo ($employee['sex'] === 'Male') ? 'selected' : ''; ?>>Male</option>
-                <option value="Female" <?php echo ($employee['sex'] === 'Female') ? 'selected' : ''; ?>>Female</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="birthdate" class="form-label">Birthdate</label>
-            <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
-        </div>
-        <div class="mb-3">
-            <label for="address" class="form-label">Address</label>
-            <input type="address" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>" required>
-        </div>
-        <div class="mb-3">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="Emp_No" class="form-label">Employee Number</label>
+                <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
+            </div>
+            <div class="col-md-6">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
+            </div>
+            <div class="col-md-6">
+                <label for="contact_number" class="form-label">Contact Number</label>
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="birthdate" class="form-label">Birthdate</label>
+                <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
+            </div>
+            <div class="col-md-6">
+                <label for="sex" class="form-label">Sex</label>
+                <select class="form-control" id="sex" name="sex" required>
+                    <option value="">Select Sex</option>
+                    <option value="Male" <?php echo ($employee['sex'] === 'Male') ? 'selected' : ''; ?>>Male</option>
+                    <option value="Female" <?php echo ($employee['sex'] === 'Female') ? 'selected' : ''; ?>>Female</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>" required>
+            </div>
+            <div class="col-md-6">
             <label for="position" class="form-label">Position</label>
-            <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($employee['position']); ?>" required>
-        </div>
-        <div class="mb-3">
+              <select class="form-control" id="position" name="position" required>
+                <option value="">Select Position</option>
+                <?php
+                foreach ($jsPositionData as $position) {
+                  $selected = ($employee['position'] === $position) ? 'selected' : '';
+                  echo "<option value=\"{$position}\" $selected>{$position}</option>";
+                }
+                ?>
+              </select>
+            </div>
+            <div class="col-md-6">
             <label for="division" class="form-label">Division</label>
-            <input type="text" class="form-control" id="division" name="division" value="<?php echo htmlspecialchars($employee['division']); ?>" required>
-        </div>
-        <div class="mb-3">
-            <label for="emp_status" class="form-label">Status</label>
-            <select class="form-control" id="emp_status" name="emp_status" required>
-                <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
-                <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="plantillaNo" class="form-label">Plantilla Number</label>
-            <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
-        </div>
-        <div class="mb-3">
-            <label for="contact_number" class="form-label">Contact Number</label>
-            <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
-        </div>
-        <div class="mb-3">
-            <label for="salary_grade" class="form-label">Salary Grade</label>
-            <select class="form-control" id="salary_grade" name="salary_grade" required>
-                <option value="">Select Grade</option>
-                <?php
-                foreach (SalaryGrade::cases() as $grade) {
-                    $selected = ((int)$employee['salaryGrade'] === $grade->value) ? 'selected' : '';
-                    echo "<option value=\"{$grade->value}\" $selected>Grade {$grade->value}</option>";
-                }
-                ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="step" class="form-label">Step</label>
-            <select class="form-control" id="step" name="step" required>
-                <option value="">Select Step</option>
-                <?php
-                $salaryGradeObj = SalaryGrade::tryFrom((int)$employee['salaryGrade']);
-                if ($salaryGradeObj) {
-                    $steps = SalaryGrade::getStepsForGrade($salaryGradeObj);
-                    foreach ($steps as $index => $salary) {
-                        $stepNumber = $index + 1;
-                        $selected = ((int)$employee['step'] === $stepNumber) ? 'selected' : '';
-                        echo "<option value=\"$stepNumber\" $selected>Step $stepNumber</option>";
+              <select class="form-control" id="division" name="division" required>
+              <option value="">Select Division</option>
+              <?php
+              foreach ($jsDivisionData as $division) {
+                $selected = ($employee['division'] === $division) ? 'selected' : '';
+                echo "<option value=\"{$division}\" $selected>{$division}</option>";
+              }
+              ?>
+              </select>
+            </div>
+            <div class="col-md-6">
+                <label for="emp_status" class="form-label">Status</label>
+                <select class="form-control" id="emp_status" name="emp_status" required>
+                    <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
+                    <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="plantillaNo" class="form-label">Plantilla Number</label>
+                <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
+            </div>
+            <div class="col-md-3">
+                <label for="salary_grade" class="form-label">Salary Grade</label>
+                <select class="form-control" id="salary_grade" name="salary_grade" required>
+                    <option value="">Select Grade</option>
+                    <?php
+                    foreach (SalaryGrade::cases() as $grade) {
+                        $selected = ((int)$employee['salaryGrade'] === $grade->value) ? 'selected' : '';
+                        echo "<option value=\"{$grade->value}\" $selected>Grade {$grade->value}</option>";
                     }
-                }
-                ?>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="level" class="form-label">Level</label>
-            <input type="text" class="form-control" id="level" name="level" value="<?php echo htmlspecialchars($employee['level']); ?>" required>
-        </div>
-        <div class="mb-3">
-            <label for="monthly_salary" class="form-label">Monthly Salary</label>
-            <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="aca_pera" class="form-label">ACA Pera</label>
-            <input type="text" class="form-control" id="aca_pera" name="aca_pera" value="<?php echo htmlspecialchars($employee['acaPera']); ?>">
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="step" class="form-label">Step</label>
+                <select class="form-control" id="step" name="step" required>
+                    <option value="">Select Step</option>
+                    <?php
+                    $salaryGradeObj = SalaryGrade::tryFrom((int)$employee['salaryGrade']);
+                    if ($salaryGradeObj) {
+                        $steps = SalaryGrade::getStepsForGrade($salaryGradeObj);
+                        foreach ($steps as $index => $salary) {
+                            $stepNumber = $index + 1;
+                            $selected = ((int)$employee['step'] === $stepNumber) ? 'selected' : '';
+                            echo "<option value=\"$stepNumber\" $selected>Step $stepNumber</option>";
+                        }
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="monthly_salary" class="form-label">Monthly Salary</label>
+                <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>" readonly>
+            </div>
+            <div class="col-md-6">
+                <label for="level" class="form-label">Level</label>
+                <select class="form-control" id="level" name="level" required>
+                    <option value="">Select Level</option>
+                    <?php
+                    foreach ($jsLevelData as $levelValue => $levelDescription) {
+                        $selected = ((int)$employee['level'] === $levelValue) ? 'selected' : '';
+                        echo "<option value=\"{$levelValue}\" $selected>{$levelDescription}</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="aca_pera" class="form-label">ACA Pera</label>
+                <input type="text" class="form-control" id="aca_pera" name="aca_pera" value="<?php echo htmlspecialchars($employee['acaPera']); ?>">
+            </div>
         </div>
         <div class="form-action-buttons">
             <button type="submit" class="btn btn-primary">Save Changes</button>

@@ -1,212 +1,166 @@
 <?php
 include_once __DIR__ . '/../../backend/db.php';
 
-$errors = [];
-$success = false;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve form data
+    $emp_no = $_POST['emp_no'];
+    $full_name = $_POST['full_name'];
+    $sex = $_POST['sex'];
+    $birthdate = $_POST['birthdate'];
+    $contact_number = $_POST['contact_number'];
+    $address = $_POST['address'];
+    $position = $_POST['position'];
+    $division = $_POST['division'];
+    $salary_rate = $_POST['salary_rate'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Retrieve and sanitize input
-    $Emp_No = trim($_POST["Emp_No"] ?? "");
-    $full_name = trim($_POST["full_name"] ?? "");
-    $address = trim($_POST["address"] ?? "");
-    $sex = trim($_POST["sex"] ?? "");
-    $birthdate = trim($_POST["birthdate"] ?? "");
-    $position = trim($_POST["designation"] ?? "");
-    $contact_number = trim($_POST["contact_number"] ?? "");
-    $salaryRate = trim($_POST["salary_rate"] ?? "");
+    // Insert into personnel table
+    $stmt = $conn->prepare("
+        INSERT INTO personnel (Emp_No, full_name, sex, birthdate, contact_number, address, position, division, emp_type, emp_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Contract', 'Active')
+    ");
+    $stmt->bind_param("ssssssss", $emp_no, $full_name, $sex, $birthdate, $contact_number, $address, $position, $division);
+    $stmt->execute();
 
-    // Validate required fields
-    if (empty($Emp_No)) $errors[] = "Employee Number is required.";
-    if (empty($full_name)) $errors[] = "Full Name is required.";
-    if (empty($contact_number) || !preg_match('/^\d{11}$/', $contact_number)) $errors[] = "Contact Number is required and must be 11 digits.";
-    if (empty($birthdate)) $errors[] = "Birthdate is required.";
-    if (empty($sex)) $errors[] = "Sex is required.";
-    if (empty($position)) $errors[] = "Position is required.";
-    if (empty($salaryRate) || !is_numeric($salaryRate)) $errors[] = "Salary Rate is required and must be numeric.";
-    if (empty($address)) $errors[] = "Address is required.";
+    // Get the last inserted personnel_id
+    $personnel_id = $conn->insert_id;
 
-    // Check for duplicate Emp_No
-    if (empty($errors)) {
-        $check = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ?");
-        $check->bind_param("s", $Emp_No);
-        $check->execute();
-        $check->store_result();
-        if ($check->num_rows > 0) {
-            $errors[] = "Employee Number already exists.";
-        }
-        $check->close();
-    }
+    // Insert into contract_service table
+    $stmt = $conn->prepare("
+        INSERT INTO contract_service (personnel_id, salaryRate)
+        VALUES (?, ?)
+    ");
+    $stmt->bind_param("id", $personnel_id, $salary_rate);
+    $stmt->execute();
 
-    if (empty($errors)) {
-        $division = ""; // Not in form, set as empty or add to form if needed
-
-        // Insert into personnel
-        $stmt_personnel = $conn->prepare("INSERT INTO personnel (Emp_No, full_name, contact_number, birthdate, sex, position, division, address, emp_type, emp_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Contract', 'Active')");
-        $stmt_personnel->bind_param(
-            "ssssssss",
-            $Emp_No,
-            $full_name,
-            $contact_number,
-            $birthdate,
-            $sex,
-            $position,
-            $division,
-            $address
-        );
-
-        if ($stmt_personnel->execute()) {
-            $personnel_id = $conn->insert_id;
-
-            // Insert into contract_service
-            $stmt_contract = $conn->prepare("INSERT INTO contract_service (personnel_id, salaryRate) VALUES (?, ?)");
-            $stmt_contract->bind_param("ii", $personnel_id, $salaryRate);
-
-            if ($stmt_contract->execute()) {
-                header("Location: /src/components/manage_cos.php");
-                exit();
-            } else {
-                $errors[] = "Error adding contract_service: " . $stmt_contract->error;
-            }
-            $stmt_contract->close();
-        } else {
-            $errors[] = "Error adding personnel: " . $stmt_personnel->error;
-        }
-        $stmt_personnel->close();
-    }
+    // Redirect to manage_cos.php after successful insertion
+    header("Location: /src/components/manage_cos.php");
+    exit;
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Add New Contract of Service Employee</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-  <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <style>
-    body {
-      font-family: 'Arial';
-    }
-    .content {
-      padding: 30px;
-    }
-    .breadcrumb-custom {
-      font-size: 14px;
-    }
-    .breadcrumb-link {
-      color: #6c757d;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-    .breadcrumb-link:hover {
-      color: #0d6efd;
-    }
-    .form-section {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    .btn-cancel {
-      background-color: #fff;
-      border: 1px solid #ced4da;
-      color: #000;
-    }
-    .btn-cancel:hover {
-      background-color: #f1f1f1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Contract of Service</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+    body { font-family: Arial; }
+    .content { padding: 30px; }
+    .table-container { margin-top: 30px; }
+    .breadcrumb-link { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+    .breadcrumb-link:hover { color: #007bff; text-decoration: underline; }
+    .view-link { color: #0d6efd; text-decoration: none; transition: color 0.2s ease, text-decoration 0.2s ease; }
+    .view-link:hover { color: #0a58ca; text-decoration: underline; }
+    .search-buttons-container { margin-top: 25px; }
+    .shadow-custom { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+    </style>
 </head>
 <body>
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
-
-<!-- Main Content -->
 <div class="content" id="content">
-<div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
-    <h5 class="mb-0 fw-bold">Add New Contract of Service Employee</h5>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+    <h4 class="mb-0 fw-bold"> Add Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/manage_cos.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
   </div>
-
-  <?php if (!empty($success)): ?>
-    <div class="alert alert-success">Contract of Service employee added successfully!</div>
-  <?php endif; ?>
-
-  <div class="form-section">
-    <form method="POST" action="">
-    <div class="col-md-6">
-          <label class="form-label">Emp_No</label>
-          <input type="text" class="form-control" name="Emp_No" required>
-        </div>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-control" name="full_name" required>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Address</label>
-          <input type="text" class="form-control" name="address">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Sex</label>
-          <select class="form-select" name="sex">
-            <option value="">Please Select</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Birthdate</label>
-          <input type="date" class="form-control" name="birthdate">
-        </div>
-        <div class="col-md-6">
-        <?php
-          $positionFilePath = __DIR__ . '/ideas/position.php';
-          if (!file_exists($positionFilePath)) {
-              die("Error: position.php file not found.");
-          }
-          include_once $positionFilePath;
-        ?>
-          <label class="form-label">Position</label>
-          <select class="form-select" name="position" required>
-            <option value="">Select Position</option>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="emp_no" class="form-label">Employee Number</label>
+                <input type="text" class="form-control" id="emp_no" name="emp_no" required>
+            </div>
+            <div class="col-md-6">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" required>
+            </div>
+            <div class="col-md-6">
+                <label for="sex" class="form-label">Sex</label>
+                <select class="form-select" id="sex" name="sex" required>
+                    <option value="">Select Sex</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="birthdate" class="form-label">Birthdate</label>
+                <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+            </div>
+            <div class="col-md-6">
+                <label for="contact_number" class="form-label">Contact Number</label>
+                <input type="text" class="form-control" id="contact_number" name="contact_number" required>
+            </div>
+            <div class="col-md-6">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" class="form-control" id="address" name="address" required>
+            </div>
+            <div class="col-md-6">
             <?php
-            if (class_exists('Position')) {
-          foreach (Position::cases() as $position) {
-              echo "<option value=\"{$position->value}\">{$position->value}</option>";
-          }
-            } else {
-          echo "<option value=\"\">Error: Position class not found.</option>";
-            }
+                $positionFilePath = __DIR__ . '/ideas/position.php';
+                if (!file_exists($positionFilePath)) {
+                    die("Error: position.php file not found.");
+                }
+                include_once $positionFilePath;
+                ?>
+                <label class="form-label">Position</label>
+                <select class="form-select" name="position" required>
+                    <option value="">Select Position</option>
+                    <?php
+                    if (class_exists('Position')) {
+                foreach (Position::cases() as $position) {
+                    echo "<option value=\"{$position->value}\">{$position->value}</option>";
+                }
+                    } else {
+                echo "<option value=\"\">Error: Position class not found.</option>";
+                    }
             ?>
           </select>
+            </div>
+            <div class="col-md-6">
+            <label class="form-label">Division</label>
+            <select class="form-select" name="division" required>
+                <option value="">Select Division</option>
+                <?php
+                $divisionFilePath = __DIR__ . '/ideas/division.php';
+                if (!file_exists($divisionFilePath)) {
+            die("Error: division.php file not found.");
+                }
+                include_once $divisionFilePath;
+                if (class_exists('Division')) {
+            foreach (Division::cases() as $division) {
+                echo "<option value=\"{$division->value}\">{$division->value}</option>";
+            }
+                } else {
+            echo "<option value=\"\">Error: Division class not found.</option>";
+                }
+            ?>
+          </select>
+            </div>
+            <div class="col-md-6">
+                <label for="salary_rate" class="form-label">Salary Rate</label>
+                <input type="number" step="0.01" class="form-control" id="salary_rate" name="salary_rate" required>
+            </div>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number">
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Add Contract of Service</button>
+            <a href="/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Salary Rate</label>
-          <input type="text" class="form-control" name="salary_rate">
-        </div>
-      </div>
-      <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4">Submit</button>
-        <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
-      </div>
     </form>
-  </div>
+    </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

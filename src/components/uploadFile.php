@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                 $Emp_No = $data[0];  // Employee Number
                 $full_name = $data[1];  // Full Name
                 $sex = $data[2];  // Sex
-                $birthdate = $data[3];  // Birthdate
+                $birthdate = $data[3];  // Birthdate (dd-mm-yyyy format in CSV)
                 $contact_number = $data[4];  // Contact Number
                 $address = $data[5];  // Address
                 $position = $data[6];  // Position
@@ -27,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                 $step = (int)$data[10];  // Step
                 $level = $data[11];  // Level
                 $aca_pera = $data[12];  // ACA Pera
+
+                // Reformat birthdate to yyyy-mm-dd for database insertion
+                $birthdate = date('Y-m-d', strtotime(str_replace('-', '/', $birthdate)));
 
                 // Calculate Monthly Salary using SalaryGrade::getStepsForGrade
                 if (class_exists('SalaryGrade')) {
@@ -66,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
 
                 // Insert into reg_emp table
                 $stmt3 = $conn->prepare("INSERT INTO reg_emp (personnel_id, salary_id, plantillaNo, acaPera) VALUES (?, ?, ?, ?)");
-                $stmt3->bind_param("iiss", $personnel_id, $salary_id, $plantilla_number, $aca_pera);
+                $stmt3->bind_param("iiss", $personnel_id, $salary_id, $plantilla_number, $aca_pera); // Changed "iisi" to "iiss"
                 $stmt3->execute();
                 $stmt3->close();
             }

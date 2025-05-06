@@ -1,21 +1,47 @@
 <?php
-// Sample data
-$data = [
-  'gender' => 'Mr.',
-  'employeeName' => 'Juan Dela Cruz',
-  'earnedHours' => 12,
-  'dateIssued' => '2025-04-10',
-  'validUntil' => '2025-12-31',
-  'cocDetails' => [
-    [
-      'beginningBalance' => 20,
-      'dateOfCTO' => '2025-03-15',
-      'usedCOCs' => 8,
-      'remainingCOCs' => 12,
-      'remarks' => 'Approved'
-    ]
-  ]
-];
+session_start();
+include_once __DIR__ . '/../../backend/db.php';
+
+$emp_no = $_GET['Emp_No'] ?? null;
+
+if (!$emp_no) {
+    die("Employee number not provided.");
+}
+
+// Fetch employee and job order info
+$stmt = $conn->prepare("
+    SELECT 
+        p.full_name, p.sex, p.personnel_id, jo.jo_id 
+    FROM personnel p
+    JOIN job_order jo ON p.personnel_id = jo.personnel_id
+    WHERE p.Emp_No = ?
+");
+$stmt->bind_param("s", $emp_no);
+$stmt->execute();
+$employee = $stmt->get_result()->fetch_assoc();
+
+if (!$employee) {
+    die("Job Order employee not found.");
+}
+
+
+// Determine gender salutation
+$gender = strtolower($employee['sex']) === 'male' ? 'Mr.' : 'Ms.';
+
+// Fetch COC records for the job order ID
+$stmt = $conn->prepare("SELECT * FROM coc WHERE jo_id = ?");
+$stmt->bind_param("i", $employee['jo_id']);
+$stmt->execute();
+$coc_entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// Totals
+// Totals
+$total_earned = array_sum(array_column($coc_entries, 'earned_hours')) ?? 0;
+$total_used = array_sum(array_column($coc_entries, 'used_hours')) ?? 0;
+$net_balance = $total_earned - $total_used;
+
+$date_issued = $coc_entries[0]['startingDate'] ?? date('Y-m-d');
+$valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +60,7 @@ $data = [
     .certificate {
       border: 1px solid #ccc;
       padding: 30px;
-      max-width: 600px;
+      max-width: 800px;
       margin: auto;
       position: relative;
     }
@@ -155,13 +181,13 @@ $data = [
     .received-line {
       border-bottom: 1px solid black;
       width: 100%;
-      margin-top: 30px;   /* ↓ tighter spacing */
+      margin-top: 30px;
       margin-bottom: 5px;
     }
 
     .signature-label {
       font-style: italic;
-      font-size: 13px;  
+      font-size: 13px;
       text-align: right;
     }
 
@@ -184,7 +210,7 @@ $data = [
   <div class="certificate">
     <!-- Header -->
     <div class="header-logos">
-      <img src="/assets/iligan_logo.png" alt="City of Iligan Logo">
+      <img src="/assets/LGU.png" alt="City of Iligan Logo">
       <div class="gov-header">
         <h3>Republic of the Philippines</h3>
         <h3><strong>City of Iligan</strong></h3>
@@ -201,49 +227,61 @@ $data = [
     </div>
 
     <!-- Content -->
-    <p>This certificate entitles <?= $data['gender']; ?> <?= $data['employeeName']; ?> to <?= $data['earnedHours']; ?> hrs. of Compensatory Overtime Credits.</p>
-    <p><strong>Date Issued:</strong> <?= $data['dateIssued']; ?></p>
-    <p><strong>Valid Until:</strong> <?= $data['validUntil']; ?></p>
+        <p>
+      This certificate entitles <?= $gender ?> <?= htmlspecialchars($employee['full_name']) ?> to 
+      <strong><?= $net_balance ?> hours</strong> of Compensatory Overtime Credits, 
+      based on a total of <strong><?= $total_earned ?> hours earned</strong> 
+      and <strong><?= $total_used ?> hours used</strong>.
+    </p>
+
 
     <!-- Table -->
     <table>
       <thead>
         <tr>
-          <th>No. of Hours of Earned COCs/ Beginning Balance</th>
+          <th>Beginning Balance (COC)</th>
           <th>Date of CTO</th>
           <th>Used COCs</th>
           <th>Remaining COCs</th>
           <th>Remarks</th>
+
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($data['cocDetails'] as $row): ?>
-          <tr>
-            <td><?= $row['beginningBalance']; ?></td>
-            <td><?= $row['dateOfCTO']; ?></td>
-            <td><?= $row['usedCOCs']; ?></td>
-            <td><?= $row['remainingCOCs']; ?></td>
-            <td><?= $row['remarks']; ?></td>
-          </tr>
-        <?php endforeach; ?>
+        <?php if (!empty($coc_entries)): ?>
+                 <?php foreach ($coc_entries as $entry): 
+                      $earned = $entry['earned_hours'] ?? 0;
+                      $used = $entry['used_hours'] ?? 0;
+                      $remaining = $earned - $used;
+                    ?>
+                    <tr>
+                    <td><?= htmlspecialchars($entry['earned_hours']) ?></td>
+                    <td><?= htmlspecialchars($entry['startingDate']) ?></td>
+                    <td><?= htmlspecialchars($entry['used_hours']) ?></td>
+                    <td><?= htmlspecialchars($entry['earned_hours'] - $entry['used_hours']) ?></td>
+                    <td><?= htmlspecialchars(!empty($entry['remarks']) ? $entry['remarks'] : 'Approved') ?></td>
+
+              </tr>
+              <?php endforeach; ?>
+
+        <?php else: ?>
+          <tr><td colspan="5">No COC records available.</td></tr>
+        <?php endif; ?>
       </tbody>
     </table>
 
     <!-- Signatures -->
     <div class="signature-section">
-      <!-- Prepared by -->
       <div class="prepared">
         <p>Prepared by:</p>
         <strong>JOHN RYAN C. DELA CRUZ, PhD.</strong><br>
         <span>Supervising Administrative Officer</span>
-
         <div class="copy-notes">
           <p><em>First Copy: Admin</em></p>
           <p><em>Second Copy: Employee</em></p>
         </div>
       </div>
 
-      <!-- Approved and Received -->
       <div class="approved-received">
         <div>
           <p>Approved by:</p>
@@ -256,7 +294,6 @@ $data = [
         </div>
       </div>
     </div>
-
   </div>
 </body>
 </html>

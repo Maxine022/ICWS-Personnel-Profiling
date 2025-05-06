@@ -1,198 +1,246 @@
 <?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fullName = $_POST["full_name"];
-    $address = $_POST["address"];
-    $sex = $_POST["sex"];
-    $birthdate = $_POST["birthdate"];
-    $designation = $_POST["designation"];
-    $contactNumber = $_POST["contact_number"];
-    $salaryRate = $_POST["salary_rate"];
-    $yearsInService = $_POST["years_in_service"];
-    $contractStart = $_POST["contract_start"];
-    $contractEnd = $_POST["contract_end"];
-    $remarks = $_POST["remarks"];
+include_once __DIR__ . '/../../backend/db.php';
 
+// Check database connection
+if ($conn->connect_error) {
+    die("<div class='alert alert-danger'>Database connection failed: {$conn->connect_error}</div>");
+}
+
+// Get the Emp_No from the query string
+$emp_no = $_GET['Emp_No'] ?? null;
+
+if (!$emp_no) {
+    die("<div class='alert alert-danger'>Emp_No is missing in the query string. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+}
+
+// Retrieve employee details from the database
+$query = $conn->prepare("
+    SELECT 
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, p.division,
+        cs.salaryRate
+    FROM personnel p
+    LEFT JOIN contract_service cs ON p.personnel_id = cs.personnel_id
+    WHERE p.Emp_No = ?
+");
+
+if (!$query) {
+    die("<div class='alert alert-danger'>Failed to prepare the query: {$conn->error}</div>");
+}
+
+$query->bind_param("s", $emp_no);
+
+if (!$query->execute()) {
+    die("<div class='alert alert-danger'>Query execution failed: {$query->error}</div>");
+}
+
+$result = $query->get_result();
+$employee = $result->fetch_assoc();
+
+if (!$employee) {
+    die("<div class='alert alert-danger'>Employee not found in the database. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+}
+
+// Handle form submission
+$success = false;
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Retrieve form data
+    $fullName = $_POST["full_name"] ?? null;
+    $address = $_POST["address"] ?? null;
+    $sex = $_POST["sex"] ?? null;
+    $birthdate = $_POST["birthdate"] ?? null;
+    $contactNumber = $_POST["contact_number"] ?? null;
+    $position = $_POST["position"] ?? null;
+    $division = $_POST["division"] ?? null;
+    $salaryRate = $_POST["salary_rate"] ?? null;
+
+    // Validate required fields
+    if (!$fullName || !$position || !$division || !$sex || !$birthdate) {
+        die("<div class='alert alert-danger'>Full Name, Position, Division, Sex, and Birthdate are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+    }
+
+    // Update personnel table
+    $updatePersonnel = $conn->prepare("
+        UPDATE personnel 
+        SET full_name = ?, address = ?, sex = ?, birthdate = ?, contact_number = ?, position = ?, division = ?
+        WHERE Emp_No = ?
+    ");
+
+    if (!$updatePersonnel) {
+        die("<div class='alert alert-danger'>Failed to prepare personnel update query: {$conn->error}</div>");
+    }
+
+    $updatePersonnel->bind_param(
+        "ssssssss",
+        $fullName,
+        $address,
+        $sex,
+        $birthdate,
+        $contactNumber,
+        $position,
+        $division,
+        $emp_no
+    );
+
+    // Update contract_service table
+    $updateContractService = $conn->prepare("
+        UPDATE contract_service 
+        SET salaryRate = ?
+        WHERE personnel_id = ?
+    ");
+
+    if (!$updateContractService) {
+        die("<div class='alert alert-danger'>Failed to prepare contract_service update query: {$conn->error}</div>");
+    }
+
+    $updateContractService->bind_param(
+        "si",
+        $salaryRate,
+        $employee['personnel_id']
+    );
+
+    // Execute updates
     $success = true;
+    if (!$updatePersonnel->execute()) {
+        $success = false;
+        echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
+    }
+    if (!$updateContractService->execute()) {
+        $success = false;
+        echo "<div class='alert alert-danger'>Failed to update contract_service details: {$updateContractService->error}</div>";
+    }
+
+    if ($success) {
+        echo "<div class='alert alert-success' role='alert'>
+                Employee details have been successfully updated!
+              </div>";
+        echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+        exit();
+    }
+}
+
+// Fetch position data for dynamic dropdowns
+$jsPositionData = [];
+include_once __DIR__ . '/ideas/position.php';
+if (class_exists('Position')) {
+  foreach (Position::cases() as $position) {
+    $jsPositionData[] = $position->value;
+  }
+} else {
+  die("<div class='alert alert-danger'>Error: Position class not found in position.php.</div>");
+}
+
+// Fetch division data for dynamic dropdowns
+$jsDivisionData = [];
+include_once __DIR__ . '/ideas/division.php';
+if (class_exists('Division')) {
+  foreach (Division::cases() as $division) {
+    $jsDivisionData[] = $division->value;
+  }
+} else {
+  die("<div class='alert alert-danger'>Error: Division class not found in division.php.</div>");
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Add New Contract of Service Employee</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #2c3e50;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      padding-top: 1rem;
-      color: #fff;
-    }
-    .sidebar .logo {
-      text-align: center;
-      font-weight: bold;
-      font-size: 20px;
-      padding: 10px 0;
-    }
-    .sidebar .profile {
-      text-align: center;
-      font-size: 14px;
-      margin-bottom: 1rem;
-      color: #dcdcdc;
-    }
-    .sidebar .nav-link {
-      color: #dcdcdc;
-      padding: 10px 20px;
-      display: block;
-      text-decoration: none;
-    }
-    .sidebar .nav-link.active,
-    .sidebar .nav-link:hover {
-      background-color: #1abc9c;
-      color: #fff;
-      border-radius: 5px;
-    }
-    .main {
-      margin-left: 220px;
-      padding: 2rem;
-      background-color: #f8f9fa;
-      min-height: 100vh;
-    }
-    .breadcrumb-custom {
-      font-size: 14px;
-    }
-    .breadcrumb-link {
-      color: #6c757d;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-    .breadcrumb-link:hover {
-      color: #0d6efd;
-    }
-    .form-section {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    .btn-cancel {
-      background-color: #fff;
-      border: 1px solid #ced4da;
-      color: #000;
-    }
-    .btn-cancel:hover {
-      background-color: #f1f1f1;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Contract of Service Employee</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<style>
+body { font-family: Arial; }
+.content { padding: 30px; }
+.table-container { margin-top: 30px; }
+.breadcrumb-link { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+.breadcrumb-link:hover { color: #007bff; text-decoration: underline; }
+.view-link { color: #0d6efd; text-decoration: none; transition: color 0.2s ease, text-decoration 0.2s ease; }
+.view-link:hover { color: #0a58ca; text-decoration: underline; }
+.search-buttons-container { margin-top: 25px; }
+.shadow-custom { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+</style>  
 </head>
 <body>
+<?php include_once __DIR__ . '/../hero/navbar.php'; ?>
+<?php include_once __DIR__ . '/../hero/sidebar.php'; ?>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">ICWS</div>
-  <div class="profile">
-    <img src="https://via.placeholder.com/60" class="rounded-circle mb-2" alt="Profile"><br>
-    John Ryan Dela Cruz
-  </div>
-  <a href="#" class="nav-link">Dashboard</a>
-  <a href="#" class="nav-link">Profile</a>
-  <a href="#" class="nav-link">Personnel</a>
-  <a href="#" class="nav-link ms-3">Regular</a>
-  <a href="#" class="nav-link ms-3">Job Order</a>
-  <a href="#" class="nav-link active ms-3">Contract of Service</a>
-  <a href="#" class="nav-link ms-3">Intern</a>
-  <a href="#" class="nav-link">Logout</a>
-</div>
-
-<!-- Main Content -->
-<div class="main">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="fw-bold fs-5">Update Contract of Service Employee Information</div>
-    <div class="breadcrumb-custom text-end">
-      <a href="#" class="breadcrumb-link">Home</a>
-      <span class="mx-1">/</span>
-      <a href="#" class="breadcrumb-link">Manage</a>
-      <span class="mx-1">/</span>
-      <span class="text-dark">Update COS Information</span>
+<div class="content" id="content">
+<div class="container mt-0">
+<div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <h4 class="mb-0" style="font-weight: bold;">Edit Contract of Service Employee</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Contract of Service Employee</li>
+            </ol>
+        </nav>
     </div>
-  </div>
-
-  <?php if (!empty($success)): ?>
-    <div class="alert alert-success">Contract of Service employee added successfully!</div>
-  <?php endif; ?>
-
-  <div class="form-section">
-    <form method="POST" action="">
-      <div class="row g-3">
-        <div class="col-md-12">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-control" name="full_name" required>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
+            </div>
+            <div class="col-md-6">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="sex" class="form-label">Sex</label>
+                <select class="form-control" id="sex" name="sex" required>
+                    <option value="Male" <?php echo ($employee['sex'] === 'Male') ? 'selected' : ''; ?>>Male</option>
+                    <option value="Female" <?php echo ($employee['sex'] === 'Female') ? 'selected' : ''; ?>>Female</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="birthdate" class="form-label">Birthdate</label>
+                <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
+            </div>
+            <div class="col-md-6">
+                <label for="contact_number" class="form-label">Contact Number</label>
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
+            </div>
+            <div class="col-md-6">
+            <label for="position" class="form-label">Position</label>
+              <select class="form-control" id="position" name="position" required>
+                <option value="">Select Position</option>
+                <?php
+                foreach ($jsPositionData as $position) {
+                  $selected = ($employee['position'] === $position) ? 'selected' : '';
+                  echo "<option value=\"{$position}\" $selected>{$position}</option>";
+                }
+                ?>
+              </select>
+            </div>
+            <div class="col-md-6">
+            <label for="division" class="form-label">Division</label>
+              <select class="form-control" id="division" name="division" required>
+              <option value="">Select Division</option>
+              <?php
+              foreach ($jsDivisionData as $division) {
+                $selected = ($employee['division'] === $division) ? 'selected' : '';
+                echo "<option value=\"{$division}\" $selected>{$division}</option>";
+              }
+              ?>
+              </select>
+            </div>
+            <div class="col-md-6">
+                <label for="salary_rate" class="form-label">Salary Rate</label>
+                <input type="number" step="0.01" class="form-control" id="salary_rate" name="salary_rate" value="<?php echo htmlspecialchars($employee['salaryRate']); ?>">
+            </div>
         </div>
-        <div class="col-md-12">
-          <label class="form-label">Address</label>
-          <input type="text" class="form-control" name="address">
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Sex</label>
-          <select class="form-select" name="sex">
-            <option value="">Please Select</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Birthdate</label>
-          <input type="date" class="form-control" name="birthdate">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Designation</label>
-          <select class="form-select" name="designation">
-            <option value="">Please Select</option>
-            <option value="Field Staff">Field Staff</option>
-            <option value="Office Staff">Office Staff</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Salary Rate</label>
-          <input type="text" class="form-control" name="salary_rate">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Years in Service</label>
-          <input type="text" class="form-control" name="years_in_service">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Contract Duration - Start</label>
-          <input type="date" class="form-control" name="contract_start">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Contract Duration - End</label>
-          <input type="date" class="form-control" name="contract_end">
-        </div>
-        <div class="col-md-12">
-          <label class="form-label">Remarks</label>
-          <textarea name="remarks" rows="2" class="form-control"></textarea>
-        </div>
-      </div>
-      <div class="mt-5 d-flex gap-4">
-        <button type="submit" class="btn btn-success px-4">Save Changes</button>
-        <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
-      </div>
     </form>
-  </div>
 </div>
-
+</div> 
 </body>
 </html>

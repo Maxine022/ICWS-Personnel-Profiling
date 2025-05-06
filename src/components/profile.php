@@ -47,11 +47,17 @@ $job_order_result = $query_job_order->get_result();
 $job_order = $job_order_result->fetch_assoc() ?: [];
 
 // Query to get contract details
-$query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ?");
+$query_cos = $conn->prepare("SELECT contractservice_id, salaryRate FROM contract_service WHERE personnel_id = ?");
 $query_cos->bind_param("i", $employee['personnel_id']);
 $query_cos->execute();
 $contracts_result = $query_cos->get_result();
 $contract_service = $contracts_result->fetch_assoc() ?: [];
+
+// Extract contractservice_id
+$contractservice_id = $contract_service['contractservice_id'] ?? null;
+
+// Debugging
+echo "<!-- Debug: contractservice_id = " . ($contractservice_id ?? 'NOT SET') . " -->";
 
 // Determine employment type
 $employment_type = '';
@@ -438,7 +444,7 @@ if ($action === 'delete') {
               <?php elseif ($emp_type === 'job_order'): ?>
                 <p><strong>Salary Rate:</strong> <?php echo $job_order['salaryRate'] ?? 'N/A'; ?></p>
               <?php elseif ($emp_type === 'contract'): ?>
-                  <p><strong>Salary Rate:</strong> <?php echo $contract['salaryRate'] ?? 'N/A'; ?></p>
+                  <p><strong>Salary Rate:</strong> <?php echo isset($contract_service['salaryRate']) ? number_format($contract_service['salaryRate'], 2) : 'N/A'; ?></p>
               <?php endif; ?>
             </div>
               <div class="col-md-6">
@@ -488,7 +494,9 @@ if ($action === 'delete') {
               <?php 
               $contract_record_path = __DIR__ . '/service_contractRecord.php';
               if (file_exists($contract_record_path)) {
-                  include $contract_record_path; 
+                  // Pass the variable to the included file
+                  $contractservice_id_to_include = $contractservice_id;
+                  include $contract_record_path;
               } else {
                   echo "<p>Error: service_contractRecord.php not found.</p>";
               }
