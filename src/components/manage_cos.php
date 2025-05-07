@@ -47,7 +47,7 @@ if ($result && $result->num_rows > 0) {
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
   <style>
-    body { font-family: Arial; }
+    body { font-family: Arial;}
     .content { padding: 30px; }
     .table-container { margin-top: 30px; }
     .breadcrumb-link { color: inherit; text-decoration: none; transition: color 0.2s ease; }
@@ -89,7 +89,6 @@ if ($result && $result->num_rows > 0) {
         </button>
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
-        <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
         <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/print.php'">Print</button>
       </div>
     </div>

@@ -56,6 +56,19 @@ $email = $_SESSION['email'] ?? 'Guest';
         height: 40px;
         margin-right: 10px;
     }
+    .sidebar-custom {
+        width: 250px;
+        position: fixed;
+        top: 60px;
+        left: 0;
+        height: 100%;
+        background-color: #343a40;
+        transition: transform 0.3s ease;
+        z-index: 999;
+    }
+    .sidebar-hidden {
+        transform: translateX(-250px);
+    }
     .dropdown-container {
         display: none;
         flex-direction: column;
@@ -82,6 +95,10 @@ $email = $_SESSION['email'] ?? 'Guest';
     .manage-toggle i {
         width: 20px;
         text-align: center;
+    }
+    .manage-toggle i:first-child {
+        transition: transform 0.3s ease;
+        margin-right: 10px;
     }
     #chevron {
         order: 1;
@@ -166,6 +183,25 @@ $email = $_SESSION['email'] ?? 'Guest';
             }
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const content = document.querySelector('.content');
+        const navbar = document.querySelector('.navbar-custom');
+        const sidebar = document.querySelector('.sidebar-custom'); // Assuming sidebar has this class
+
+        toggleBtn.addEventListener('click', function () {
+            content.classList.toggle('expanded');
+            sidebar.classList.toggle('sidebar-hidden');
+
+            if (content.classList.contains('expanded')) {
+            navbar.style.left = '0';
+            } else {
+            navbar.style.left = '250px';
+            }
+        });
+        });
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

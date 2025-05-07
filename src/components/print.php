@@ -158,7 +158,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
         <th>Salary Grade</th>
         <th>Step</th>
         <th>Level</th>
-        <th>Monthly Salary</th>/td>
+        <th>Monthly Salary</th>
         <th>ACA Pera</th>
       </tr>
       </thead>

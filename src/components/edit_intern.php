@@ -122,8 +122,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
   </style>
 </head>
 <body>
-<?php include './src/hero/sidebar.php'; ?>
-<?php include './src/hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -160,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
           </div>
           <div class="col-md-6">
             <label class="form-label">Contact Number</label>
-            <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" required>
+            <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" required maxlength="11" pattern="\d{11}" title="Contact number must be exactly 11 digits" onkeypress="return isNumberKey(event)">
           </div>
           <div class="col-md-12">
             <label class="form-label">School</label>
@@ -228,5 +228,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
     </div>
   <?php endif; ?>
 </div>
+<script>
+function isNumberKey(evt) {
+  var charCode = (evt.which) ? evt.which : evt.keyCode;
+  return !(charCode < 48 || charCode > 57); // only digits
+}
+</script>
 </body>
 </html>

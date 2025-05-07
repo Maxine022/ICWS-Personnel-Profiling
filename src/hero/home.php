@@ -141,6 +141,13 @@ if ($internResult) {
             margin-top: 3px;
             text-align: center;
         }
+        #toggleSidebar {
+            margin-left: 5px;
+        }
+        .content.expanded {
+            margin-left: 0 !important;
+        }
+
     </style>
 </head>
 <body>
@@ -203,5 +210,21 @@ if ($internResult) {
         </div>
         <hr/>
     </div>
+    <script>
+    // JavaScript to toggle the sidebar
+    document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('toggleSidebar').addEventListener('click', function () {
+        const content = document.querySelector('.content');
+        const navbar = document.querySelector('.navbar-custom');
+        if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        if (navbar) navbar.style.left = '250px';
+        } else {
+        content.classList.add('expanded');
+        if (navbar) navbar.style.left = '0';
+        }
+    });
+    });
+</script>
 </body>
 </html>

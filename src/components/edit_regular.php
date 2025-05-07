@@ -261,8 +261,9 @@ if (class_exists('Level')) {
 </head>
 
 <body>
-<?php include './src/hero/sidebar.php'; ?>
-<?php include './src/hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
+
 
 <div class="content" id="content">
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">

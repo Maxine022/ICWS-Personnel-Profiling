@@ -362,8 +362,8 @@ if ($action === 'delete') {
   </style>
 </head>
 <body>
-  <?php include __DIR__ . '/../hero/navbar.php'; ?>
-  <?php include __DIR__ . '/../hero/sidebar.php'; ?>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
   <div class="content" id="content">
     <!-- Header and Breadcrumb -->
@@ -385,7 +385,7 @@ if ($action === 'delete') {
               <div class="profile-pic-container">
               <img
                   id="profileImage"
-                  src="<?php echo !empty($employee['profile_picture']) ? $employee['profile_picture'] : '../../assets/profile.jpg'; ?>"
+                  src="<?php echo !empty($employee['profile_picture']) ? 'http://localhost/ICWS-Personnel-Profiling' . $employee['profile_picture'] : '../../assets/profile.jpg'; ?>"
                   alt="Profile Picture"
                   class="profile-img-preview"
                 >

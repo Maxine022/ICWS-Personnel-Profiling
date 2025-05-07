@@ -47,7 +47,10 @@ if ($result && $result->num_rows > 0) {
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
   <style>
-    body { font-family: Arial; }
+    body { 
+      font-family: Arial; 
+      font-size: 15px;
+    }
     .content {
       padding: 30px;
     }
@@ -83,6 +86,9 @@ if ($result && $result->num_rows > 0) {
     overflow: visible; /* Allow content to overflow */
     text-overflow: ellipsis; /* Add ellipsis for overflowed text */
     max-width: 150px; /* Set a max width for the cell */
+    }
+    .table-container table td:first-child {
+      white-space: nowrap;
     }
   </style>
 </head>

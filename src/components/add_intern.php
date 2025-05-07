@@ -42,14 +42,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             // Insert into database
             $sql = "INSERT INTO intern (fullName, contactNo, school, course, hoursNo, startDate, endDate, division, supervisorName, createdAt) 
-                    VALUES ('$fullName', '$contactNo', '$school', '$course', $hoursNo, '$startDate', '$endDate', '$division', '$supervisorName', NOW())";
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            if ($conn->query($sql) === TRUE) {
-                $successMessage = "Intern added successfully!";
-                header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php"); // Redirect to manage interns page
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssiisss", $fullName, $contactNo, $school, $course, $hoursNo, $startDate, $endDate, $division, $supervisorName);
+
+            if ($stmt->execute()) {
+                header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php");
                 exit;
             } else {
-                $errors[] = "Error: " . $conn->error;
+                $errors[] = "Error: " . $stmt->error;
             }
         }
     }
@@ -103,8 +105,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-<?php include './src/hero/sidebar.php'; ?>
-<?php include './src/hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">
