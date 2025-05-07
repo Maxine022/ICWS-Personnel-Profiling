@@ -1,5 +1,10 @@
 <?php
-session_start();
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 $errors = [];
@@ -58,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($stmt_job_order->execute()) {
                 $success = true;
-                echo "<script>alert('Job Order Employee added successfully!'); window.location.href = '/src/components/manage_jo.php';</script>";
+                echo "<script>alert('Job Order Employee added successfully!'); window.location.href = 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php';</script>";
                 exit();
             } else {
                 $errors[] = "Error adding salary rate to job order: " . $conn->error;
@@ -119,8 +124,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-<?php include __DIR__ . '/../hero/navbar.php'; ?>
-<?php include __DIR__ . '/../hero/sidebar.php'; ?>
+<?php include './src/hero/sidebar.php'; ?>
+<?php include './src/hero/navbar.php'; ?>
 
 <!-- Main Content -->
 <div class="content" id="content">
@@ -128,8 +133,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h5 class="mb-0 fw-bold">Add New Job Order Employees</h5>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>

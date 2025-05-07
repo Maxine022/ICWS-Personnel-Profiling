@@ -1,4 +1,10 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -191,7 +197,7 @@ ob_end_flush();
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceRecordModal">
                 <i class="fas fa-plus"></i> Add COC Record
             </button>
-            <a href="/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" target="_blank" class="btn btn-info btn-sm text-gray">
+            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" target="_blank" class="btn btn-info btn-sm text-gray">
                 <i class="fas fa-print"></i> Print COC
             </a>
         </div>

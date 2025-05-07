@@ -1,4 +1,10 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 // Initialize variables
@@ -116,8 +122,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
   </style>
 </head>
 <body>
-<?php include __DIR__ . '/../hero/navbar.php'; ?>
-<?php include __DIR__ . '/../hero/sidebar.php'; ?>
+<?php include './src/hero/sidebar.php'; ?>
+<?php include './src/hero/navbar.php'; ?>
 
 <div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -128,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
   <?php if ($success): ?>
     <div class="alert alert-success">
       Intern information has been successfully updated! 
-      <a href="/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
+      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
     </div>
   <?php endif; ?>
 

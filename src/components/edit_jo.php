@@ -1,4 +1,10 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 // Check DB connection
@@ -106,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($success) {
             echo "<div class='alert alert-success'>Employee details have been successfully updated!</div>";
-            echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+            echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
             exit();
         }
     }
@@ -156,16 +162,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-<?php include_once __DIR__ . '/../hero/navbar.php'; ?>
-<?php include_once __DIR__ . '/../hero/sidebar.php'; ?>
+<?php include './src/hero/sidebar.php'; ?>
+<?php include './src/hero/navbar.php'; ?>
 
 <div class="content" id="content">
 <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
     <h4 class="mb-0 fw-bold">Update Job Order Employee</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>

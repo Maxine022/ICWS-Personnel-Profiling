@@ -1,4 +1,10 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 // Fetch interns data from the database
@@ -89,8 +95,8 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0" style="font-weight: bold;">Manage Interns</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profilingg/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Manage Interns</li>
       </ol>
     </nav>
@@ -111,7 +117,7 @@ if ($result && $result->num_rows > 0) {
 
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-        <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_intern.php'"><i class="fas fa-plus"></i> Add</button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/add_intern.php'"><i class="fas fa-plus"></i> Add</button>
 
       <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
@@ -147,7 +153,7 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($intern['division']) ?></td>
             <td><?= htmlspecialchars($intern['supervisorName']) ?></td>
             <td>
-                <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/edit_intern.php?intern_id=<?= urlencode($intern['intern_id']) ?>'">
+                <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/edit_intern.php?intern_id=<?= urlencode($intern['intern_id']) ?>'">
                     <i class="fas fa-edit"></i> Edit
                 </button>
                 <button class="btn btn-danger btn-sm" onclick="deleteIntern(<?= htmlspecialchars($intern['intern_id']) ?>)">
@@ -172,12 +178,12 @@ if ($result && $result->num_rows > 0) {
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script>
   function editIntern(id) {
-    window.location.href = `/src/components/edit_intern.php?id=${intern_id}`;
+    window.location.href = `http://localhost/ICWS-Personnel-Profiling/src/components/edit_intern.php?id=${intern_id}`;
   }
 
   function deleteIntern(intern_id) {
   if (confirm("Are you sure you want to delete this intern?")) {
-    fetch('/src/components/delete_intern.php', {
+    fetch('http://localhost/ICWS-Personnel-Profiling/src/components/delete_intern.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

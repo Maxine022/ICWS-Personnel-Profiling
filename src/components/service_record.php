@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->bind_param("issss", $personnel_id, $start_date, $end_date, $position, $company);
     
                             if ($stmt->execute()) {
-                                echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                                echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                                 $stmt->close();
                             } else {
                                 echo "<script>alert('Error: Unable to add service record. {$stmt->error}');</script>";
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->execute()) {
                 error_log("Service Record Updated: ID $record_id"); // Debug: Log the updated record_id
                 $stmt->close();
-                echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                 exit();
             } else {
                 echo "<script>alert('Error: Unable to update service record. {$stmt->error}');</script>";
@@ -202,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
             if ($stmt->execute()) {
                 $stmt->close();
-                echo "<script>window.location.href='/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                 exit();
             } else {
                 echo "<script>alert('Error: Unable to delete service record. {$stmt->error}');</script>";

@@ -1,5 +1,10 @@
 <?php
-session_start();
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 $emp_no = $_GET['Emp_No'] ?? null;
@@ -210,7 +215,7 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
   <div class="certificate">
     <!-- Header -->
     <div class="header-logos">
-      <img src="/assets/LGU.png" alt="City of Iligan Logo">
+      <img src="assets/LGU.png" alt="City of Iligan Logo">
       <div class="gov-header">
         <h3>Republic of the Philippines</h3>
         <h3><strong>City of Iligan</strong></h3>
@@ -218,7 +223,7 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
         <p>Lluch Park Street, Dona Juana Lluch Subdivision</p>
         <p>Pala-o, Iligan City 9200 Philippines</p>
       </div>
-      <img src="/assets/logo.png" alt="Waterworks Logo">
+      <img src="assets/logo.png" alt="Waterworks Logo">
     </div>
 
     <!-- Title Banner -->

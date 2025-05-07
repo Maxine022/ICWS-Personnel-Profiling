@@ -1,4 +1,9 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 include_once __DIR__ . '/../../backend/db.php'; // Include database connection
 
 // Define variables to store error messages
@@ -41,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($conn->query($sql) === TRUE) {
                 $successMessage = "Intern added successfully!";
-                header("Location: /src/components/manage_intern.php"); // Redirect to manage interns page
+                header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php"); // Redirect to manage interns page
                 exit;
             } else {
                 $errors[] = "Error: " . $conn->error;
@@ -98,16 +103,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </style>
 </head>
 <body>
-<?php include __DIR__ . '/../hero/navbar.php'; ?>
-<?php include __DIR__ . '/../hero/sidebar.php'; ?>
+<?php include './src/hero/sidebar.php'; ?>
+<?php include './src/hero/navbar.php'; ?>
 
 <div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0 fw-semibold">Add New Intern</h5>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Intern</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Intern</a></li>
         <li class="breadcrumb-item active" aria-current="page">Add New Intern</li>
       </ol>
     </nav>
@@ -218,7 +223,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
   
       <div class="col-md-12 d-flex mt-5 gap-4">
-        <button type="submit" onclick="/src/components/manage_intern.php" class="btn btn-primary px-4">Submit</button>
+        <button type="submit" onclick="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="btn btn-primary px-4">Submit</button>
         <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
       </div>    
     </div>

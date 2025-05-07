@@ -1,5 +1,10 @@
 <?php
-session_start();
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection file
 
 $emp_no = $_GET['Emp_No'] ?? null; // Get Emp_No from GET parameter
@@ -20,6 +25,33 @@ $employee = $result->fetch_assoc();
 if (!$employee) {
     echo "Employee not found.";
     exit();
+}
+
+// Handle profile picture upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture']) && isset($emp_no)) {
+  $upload_dir = __DIR__ . '/../../uploads/';
+  if (!file_exists($upload_dir)) {
+      mkdir($upload_dir, 0777, true); // Create folder if not exists
+  }
+
+  $img_ext = pathinfo($_FILES['profile_picture']['name'], PATHINFO_EXTENSION);
+  $img_name = 'profile_' . $employee['personnel_id'] . '.' . $img_ext;
+  $upload_path = $upload_dir . $img_name;
+
+  // Ensure it's a valid image
+  if (getimagesize($_FILES['profile_picture']['tmp_name'])) {
+      if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $upload_path)) {
+          $relative_path = '/uploads/' . $img_name;
+
+          // Save to DB
+          $update = $conn->prepare("UPDATE personnel SET profile_picture = ? WHERE Emp_No = ?");
+          $update->bind_param("ss", $relative_path, $emp_no);
+          $update->execute();
+
+          // Reflect new image path on the same page
+          $employee['profile_picture'] = $relative_path;
+      }
+  }
 }
 
 // Query to get salary details from 'salary' table
@@ -136,11 +168,11 @@ if ($action === 'delete') {
 
         // Redirect to the appropriate manage page
         $redirect_map = [
-            'regular' => '/src/components/manage_regEmp.php',
-            'joborder' => '/src/components/manage_jo.php',
-            'contract' => '/src/components/manage_cos.php'
+            'regular' => 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php',
+            'joborder' => 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php',
+            'contract' => 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php'
         ];
-        $redirect_url = $redirect_map[$emp_type_redirect] ?? '/src/components/personnel_record.php';
+        $redirect_url = $redirect_map[$emp_type_redirect] ?? 'http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php';
 
         echo "<script>
             alert('Profile deleted successfully!');
@@ -154,11 +186,13 @@ if ($action === 'delete') {
 }
 ?>
 
+
+
 <!-- Display success message -->
 <?php if (!empty($success)): ?>
   <div class="alert alert-success">
     Profile deleted successfully!
-    <a href="<?= htmlspecialchars($redirect_url ?? '/src/components/personnel_record.php') ?>" class="alert-link">Go to Manage Page</a>.
+    <a href="<?= htmlspecialchars($redirect_url ?? 'http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php') ?>" class="alert-link">Go to Manage Page</a>.
   </div>
 <?php endif; ?>
 
@@ -337,7 +371,7 @@ if ($action === 'delete') {
       <h4 class="mb-0" style="font-weight: bold;">Profile</h4>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
           <li class="breadcrumb-item active" aria-current="page">Profile</li>
         </ol>
       </nav>
@@ -349,12 +383,11 @@ if ($action === 'delete') {
           <div class="card profile-card text-center">
             <form method="POST" enctype="multipart/form-data">
               <div class="profile-pic-container">
-                <img
+              <img
                   id="profileImage"
-                  src="<?php echo isset($_SESSION['uploaded_photo']) ? $_SESSION['uploaded_photo'] : '/assets/profile.jpg'; ?>"
+                  src="<?php echo !empty($employee['profile_picture']) ? $employee['profile_picture'] : '/assets/profile.jpg'; ?>"
                   alt="Profile Picture"
                   class="profile-img-preview"
-                  style="object-position: 50% 50%;"
                 >
                 <label for="profileUpload" class="upload-overlay">
                   <i class="fas fa-camera"></i> Update Photo
@@ -382,7 +415,7 @@ if ($action === 'delete') {
               $emp_type_colors = [
                   'regular' => 'blue',
                   'job_order' => 'green',
-                  'contract' => 'yellow',
+                  'contract' => 'orange',
                   'intern' => 'red'
               ];
 
@@ -411,9 +444,9 @@ if ($action === 'delete') {
                 <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
                 <a href="<?php 
                     if ($emp_type === 'regular') {
-                        echo '/src/components/edit_regular.php?Emp_No=' . urlencode($employee['Emp_No']);
+                        echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_regular.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } elseif ($emp_type === 'job_order') {
-                        echo '/src/components/edit_jo.php?Emp_No=' . urlencode($employee['Emp_No']);
+                        echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_jo.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } elseif ($emp_type === 'contract') {
                         echo '/src/components/edit_cos.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } else {
@@ -421,7 +454,7 @@ if ($action === 'delete') {
                     }
                 ?>" class="btn btn-success btn-sm">Update</a>
                 <a href="javascript:void(0);" onclick="showDeleteModal()" class="btn btn-danger btn-sm">Delete</a>
-                <a href="/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
+                <a href="http://localhost/ICWS-Personnel-Profiling/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
             </div>
         </div>
 
@@ -511,7 +544,7 @@ if ($action === 'delete') {
             function deleteProfile() {
               if (confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
                   // Redirect to the delete_profile.php script with the Emp_No as a parameter
-                  window.location.href = "/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
+                  window.location.href = "http://localhost/ICWS-Personnel-Profiling/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
               }
             }
 </script>

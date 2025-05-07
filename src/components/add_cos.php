@@ -1,4 +1,9 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 include_once __DIR__ . '/../../backend/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -33,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
 
     // Redirect to manage_cos.php after successful insertion
-    header("Location: /src/components/manage_cos.php");
+    header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php");
     exit;
 }
 ?>
@@ -71,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h4 class="mb-0 fw-bold"> Add Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
@@ -156,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">Add Contract of Service</button>
-            <a href="/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
+            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
     </div>

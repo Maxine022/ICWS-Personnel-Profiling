@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                 if ($check->num_rows > 0) {
                     // If there's a match for either Emp_No or full_name
                     echo "<script>alert('Employee number or full name already exists.');</script>";
-                    echo "<script>window.location.href = '/src/components/manage_regEmp.php';</script>";
+                    echo "<script>window.location.href = 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php';</script>";
                     exit(); // Stop further execution
                 }
                 $check->close();
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
             fclose($handle);
             $message = "Data inserted into the database successfully!";
             // Redirect to the manage_regEmp.php page after successful upload
-            header("Location: /src/components/manage_regEmp.php");
+            header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php");
             exit(); // Make sure to call exit after header to stop script execution
         } else {
             $message = "Failed to open CSV file.";

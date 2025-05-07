@@ -1,4 +1,10 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 $regulars = [];
@@ -95,8 +101,8 @@ $result = $conn->query("
     <h4 class="mb-0 fw-bold">Manage Regular Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Regular</li>
       </ol>
     </nav>
@@ -110,7 +116,7 @@ $result = $conn->query("
 
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-        <button class="btn btn-primary btn-sm" onclick="window.location.href='/src/components/add_regular_employee.php'"><i class="fas fa-plus"></i> Add</button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/add_regular_employee.php'"><i class="fas fa-plus"></i> Add</button>
         <button class="btn btn-success btn-sm shadow-custom text-white" style="background-color: success;" data-bs-toggle="modal" data-bs-target="#uploadModal">
           <i class="fas fa-upload"></i> Upload File
         </button>
@@ -118,7 +124,7 @@ $result = $conn->query("
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
         <button class="btn btn-danger export-btn btn-sm" data-type="pdf">PDF</button>
-        <button class="btn btn-warning btn-sm" onclick="window.location.href='/src/components/print.php'"">
+        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/print.php'"">
           Print
         </button>
 
@@ -212,7 +218,7 @@ $result = $conn->query("
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow">
-      <form action="/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
+      <form action="http://localhost/ICWS-Personnel-Profiling/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
         <div class="modal-header bg-light">
           <h5 class="modal-title" id="uploadModalLabel">Upload Regular Employee File</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

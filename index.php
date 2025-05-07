@@ -1,44 +1,45 @@
 <?php
 session_start();
 
+// Redirect logged-in users to dashboard
+if (isset($_SESSION['user_id'])) {
+    header("Location: src/hero/home.php");
+    exit();
+}
+
 // Include the database connection
-include('../../backend/db.php');
+include('./backend/db.php');
 
 // Initialize error message
 $error_message = "";
 
-// Check if form is submitted
+// Handle login form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get the email and password from the form
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Use prepared statement to avoid SQL injection
+    // Securely check if user exists
     $sql = "SELECT * FROM user WHERE email = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $email);  // "s" means it's a string parameter
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Check if the user exists
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        // Check if the password is correct (hashing should have been done in phpMyAdmin)
-        if ($password == $user['password']) {
-            // If password is correct, start the session and redirect to dashboard
+        // ✅ Secure password verification
+        if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['fullName'] = $user['fullName']; // optional if you want to use name
 
-            // Redirect to dashboard
-            header("Location: ../index.php");  // Or your desired landing page
+            header("Location: src/hero/home.php");
             exit();
         } else {
-            // Incorrect password error message
             $error_message = "Incorrect password!";
         }
     } else {
-        // User does not exist error message
         $error_message = "Email address not found.";
     }
 }
@@ -52,13 +53,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Personnel Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
     <style>
-        /* General Styles */
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background: url('/assets/Water.png') no-repeat center center fixed;
+            background: url('assets/Water.png') no-repeat center center fixed;
             background-size: cover;
             display: flex;
             justify-content: space-between;
@@ -68,7 +70,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             position: relative;
         }
 
-        /* Branding Section */
         .branding {
             position: absolute;
             top: 50px;
@@ -110,12 +111,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             position: absolute;
             right: 250px;
             top: 50%;
-            transform: translateY(-48%); 
+            transform: translateY(-48%);
             display: flex;
             flex-direction: column;
-            align-items: center; 
+            align-items: center;
             justify-content: center;
-            width: 400px; 
+            width: 400px;
         }
 
         .login-section {
@@ -133,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-weight: 700;
             color: #1F3C88;
             text-transform: uppercase;
-            margin-bottom: 5px; 
+            margin-bottom: 5px;
             transform: translateY(-25%);
             line-height: 1.2;
         }
@@ -145,24 +146,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .input-group {
-            width: 85%; 
+            width: 85%;
             background: #EEF1F5;
             border-radius: 10px;
             border: 1px solid #E9ECEF;
             display: flex;
             align-items: center;
-            padding: 10px; 
-            margin: 15px 0; 
-            transform: translateX(5%); 
+            padding: 10px;
+            margin: 15px 0;
+            transform: translateX(5%);
         }
 
         .input-group input {
             border: none;
             background: none;
             outline: none;
-            padding: 8px; 
-            width: 100%; 
-            font-size: 14px; 
+            padding: 8px;
+            width: 100%;
+            font-size: 14px;
         }
 
         .icon {
@@ -171,7 +172,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-right: 10px;
         }
 
-        /* Error Message */
         .error-message {
             color: red;
             margin-top: 10px;
@@ -179,23 +179,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
 
-        /* Forgot Password */
         .forgot-password {
             color: #1F3C88;
             font-size: 14px;
             text-decoration: none;
             display: block;
             margin-top: 20px;
-            text-align: left; 
-            transform: translateX(8%); 
-            width: 100%;  
+            text-align: left;
+            transform: translateX(8%);
+            width: 100%;
         }
 
         .forgot-password:hover {
             text-decoration: underline;
         }
 
-        /* Sign In Button */
         .login-btn {
             background: #4177B2;
             color: white;
@@ -212,7 +210,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background: #163372;
         }
 
-        /* Responsive Design */
         @media (max-width: 1024px) {
             .branding {
                 left: 20px;
@@ -234,22 +231,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
 
-    <!-- Branding (Logo + Title) -->
     <div class="branding">
-        <img src="/assets/logo.png" alt="Iligan City Waterworks System">
+        <img src="assets/logo.png" alt="Iligan City Waterworks System">
         <div class="branding-text">
             <h1>ILIGAN CITY WATERWORKS SYSTEM</h1>
             <p>“Water is Life. Conserving it now, will save the future.”</p>
         </div>
     </div>
 
-    <!-- Login Section -->
     <div class="login-container">
         <div class="login-section">
             <h2>PERSONNEL MANAGEMENT SYSTEM</h2>
             <p>Sign in to start your session</p>
 
-            <form action="login.php" method="POST">
+            <form action="index.php" method="POST">
                 <div class="input-group">
                     <span class="icon">📧</span>
                     <input type="email" name="email" placeholder="Email" required>
@@ -260,17 +255,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" name="password" placeholder="Password" required>
                 </div>
 
-                <!-- Display error message if there is one -->
                 <?php if (!empty($error_message)): ?>
-                    <div class="error-message">
-                        <?php echo $error_message; ?>
-                    </div>
+                    <div class="error-message"><?php echo $error_message; ?></div>
                 <?php endif; ?>
 
                 <a href="#" class="forgot-password">I forgot my password</a>
                 <button type="submit" class="login-btn">Sign In</button>
             </form>
-
         </div>
     </div>
 </body>

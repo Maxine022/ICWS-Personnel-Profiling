@@ -1,4 +1,10 @@
 <?php
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 // Fetch the personnel, salary, and reg_emp tables
@@ -127,7 +133,7 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0" style="font-weight: bold;">Personnel Records</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="/src/index.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">Personnel</li>
       </ol>
     </nav>
@@ -174,7 +180,7 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
             <td>
             <?php if (!empty($p['Emp_No'])): ?>
-              <a href="/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
+              <a href="http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
             <?php else: ?>
               <span class="text-muted">Employee Not Found</span>
             <?php endif; ?>
@@ -196,6 +202,12 @@ if ($result && $result->num_rows > 0) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bs5-toast@1.0.0/dist/bs5-toast.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bs5-toast@1.0.0/dist/bs5-toast.min.js"></script>
+
 <script>
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({

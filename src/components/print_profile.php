@@ -1,5 +1,10 @@
 <?php
-session_start();
+include_once __DIR__ . '/../../backend/auth.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
 $emp_no = $_GET['Emp_No'] ?? null;
@@ -139,7 +144,7 @@ if ($employment_type === 'regular') {
 
 <header>
   <div class="header-flex">
-    <div><img src="/assets/LGU.png" alt="City of Iligan Logo"></div>
+    <div><img src="../../assets/LGU.png" alt="City of Iligan Logo"></div>
     <div class="header-center" style="line-height: 1.4;">
       <div style="font-weight: bold; font-size: 16px;">Republic of the Philippines</div>
       <div style="font-weight: bold; font-size: 16px;">City of Iligan</div>
@@ -147,15 +152,25 @@ if ($employment_type === 'regular') {
       <div style="font-size: 14px;">Lluch Park Street, Dona Juana Lluch Subdivision</div>
       <div style="font-size: 14px;">Pala-o, Iligan City 9200 Philippines</div>
     </div>
-    <div><img src="/assets/logo.png" alt="Waterworks Logo"></div>
+    <div><img src="../../assets/logo.png" alt="Waterworks Logo"></div>
   </div>
 
-  <div style="text-align: center; margin-top: 40px;">
-    <div style="font-size: 28px; font-weight: bold; letter-spacing: 1px;">EMPLOYEE PROFILE SUMMARY</div>
-  </div>
-</header>
+  <div style="text-align: center; margin-top: 10px;">
+  <div style="font-size: 28px; font-weight: bold; letter-spacing: 1px;">EMPLOYEE PROFILE SUMMARY</div>
+</div>
+
+  <?php
+$profile_picture_path = !empty($employee['profile_picture']) ? $employee['profile_picture'] : '/assets/profile.jpg';
+?>
+<div style="text-align: center; margin-top: 30px;">
+  <img src="<?= htmlspecialchars($profile_picture_path) ?>"
+       alt="Profile Picture"
+       style="width: 192px; height: 192px; object-fit: cover; border: 1px solid #000; margin-bottom: 10px;">
+</div>
+
 
 <!-- PERSONAL DETAILS -->
+
 <section>
   <div class="section-title">PERSONAL DETAILS</div>
   <table>
@@ -166,6 +181,7 @@ if ($employment_type === 'regular') {
     <tr><td><strong>Contact No:</strong></td><td><?= htmlspecialchars($employee['contact_number']) ?></td></tr>
   </table>
 </section>
+
 
 <!-- INFORMATION DETAILS -->
 <section>

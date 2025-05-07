@@ -22,9 +22,9 @@ $email = $_SESSION['email'] ?? 'Guest';
             <i class="fas fa-user-circle fs-4 text-secondary"></i>
             <i class="fas fa-caret-down" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"></i>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="/src/components/profile.php">Profile</a></li>
+                <li><a class="dropdown-item" href="http://localhost/ICWS-Personnel-Profiling/src/components/profile.php">Profile</a></li>
                 <li><hr class="dropdown-divider"></li> 
-                <li><a class="dropdown-item" href="/src/components/login.php">Logout</a></li>
+                <a href="http://localhost/ICWS-Personnel-Profiling/backend/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </ul>
         </div>
     </div>
