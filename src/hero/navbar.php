@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include_once __DIR__ . '/../../backend/db.php';
-$email = $_SESSION['email'] ?? 'Guest';
+$fullName = $_SESSION['fullName'] ?? 'Guest';
 ?>
 
 <!-- Navbar -->
@@ -17,7 +17,7 @@ $email = $_SESSION['email'] ?? 'Guest';
         <!-- User Profile Dropdown -->
         <div class="admin-info dropdown">
             <span class="text-muted">
-                <?php echo htmlspecialchars($email); ?>
+                <?php echo htmlspecialchars($fullName); ?>
             </span>
             <i class="fas fa-user-circle fs-4 text-secondary"></i>
             <i class="fas fa-caret-down" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"></i>

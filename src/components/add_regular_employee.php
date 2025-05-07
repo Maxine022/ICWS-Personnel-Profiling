@@ -127,9 +127,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   </style>
 </head>
 <body>
-
-<?php include './src/hero/sidebar.php'; ?>
-<?php include './src/hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/navbar.php'; ?>
+<?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
 <div class="content" id="content">
   <div class="d-flex justify-content-between align-items-center mb-3">

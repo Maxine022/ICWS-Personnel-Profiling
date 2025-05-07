@@ -70,8 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
+
 <div class="content" id="content">
-<div class="container mt-5">
+<div class="container mt-0">
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
     <h4 class="mb-0 fw-bold"> Add Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">

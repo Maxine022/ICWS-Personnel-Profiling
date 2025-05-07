@@ -15,13 +15,13 @@ $error_message = "";
 
 // Handle login form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'];
+    $username = $_POST['username'];
     $password = $_POST['password'];
 
     // Securely check if user exists
-    $sql = "SELECT * FROM user WHERE email = ?";
+    $sql = "SELECT * FROM user WHERE username = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $email);
+    $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // ✅ Secure password verification
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['email'] = $user['email'];
+            $_SESSION['username'] = $user['username'];
             $_SESSION['fullName'] = $user['fullName']; // optional if you want to use name
 
             header("Location: src/hero/home.php");
@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error_message = "Incorrect password!";
         }
     } else {
-        $error_message = "Email address not found.";
+        $error_message = "Username not found.";
     }
 }
 ?>
@@ -247,7 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form action="index.php" method="POST">
                 <div class="input-group">
                     <span class="icon">📧</span>
-                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="username" name="username" placeholder="username" required>
                 </div>
 
                 <div class="input-group">

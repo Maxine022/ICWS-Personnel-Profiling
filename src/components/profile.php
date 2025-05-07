@@ -385,7 +385,7 @@ if ($action === 'delete') {
               <div class="profile-pic-container">
               <img
                   id="profileImage"
-                  src="<?php echo !empty($employee['profile_picture']) ? $employee['profile_picture'] : '/assets/profile.jpg'; ?>"
+                  src="<?php echo !empty($employee['profile_picture']) ? $employee['profile_picture'] : '../../assets/profile.jpg'; ?>"
                   alt="Profile Picture"
                   class="profile-img-preview"
                 >

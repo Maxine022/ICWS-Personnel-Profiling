@@ -11,42 +11,37 @@ if ($conn->connect_error) {
     die("<div class='alert alert-danger'>Database connection failed: {$conn->connect_error}</div>");
 }
 
-// Fetch personnel data from the database
-$personnelData = [];
+// Initialize counts
+$regularCount = 0;
+$jobOrderCount = 0;
+$contractCount = 0;
+$internCount = 0;
+
+// Fetch personnel data
 $sql = "SELECT emp_type FROM personnel";
 $result = $conn->query($sql);
 
-if ($result && $result->num_rows > 0) {
+if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $personnelData[] = $row;
-    }
-} else {
-    die("Error fetching personnel data: " . $conn->error);
-}
-
-// Fetch intern data from the database
-$internCount = 0; // Initialize intern count
-$internSql = "SELECT COUNT(intern_id) AS intern_count FROM intern";
-$internResult = $conn->query($internSql);
-
-if ($internResult && $internResult->num_rows > 0) {
-    $internRow = $internResult->fetch_assoc();
-    $internCount = (int)$internRow['intern_count']; // Set intern count
-} else {
-    die("Error fetching intern data: " . $conn->error);
-}
-
-// Initialize counts for other employee types
-$regularCount = $jobOrderCount = $contractCount = 0;
-
-if (is_array($personnelData)) {
-    foreach ($personnelData as $person) {
-        switch ($person['emp_type']) {
+        switch ($row['emp_type']) {
             case 'Regular': $regularCount++; break;
             case 'Job Order': $jobOrderCount++; break;
             case 'Contract': $contractCount++; break;
         }
     }
+} else {
+    die("Error executing personnel query: " . $conn->error);
+}
+
+// Fetch intern count
+$internSql = "SELECT COUNT(intern_id) AS intern_count FROM intern";
+$internResult = $conn->query($internSql);
+
+if ($internResult) {
+    $internRow = $internResult->fetch_assoc();
+    $internCount = (int)$internRow['intern_count'];
+} else {
+    die("Error executing intern query: " . $conn->error);
 }
 ?>
 
@@ -62,21 +57,17 @@ if (is_array($personnelData)) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
-        body { 
-            font-family: Arial;   
-        }
-        .content {
-            padding: 30px;
-        }
+        body { font-family: Arial; }
+        .content { padding: 30px; }
         .card {
             border: none;
             color: white;
             position: relative;
             overflow: hidden;
-            height: 120px; 
+            height: 120px;
             display: flex;
             align-items: center;
-            gap: 15px; /* Add consistent spacing between the icon and text */
+            gap: 15px;
         }
         .card i {
             font-size: 50px;
@@ -86,9 +77,9 @@ if (is_array($personnelData)) {
         }
         .card .text-start {
             display: flex;
-            flex-direction: column; /* Stack the text vertically */
-            justify-content: center; /* Center the text vertically */
-            gap: 5px; /* Add spacing between the <h5> and <h3> */
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
         }
         .card-overlay {
             position: absolute;
@@ -120,10 +111,10 @@ if (is_array($personnelData)) {
             display: flex;
             justify-content: flex-start;
             gap: 20px;
-            margin-top: 5px; 
+            margin-top: 5px;
         }
         .square-box {
-            width: 70px;  
+            width: 70px;
             height: 70px;
             background: #f8f9fa;
             display: flex;
@@ -137,7 +128,7 @@ if (is_array($personnelData)) {
             padding: 5px;
         }
         .square-box i {
-            font-size: 24px; 
+            font-size: 24px;
             line-height: 1;
         }
         .square-box:hover {
@@ -145,7 +136,7 @@ if (is_array($personnelData)) {
             color: white;
         }
         .square-box span {
-            font-size: 12px; 
+            font-size: 12px;
             display: block;
             margin-top: 3px;
             text-align: center;
