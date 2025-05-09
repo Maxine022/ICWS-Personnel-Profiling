@@ -10,17 +10,18 @@ if (session_status() === PHP_SESSION_NONE) {
 include_once __DIR__ . '/../../backend/db.php';
 
 $emp_no = $_GET['Emp_No'] ?? null;
-$pagedRecords = [];
+$pagedRecords = []; 
 
 if ($emp_no) {
     // Get personnel_id for this Emp_No
     $stmt = $conn->prepare("
     SELECT c.certificatecomp_id, c.startingDate, c.endDate, c.ActJust, c.remarks, c.earned_hours, c.used_hours
-        FROM coc c
-        INNER JOIN job_order j ON c.jo_id = j.jo_id
-        INNER JOIN personnel p ON j.personnel_id = p.personnel_id
-        WHERE p.Emp_No = ?
+    FROM coc c
+    INNER JOIN job_order j ON c.jo_id = j.jo_id
+    INNER JOIN personnel p ON j.personnel_id = p.personnel_id
+    WHERE p.Emp_No = ?
     ");
+
     $stmt->bind_param("s", $emp_no);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -213,17 +214,17 @@ ob_end_flush();
             <tbody>
                 <?php foreach ($pagedRecords as $record): ?>
                     <tr>
-                        <td><?= htmlspecialchars($record['startingDate']) ?></td>
-                        <td><?= htmlspecialchars($record['endDate']) ?></td>
-                        <td><?= htmlspecialchars($record['earned_hours']) ?></td>
-                        <td><?= htmlspecialchars($record['used_hours']) ?></td>
-                        <td><?= htmlspecialchars($record['ActJust']) ?></td>
-                        <td><?= htmlspecialchars($record['remarks'] ?: 'Approved') ?></td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editServiceRecordModal<?= $record['certificatecomp_id'] ?>">Edit</button>
-                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteServiceRecordModal<?= $record['certificatecomp_id'] ?>">Delete</button>
-                        </td>
-                        </tr>
+                            <td><?= htmlspecialchars($record['startingDate']) ?></td>
+                            <td><?= htmlspecialchars($record['endDate']) ?></td>
+                            <td><?= htmlspecialchars($record['earned_hours'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($record['used_hours'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($record['ActJust'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($record['remarks'] ?? 'Approved') ?></td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editServiceRecordModal<?= $record['certificatecomp_id'] ?>">Edit</button>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteServiceRecordModal<?= $record['certificatecomp_id'] ?>">Delete</button>
+                            </td>
+                            </tr>
 
             <!-- Edit Modal -->
             <div class="modal fade" id="editServiceRecordModal<?= $record['certificatecomp_id'] ?>" tabindex="-1" aria-hidden="true">

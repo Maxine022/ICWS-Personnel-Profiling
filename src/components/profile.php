@@ -505,6 +505,7 @@ if ($action === 'delete') {
               <?php 
               $service_record_path = __DIR__ . '/service_record.php';
               if (file_exists($service_record_path)) {
+                  $_GET['Emp_No'] = $employee['Emp_No']; // Explicitly pass Emp_No
                   include $service_record_path; 
               } else {
                   echo "<p>Error: service_record.php not found.</p>";
