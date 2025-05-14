@@ -29,6 +29,24 @@ if ($enum_result) {
     }
 }
 
+// Fetch positions from the database
+$positions = [];
+$position_query = $conn->query("SELECT DISTINCT position FROM personnel ORDER BY position ASC");
+if ($position_query && $position_query->num_rows > 0) {
+    while ($row = $position_query->fetch_assoc()) {
+        $positions[] = $row['position'];
+    }
+}
+
+// Fetch divisions from the database
+$divisions = [];
+$division_query = $conn->query("SELECT DISTINCT division FROM personnel ORDER BY division ASC");
+if ($division_query && $division_query->num_rows > 0) {
+    while ($row = $division_query->fetch_assoc()) {
+        $divisions[] = $row['division'];
+    }
+}
+
 // Fetch personnel and job order info
 $query = $conn->prepare("
     SELECT 
@@ -180,6 +198,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <div class="form-section">
     <form method="POST" action="">
       <div class="row g-3">
+        <div class="col-md-6">
+            <label for="Emp_No" class="form-label">Employee Number</label>
+            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
+        </div>
+        <div class="col-md-6">
+            <label for="emp_status" class="form-label">Employment Status</label>
+            <div class="dropdown"></div>
+            <select class="form-control" id="emp_status" name="emp_status" required>
+                <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
+                <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
+            </select>
+        </div>
         <div class="col-md-6">
           <label class="form-label">Full Name</label>
           <input type="text" class="form-control" name="full_name" value="<?= htmlspecialchars($employee['full_name']) ?>" required>
