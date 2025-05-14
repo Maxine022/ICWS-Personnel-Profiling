@@ -65,7 +65,7 @@ if ($internResult) {
         }
         .card {
             border: none;
-            color: white !important; /* Ensure text color is white */
+            color: white !important; 
             position: relative;
             overflow: hidden;
             height: 120px;
@@ -81,11 +81,11 @@ if ($internResult) {
             position: absolute;
             top: 25px;
             left: 15px;
-            color: white !important; /* Ensure icon color is white */
+            color: white !important; 
         }
         .card .text-start h5,
         .card .text-start h3 {
-            color: white !important; /* Ensure text color is white */
+            color: white !important; 
         }
         .card-overlay {
             position: absolute;
@@ -147,13 +147,24 @@ if ($internResult) {
             margin-top: 3px;
             text-align: center;
         }
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #content {
+        transition: margin-left 0.3s ease;
+        }
+        #content.expanded {
+        margin-left: 0;
+        }
     </style>
 </head>
 <body>
     <?php include 'sidebar.php'; ?>
     <?php include 'navbar.php'; ?>
 
-    <div class="content" id="content">
+    <div id="content" class="content" >
         <!-- Header and Breadcrumb -->
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <h4 class="mb-0" style="font-weight: bold;">Dashboard</h4>
@@ -209,5 +220,28 @@ if ($internResult) {
         </div>
         <hr/>
     </div>
+
+    <script>
+    // Sidebar toggle
+    document.getElementById('toggleSidebar').onclick = () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('navbar').classList.toggle('collapsed');
+      document.getElementById('content').classList.toggle('expanded');
+    };
+
+    // Manage Personnel dropdown
+    document.getElementById('manageToggle').onclick = e => {
+      e.preventDefault();
+      const dd = document.getElementById('manageDropdown');
+      const ch = document.getElementById('chevron');
+      if (dd.style.display === 'flex') {
+        dd.style.display = 'none';
+        ch.classList.remove('rotate');
+      } else {
+        dd.style.display = 'flex';
+        ch.classList.add('rotate');
+      }
+    };
+  </script>
 </body>
 </html>

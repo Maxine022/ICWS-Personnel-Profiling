@@ -110,7 +110,7 @@ $email = $_SESSION['email'] ?? 'Guest';
 
 </style>
 
-<div class="sidebar" id="sidebar">
+<div id="sidebar" class="sidebar">
     <div class="d-flex align-items-center justify-content-start mb-3 ps-3 pt-3">
         <a href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php" class="text-decoration-none text-white"> <!-- Link added here -->
             <img src="../../assets/logo.png" alt="ICWS Logo" width="40" height="40" class="me-2">
@@ -154,59 +154,54 @@ $email = $_SESSION['email'] ?? 'Guest';
 </div>
 
 <script>
-        document.getElementById("toggleSidebar").addEventListener("click", function () {
-            const sidebar = document.getElementById("sidebar");
-            const content = document.getElementById("content");
-            const navbar = document.getElementById("navbar");
+document.getElementById("toggleSidebar").addEventListener("click", function () {
+    const sidebar = document.getElementById("sidebar");
+    const content = document.getElementById("content");
+    const navbar = document.getElementById("navbar");
 
-            if (sidebar.classList.contains("d-none")) {
-                sidebar.classList.remove("d-none");
-                content.classList.remove("expanded");
-                navbar.style.left = "250px";
-            } else {
-                sidebar.classList.add("d-none");
-                content.classList.add("expanded");
-                navbar.style.left = "0";
-            }
-        });
+    if (sidebar.classList.contains("d-none")) {
+        sidebar.classList.remove("d-none");
+        content.classList.remove("expanded");
+        navbar.style.left = "250px";
+    } else {
+        sidebar.classList.add("d-none");
+        content.classList.add("expanded");
+        navbar.style.left = "0";
+    }
+});
 
-        document.getElementById("manageToggle").addEventListener("click", function(event) {
-            event.preventDefault();
-            let dropdown = document.getElementById("manageDropdown");
-            let chevron = document.getElementById("chevron");
-            if (dropdown.style.display === "flex") {
-                dropdown.style.display = "none";
-                chevron.classList.remove("rotate");
-            } else {
-                dropdown.style.display = "flex";
-                chevron.classList.add("rotate");
-            }
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-        const toggleBtn = document.getElementById('toggleSidebar');
-        const content = document.querySelector('.content');
-        const navbar = document.querySelector('.navbar-custom');
-        const sidebar = document.querySelector('.sidebar-custom'); // Assuming sidebar has this class
+document.getElementById("manageToggle").addEventListener("click", function(event) {
+    event.preventDefault();
+    let dropdown = document.getElementById("manageDropdown");
+    let chevron = document.getElementById("chevron");
+    if (dropdown.style.display === "flex") {
+        dropdown.style.display = "none";
+        chevron.classList.remove("rotate");
+    } else {
+        dropdown.style.display = "flex";
+        chevron.classList.add("rotate");
+    }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar   = document.getElementById('sidebar');
+    const content   = document.getElementById('content');
+    const navbar    = document.getElementById('navbar');
 
-        toggleBtn.addEventListener('click', function () {
-            content.classList.toggle('expanded');
-            sidebar.classList.toggle('sidebar-hidden');
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-hidden');
+      content.classList.toggle('expanded');
+      // if sidebar is hidden, navbar slides to 0; otherwise back to 250px
+      navbar.style.left = sidebar.classList.contains('sidebar-hidden') ? '0' : '250px';
+    });
+  });
+</script>
 
-            if (content.classList.contains('expanded')) {
-            navbar.style.left = '0';
-            } else {
-            navbar.style.left = '250px';
-            }
-        });
-        });
-        </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-

@@ -18,41 +18,62 @@ $fullName = $_SESSION['fullName'] ?? 'Guest';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         .navbar-custom {
-            position: fixed;
-            top: 0;
-            left: 250px;
-            right: 0;
-            height: 60px;
-            background-color: #ffffff;
-            color: #000;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px 0 15px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-        }
-        .content {
-            margin-left: 250px;
-            padding: 20px;
-            margin-top: 60px;
-            transition: margin-left 0.3s ease;
-        }
+        position: fixed;
+        top: 0;
+        left: 250px;
+        width: calc(100% - 250px);
+        height: 60px;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem;
+        z-index: 1000;
+        transition: left 0.3s ease, width 0.3s ease;
+    }
         .content.expanded {
             margin-left: 0;
         }
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        /* when body gets this class, shrink the sidebar & expand navbar */
+        body.sidebar-closed .navbar-custom {
+            left: 0;
+            width: 100%;
         }
+        .admin-info { display: flex; align-items: center; gap: .5rem; }
+        .admin-info .dropdown-toggle { cursor: pointer; }
+
+        /* sidebar.css or in your <head> */
+        .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background: #2C3E50;
+        transition: transform 0.3s ease;
+        z-index: 999;
+        }
+        body.sidebar-closed .sidebar {
+        transform: translateX(-250px);
+        }
+
+        /* content area: pushed right by 250px when sidebar is open */
+        #content {
+        margin-left: 250px;
+        transition: margin-left 0.3s ease;
+        padding: 1.5rem;
+        }
+        body.sidebar-closed #content {
+        margin-left: 0;
+        }
+
     </style>
 </head>
 <body>
 
 <!-- Navbar -->
-<div class="navbar-custom" id="navbar">
+<div id="navbar" class="navbar-custom">
     <div class="title">
         <button class="btn btn-sm btn-light" id="toggleSidebar" style="margin-left: 5px;">
             <i class="fas fa-bars"></i>
@@ -76,24 +97,12 @@ $fullName = $_SESSION['fullName'] ?? 'Guest';
 </div>
 
 <script>
-    // JavaScript to toggle the sidebar
-    document.addEventListener('DOMContentLoaded', function () {
-        const toggleButton = document.getElementById('toggleSidebar');
-        const content = document.querySelector('.content');
-        const navbar = document.querySelector('.navbar-custom');
-
-        if (toggleButton && content) {
-            toggleButton.addEventListener('click', function () {
-                if (content.classList.contains('expanded')) {
-                    content.classList.remove('expanded');
-                    if (navbar) navbar.style.left = '250px';
-                } else {
-                    content.classList.add('expanded');
-                    if (navbar) navbar.style.left = '0';
-                }
-            });
-        }
+  // toggle sidebar by adding/removing a class on <body>
+  document.getElementById('toggleSidebar')
+    .addEventListener('click', () => {
+      document.body.classList.toggle('sidebar-closed');
     });
 </script>
+
 </body>
 </html>
