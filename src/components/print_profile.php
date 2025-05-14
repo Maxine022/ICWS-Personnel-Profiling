@@ -4,22 +4,16 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-// Include database connection
 include_once __DIR__ . '/../../backend/db.php';
 
-// Error handling for missing employee number
 $emp_no = $_GET['Emp_No'] ?? null;
 if (!$emp_no) {
     echo "<h3>Error: Employee number is missing.</h3>";
     exit();
 }
 
-// Fetch employee details
+// Fetch employee
 $stmt = $conn->prepare("SELECT * FROM personnel WHERE Emp_No = ?");
-if (!$stmt) {
-    echo "<h3>Error: Failed to prepare statement.</h3>";
-    exit();
-}
 $stmt->bind_param("s", $emp_no);
 $stmt->execute();
 $employee = $stmt->get_result()->fetch_assoc();
@@ -29,140 +23,82 @@ if (!$employee) {
     exit();
 }
 
-// Fetch service records for regular employees
-$stmt = $conn->prepare("SELECT startDate, endDate, position, company FROM service_record WHERE personnel_id = ?");
-if (!$stmt) {
-    echo "<h3>Error: Failed to prepare service record statement.</h3>";
-    exit();
-}
-$stmt->bind_param("i", $employee['personnel_id']);
-$stmt->execute();
-$service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Fetch salary details
-$stmt = $conn->prepare("SELECT * FROM salary WHERE personnel_id = ?");
-if (!$stmt) {
-    echo "<h3>Error: Failed to prepare salary statement.</h3>";
-    exit();
-}
-$stmt->bind_param("i", $employee['personnel_id']);
-$stmt->execute();
-$salary = $stmt->get_result()->fetch_assoc();
-
-// Fetch regular employee details
-$stmt = $conn->prepare("SELECT * FROM reg_emp WHERE personnel_id = ?");
-if (!$stmt) {
-    echo "<h3>Error: Failed to prepare regular employee statement.</h3>";
-    exit();
-}
-$stmt->bind_param("i", $employee['personnel_id']);
-$stmt->execute();
-$reg_emp = $stmt->get_result()->fetch_assoc();
-
-// Fetch employment type
+// Normalize employment type
 $stmt = $conn->prepare("SELECT emp_type FROM personnel WHERE personnel_id = ?");
-if (!$stmt) {
-    echo "<h3>Error: Failed to prepare employment type statement.</h3>";
-    exit();
-}
 $stmt->bind_param("i", $employee['personnel_id']);
 $stmt->execute();
 $result = $stmt->get_result();
-$employment_type = $result->fetch_assoc()['emp_type'] ?? '';
+$employment_type = strtolower($result->fetch_assoc()['emp_type'] ?? '');
 
-$job_orders = [];
-$contracts = [];
-$reg_emp_details = [];
+// Fetch service records with proper aliases
+$service_records = [];
+if ($employment_type === 'regular') {
+    $stmt = $conn->prepare("
+        SELECT 
+            startDate AS start_date,
+            endDate AS end_date,
+            position,
+            company
+        FROM service_record
+        WHERE personnel_id = ?
+    ");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
 $coc = [];
 $contract_service_records = [];
 
 if ($employment_type === 'job_order') {
-  $stmt = $conn->prepare("SELECT * FROM job_order WHERE personnel_id = ?");
-  if (!$stmt) {
-    echo "<h3>Error: Failed to prepare job order statement.</h3>";
-    exit();
-  }
-  $stmt->bind_param("i", $employee['personnel_id']);
-  $stmt->execute();
-  $job_orders = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-  // Include salary rate for job orders
-  $stmt = $conn->prepare("SELECT salaryRate FROM job_order WHERE personnel_id = ?");
-  if (!$stmt) {
-    echo "<h3>Error: Failed to prepare salary rate statement for job order.</h3>";
-    exit();
-  }
-  $stmt->bind_param("i", $employee['personnel_id']);
-  $stmt->execute();
-  $employee['salaryRate'] = $stmt->get_result()->fetch_assoc()['salaryRate'] ?? null;
-
-  // Fetch COC data for job orders
-  $stmt = $conn->prepare("
-      SELECT coc.startingDate, coc.endDate, coc.ActJust, coc.remarks, coc.earned_hours, coc.used_hours
-      FROM coc
-      INNER JOIN job_order ON coc.jo_id = job_order.jo_id
-      WHERE job_order.personnel_id = ?
-  ");
-  if (!$stmt) {
-      echo "<h3>Error: Failed to prepare COC statement.</h3>";
-      exit();
-  }
-  $stmt->bind_param("i", $employee['personnel_id']);
-  $stmt->execute();
-  $coc= $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt = $conn->prepare("
+        SELECT c.startingDate, c.endDate, c.ActJust, c.remarks, c.earned_hours, c.used_hours
+        FROM coc c
+        INNER JOIN job_order j ON c.jo_id = j.jo_id
+        INNER JOIN personnel p ON j.personnel_id = p.personnel_id
+        WHERE p.Emp_No = ?
+    ");
+    $stmt->bind_param("s", $emp_no);
+    $stmt->execute();
+    $coc = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 }
 
+// Fetch contract service records if employment type is 'contract'
+$contract_service_records = [];
 if ($employment_type === 'contract') {
-  $stmt = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ?");
-  if (!$stmt) {
-    echo "<h3>Error: Failed to prepare contract service statement.</h3>";
-    exit();
-  }
-  $stmt->bind_param("i", $employee['personnel_id']);
-  $stmt->execute();
-  $contracts = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-  // Include salary rate for contracts
-  $stmt = $conn->prepare("SELECT salaryRate FROM contract_service WHERE personnel_id = ?");
-  if (!$stmt) {
-    echo "<h3>Error: Failed to prepare salary rate statement for contract.</h3>";
-    exit();
-  }
-  $stmt->bind_param("i", $employee['personnel_id']);
-  $stmt->execute();
-  $employee['salaryRate'] = $stmt->get_result()->fetch_assoc()['salaryRate'] ?? null;
-
-  // Fetch contract service record data
-  $stmt = $conn->prepare("
-      SELECT csr.contractStart, csr.contractEnd, csr.remarks
-      FROM contractservice_record AS csr
-      INNER JOIN contract_service AS cs ON csr.contractservice_id = cs.contractservice_id
-      WHERE cs.personnel_id = ?
-  ");
-  if (!$stmt) {
-      echo "<h3>Error: Failed to prepare contract service record statement.</h3>";
-      exit();
-  }
-  $stmt->bind_param("i", $employee['personnel_id']);
-  $stmt->execute();
-  $contract_service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt = $conn->prepare("
+        SELECT contractStart, contractEnd, remarks
+        FROM contractservice_record csr
+        JOIN contract_service cs ON csr.contractservice_id = cs.contractservice_id
+        WHERE cs.personnel_id = ?
+    ");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $contract_service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
-if ($employment_type === 'regular') {
-    $reg_emp = $reg_emp;
-}
 
-var_dump($employment_type);
-var_dump($service_records);
-var_dump($coc);
-var_dump($contract_service_records);
 
-// Profile picture handling
+// Salary
+$stmt = $conn->prepare("SELECT * FROM salary WHERE personnel_id = ?");
+$stmt->bind_param("i", $employee['personnel_id']);
+$stmt->execute();
+$salary = $stmt->get_result()->fetch_assoc();
+
+// Regular Employee Info
+$stmt = $conn->prepare("SELECT * FROM reg_emp WHERE personnel_id = ?");
+$stmt->bind_param("i", $employee['personnel_id']);
+$stmt->execute();
+$reg_emp = $stmt->get_result()->fetch_assoc();
+
+// Profile picture path
 $profile_picture_path = __DIR__ . '/../../uploads/profile_' . $employee['personnel_id'] . '.png';
-$profile_picture_url = file_exists($profile_picture_path) 
-    ? '../../uploads/profile_' . $employee['personnel_id'] . '.png' 
+$profile_picture_url = file_exists($profile_picture_path)
+    ? '../../uploads/profile_' . $employee['personnel_id'] . '.png'
     : '../../assets/profile.jpg';
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -225,7 +161,7 @@ $profile_picture_url = file_exists($profile_picture_path)
 
 <header>
   <div class="header-flex">
-    <div><img src="../../assets/LGU.png" alt="City of Iligan Logo"></div>
+    <div><img src="/ICWS-Personnel-Profiling/assets/LGU.png" alt="City of Iligan Logo"></div>
     <div class="header-center" style="line-height: 1.4;">
       <div style="font-weight: bold; font-size: 16px;">Republic of the Philippines</div>
       <div style="font-weight: bold; font-size: 16px;">City of Iligan</div>
@@ -233,7 +169,7 @@ $profile_picture_url = file_exists($profile_picture_path)
       <div style="font-size: 14px;">Lluch Park Street, Dona Juana Lluch Subdivision</div>
       <div style="font-size: 14px;">Pala-o, Iligan City 9200 Philippines</div>
     </div>
-    <div><img src="../../assets/logo.png" alt="Waterworks Logo"></div>
+    <div><img src="/ICWS-Personnel-Profiling/assets/logo.png" alt="Waterworks Logo"></div>
   </div>
 
   <div style="text-align: center; margin-top: 10px;">
@@ -309,12 +245,13 @@ $profile_picture_url = file_exists($profile_picture_path)
         <?php if (!empty($service_records)): ?>
           <?php foreach ($service_records as $record): ?>
             <tr>
-              <td><?= htmlspecialchars($record['startDate'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['endDate'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['position'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($employee['division'] ?? 'N/A') ?></td>
+              <td><?= htmlspecialchars($record['start_date']) ?></td>
+              <td><?= htmlspecialchars($record['end_date']) ?></td>
+              <td><?= htmlspecialchars($record['position']) ?></td>
+              <td><?= htmlspecialchars($record['company']) ?></td>
             </tr>
-          <?php endforeach; ?>
+            <?php endforeach; ?>
+
         <?php else: ?>
           <tr><td colspan="4">No service records available.</td></tr>
         <?php endif; ?>
@@ -333,17 +270,17 @@ $profile_picture_url = file_exists($profile_picture_path)
         <?php else: ?>
           <tr><td colspan="6">No COC records available.</td></tr>
         <?php endif; ?>
-      <?php elseif ($employment_type === 'contract'): ?>
+            <?php elseif ($employment_type === 'contract'): ?>
         <?php if (!empty($contract_service_records)): ?>
-          <?php foreach ($contract_service_records as $record): ?>
-            <tr>
-              <td><?= htmlspecialchars($record['contractStart'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['contractEnd'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['remarks'] ?? 'N/A') ?></td>
-            </tr>
-          <?php endforeach; ?>
+            <?php foreach ($contract_service_records as $record): ?>
+                <tr>
+                    <td><?= htmlspecialchars($record['contractStart'] ?? 'N/A') ?></td>
+                    <td><?= htmlspecialchars($record['contractEnd'] ?? 'N/A') ?></td>
+                    <td><?= htmlspecialchars($record['remarks'] ?? 'N/A') ?></td>
+                </tr>
+            <?php endforeach; ?>
         <?php else: ?>
-          <tr><td colspan="3">No contract service records available.</td></tr>
+            <tr><td colspan="3">No contract service records available.</td></tr>
         <?php endif; ?>
       <?php else: ?>
         <tr><td colspan="6">No service records available.</td></tr>

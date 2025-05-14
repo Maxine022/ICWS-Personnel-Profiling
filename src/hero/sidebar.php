@@ -148,7 +148,7 @@ $email = $_SESSION['email'] ?? 'Guest';
     </div>
     
     </a><a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_intern.php') ? 'active' : ''; ?>">
-        <i class="fas fa-users"></i> Intern
+        <i class="fas fa-users"></i> Internship
     </a>
     <a href="http://localhost/ICWS-Personnel-Profiling/backend/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>
@@ -206,5 +206,7 @@ $email = $_SESSION['email'] ?? 'Guest';
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 

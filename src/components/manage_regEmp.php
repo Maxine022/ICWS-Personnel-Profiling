@@ -123,7 +123,7 @@ $result = $conn->query("
 
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
-        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/print.php'"">
+        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/print.php'">
           Print
         </button>
 
@@ -158,7 +158,12 @@ $result = $conn->query("
           <td><?= htmlspecialchars($p['Emp_No']) ?></td>
           <td><?= htmlspecialchars($p['full_name']) ?></td>
           <td><?= htmlspecialchars($p['sex']) ?></td>
-          <td><?= htmlspecialchars($p['birthdate']) ?></td>
+          <td>
+            <?= !empty($p['birthdate']) 
+                ? date('F d, Y', strtotime($p['birthdate'])) 
+                : 'N/A'; 
+            ?>
+          </td>
           <td><?= htmlspecialchars($p['contact_number']) ?></td>
           <td><?= htmlspecialchars($p['address']) ?></td>
           <td><?= htmlspecialchars($p['position']) ?></td>
@@ -168,7 +173,7 @@ $result = $conn->query("
           <td><?= htmlspecialchars($p['step']) ?></td>
           <td><?= htmlspecialchars($p['level']) ?></td>
           <td><?= htmlspecialchars($p['monthlySalary']) ?></td>
-          <td><?= htmlspecialchars($p['acaPera']) ?></td>
+            <td><?= number_format((float)$p['acaPera'], 2, '.', ',') ?></td>
           <td><a href="profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a></td>
         </tr>
       <?php endforeach; ?>  
@@ -214,15 +219,16 @@ $result = $conn->query("
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow">
-      <form action="http://localhost/ICWS-Personnel-Profiling/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
+      <form action="uploadRegular.php" method="POST" enctype="multipart/form-data">
         <div class="modal-header bg-light">
-          <h5 class="modal-title" id="uploadModalLabel">Upload Regular Employee File</h5>
+          <h5 class="modal-title" id="uploadModalLabel">Upload Employee Data</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="data_file" class="form-label">Choose File</label>
+            <label for="data_file" class="form-label">Choose CSV File</label>
             <input type="file" class="form-control" id="data_file" name="data_file" accept=".csv" required>
+            <small class="text-muted">Please upload a CSV file with the correct format.</small>
           </div>
         </div>
         <div class="modal-footer">

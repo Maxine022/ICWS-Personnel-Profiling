@@ -5,6 +5,10 @@ header("Pragma: no-cache");
 header("Expires: 0");
 
 include_once __DIR__ . '/../../backend/db.php';
+if (!isset($conn) || !$conn) {
+    die("Database connection failed.");
+}
+include_once __DIR__ . '/ideas/icws_position.php'; // Include only this file for enums
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve form data
@@ -16,15 +20,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = $_POST['address'];
     $position = $_POST['position'];
     $division = $_POST['division'];
+    $section = $_POST['section'];
+    $unit = $_POST['unit'];
+    $team = $_POST['team'];
     $salary_rate = $_POST['salary_rate'];
 
     // Insert into personnel table
     $stmt = $conn->prepare("
         INSERT INTO personnel (Emp_No, full_name, sex, birthdate, contact_number, address, position, division, emp_type, emp_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Contract', 'Active')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Contractual', 'Active')
     ");
     $stmt->bind_param("ssssssss", $emp_no, $full_name, $sex, $birthdate, $contact_number, $address, $position, $division);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        die("Error executing query: " . $stmt->error);
+    }
+    $personnel_id = $conn->insert_id;
+    if (!$personnel_id) {
+        die("Error retrieving last inserted ID: " . $conn->error);
+    }
 
     // Get the last inserted personnel_id
     $personnel_id = $conn->insert_id;
@@ -50,22 +63,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Contract of Service</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style>
-    body { font-family: Arial; }
-    .content { padding: 30px; }
-    .table-container { margin-top: 30px; }
-    .breadcrumb-link { color: inherit; text-decoration: none; transition: color 0.2s ease; }
-    .breadcrumb-link:hover { color: #007bff; text-decoration: underline; }
-    .view-link { color: #0d6efd; text-decoration: none; transition: color 0.2s ease, text-decoration 0.2s ease; }
-    .view-link:hover { color: #0a58ca; text-decoration: underline; }
-    .search-buttons-container { margin-top: 25px; }
-    .shadow-custom { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const divisionSelect = document.querySelector('select[name="division"]');
+            const sectionSelect = document.querySelector('select[name="section"]');
+            const unitSelect = document.querySelector('select[name="unit"]');
+            const teamSelect = document.querySelector('select[name="team"]');
+            const operatorSelect = document.querySelector('select[name="operator"]');
+
+            function toggleFields() {
+                const selectedDivision = divisionSelect.value;
+                const selectedSection = sectionSelect.value;
+
+                // Enable or disable fields based on specific division and section
+                if (selectedDivision === 'SpecificDivision' && selectedSection === 'SpecificSection') {
+                    unitSelect.disabled = false;
+                    teamSelect.disabled = false;
+                } else {
+                    unitSelect.disabled = true;
+                    teamSelect.disabled = true;
+                }
+            }
+
+            function updateDependentFields() {
+                const selectedUnit = unitSelect.value;
+
+                // Enable or disable Teams
+                Array.from(teamSelect.options).forEach(option => {
+                    option.hidden = !option.dataset.unit || option.dataset.unit !== selectedUnit;
+                });
+
+                // Enable or disable Operators
+                Array.from(operatorSelect.options).forEach(option => {
+                    option.hidden = !option.dataset.unit || option.dataset.unit !== selectedUnit;
+                });
+            }
+
+            divisionSelect.addEventListener('change', toggleFields);
+            sectionSelect.addEventListener('change', toggleFields);
+            unitSelect.addEventListener('change', updateDependentFields);
+
+            // Initialize fields on page load
+            toggleFields();
+            updateDependentFields();
+        });
+    </script>
 </head>
 <body>
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
@@ -107,53 +149,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="col-md-6">
                 <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" required>
+                <input type="text" class="form-control" id="contact_number" name="contact_number" maxlength="11" pattern="\d{11}" title="Contact number must be 11 digits" required>
             </div>
             <div class="col-md-6">
                 <label for="address" class="form-label">Address</label>
                 <input type="text" class="form-control" id="address" name="address" required>
             </div>
             <div class="col-md-6">
-            <?php
-                $positionFilePath = __DIR__ . '/ideas/position.php';
-                if (!file_exists($positionFilePath)) {
-                    die("Error: position.php file not found.");
-                }
-                include_once $positionFilePath;
-                ?>
                 <label class="form-label">Position</label>
                 <select class="form-select" name="position" required>
                     <option value="">Select Position</option>
                     <?php
-                    if (class_exists('Position')) {
-                foreach (Position::cases() as $position) {
-                    echo "<option value=\"{$position->value}\">{$position->value}</option>";
-                }
+                    include_once __DIR__ . '/ideas/position.php';
+                    if (isset($positions) && is_array($positions)) {
+                        foreach ($positions as $position) {
+                            echo "<option value=\"{$position}\">{$position}</option>";
+                        }
                     } else {
-                echo "<option value=\"\">Error: Position class not found.</option>";
+                        echo "<option value=\"\">Error: Positions not found.</option>";
                     }
-            ?>
-          </select>
+                    ?>
+                </select>
             </div>
             <div class="col-md-6">
-            <label class="form-label">Division</label>
-            <select class="form-select" name="division" required>
-                <option value="">Select Division</option>
-                <?php
-                $divisionFilePath = __DIR__ . '/ideas/division.php';
-                if (!file_exists($divisionFilePath)) {
-            die("Error: division.php file not found.");
-                }
-                include_once $divisionFilePath;
-                if (class_exists('Division')) {
-            foreach (Division::cases() as $division) {
-                echo "<option value=\"{$division->value}\">{$division->value}</option>";
-            }
-                } else {
-            echo "<option value=\"\">Error: Division class not found.</option>";
-                }
-            ?>
-          </select>
+                <label class="form-label">Division</label>
+                <select class="form-select" name="division" required>
+                    <option value="">Select Division</option>
+                    <?php
+                    if (class_exists('Division')) {
+                        foreach (Division::cases() as $division) {
+                            echo "<option value=\"{$division->value}\">{$division->value}</option>";
+                        }
+                    } else {
+                        echo "<option value=\"\">Error: Division class not found.</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Section</label>
+                <select class="form-select" name="section" required>
+                    <option value="">Select Section</option>
+                    <?php
+                    if (class_exists('Section')) {
+                        foreach (Section::cases() as $section) {
+                            echo "<option value=\"{$section->value}\">{$section->value}</option>";
+                        }
+                    } else {
+                        echo "<option value=\"\">Error: Section class not found.</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Unit</label>
+                <select class="form-select" name="unit" required>
+                    <option value="">Select Unit</option>
+                    <?php
+                    if (class_exists('Unit')) {
+                        foreach (Unit::cases() as $unit) {
+                            echo "<option value=\"{$unit->value}\">{$unit->value}</option>";
+                        }
+                    } else {
+                        echo "<option value=\"\">Error: Unit class not found.</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Team</label>
+                <select class="form-select" name="team">
+                    <option value="">Select Team</option>
+                    <?php
+                    if (class_exists('Team')) {
+                        foreach (Team::cases() as $team) {
+                            echo "<option value=\"{$team->value}\">{$team->value}</option>";
+                        }
+                    } else {
+                        echo "<option value=\"\">Error: Team class not found.</option>";
+                    }
+                    ?>
+                </select>
             </div>
             <div class="col-md-6">
                 <label for="salary_rate" class="form-label">Salary Rate</label>

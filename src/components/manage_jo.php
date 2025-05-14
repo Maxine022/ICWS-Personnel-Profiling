@@ -154,7 +154,12 @@ if ($result && $result->num_rows > 0) {
           <td><?= htmlspecialchars($jo['Emp_No']) ?></td>
           <td><?= htmlspecialchars($jo['full_name']) ?></td>
           <td><?= htmlspecialchars($jo['sex']) ?></td>
-          <td><?= htmlspecialchars($jo['birthdate']) ?></td>
+          <td>
+            <?= !empty($jo['birthdate']) 
+                ? date('F d, Y', strtotime($jo['birthdate'])) 
+                : 'N/A'; 
+            ?>
+          </td>
           <td><?= htmlspecialchars($jo['contact_number']) ?></td>
           <td><?= htmlspecialchars($jo['address']) ?></td>
           <td><?= htmlspecialchars($jo['position']) ?></td>
@@ -205,15 +210,16 @@ if ($result && $result->num_rows > 0) {
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow">
-      <form action="http://localhost/ICWS-Personnel-Profiling/src/components/uploadFile.php" method="POST" enctype="multipart/form-data">
+      <form action="uploadjO.php" method="POST" enctype="multipart/form-data">
         <div class="modal-header bg-light">
-          <h5 class="modal-title" id="uploadModalLabel">Upload Job Order Employee File</h5>
+          <h5 class="modal-title" id="uploadModalLabel">Upload Employee Data</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="data_file" class="form-label">Choose File</label>
-            <input type="file" class="form-control" id="data_file" name="data_file" accept=".json" required>
+            <label for="data_file" class="form-label">Choose CSV File</label>
+            <input type="file" class="form-control" id="data_file" name="data_file" accept=".csv" required>
+            <small class="text-muted">Please upload a CSV file with the correct format.</small>
           </div>
         </div>
         <div class="modal-footer">

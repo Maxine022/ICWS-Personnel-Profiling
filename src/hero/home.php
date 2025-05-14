@@ -23,10 +23,10 @@ $result = $conn->query($sql);
 
 if ($result) {
     while ($row = $result->fetch_assoc()) {
-        switch ($row['emp_type']) {
-            case 'Regular': $regularCount++; break;
-            case 'Job Order': $jobOrderCount++; break;
-            case 'Contract': $contractCount++; break;
+        switch (strtolower($row['emp_type'])) { // Normalize to lowercase
+            case 'regular': $regularCount++; break;
+            case 'job order': $jobOrderCount++; break;
+            case 'contract': $contractCount++; break;
         }
     }
 } else {
@@ -57,29 +57,35 @@ if ($internResult) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
-        body { font-family: Arial; }
-        .content { padding: 30px; }
+        body { 
+            font-family: Arial; 
+        }
+        .content { 
+            padding: 30px; 
+        }
         .card {
             border: none;
-            color: white;
+            color: white !important; /* Ensure text color is white */
             position: relative;
             overflow: hidden;
             height: 120px;
             display: flex;
             align-items: center;
             gap: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .card i {
             font-size: 50px;
             position: absolute;
             top: 25px;
             left: 15px;
+            color: white !important; /* Ensure icon color is white */
         }
-        .card .text-start {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 5px;
+        .card .text-start h5,
+        .card .text-start h3 {
+            color: white !important; /* Ensure text color is white */
         }
         .card-overlay {
             position: absolute;
@@ -141,13 +147,6 @@ if ($internResult) {
             margin-top: 3px;
             text-align: center;
         }
-        #toggleSidebar {
-            margin-left: 5px;
-        }
-        .content.expanded {
-            margin-left: 0 !important;
-        }
-
     </style>
 </head>
 <body>
@@ -210,21 +209,5 @@ if ($internResult) {
         </div>
         <hr/>
     </div>
-    <script>
-    // JavaScript to toggle the sidebar
-    document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('toggleSidebar').addEventListener('click', function () {
-        const content = document.querySelector('.content');
-        const navbar = document.querySelector('.navbar-custom');
-        if (content.classList.contains('expanded')) {
-        content.classList.remove('expanded');
-        if (navbar) navbar.style.left = '250px';
-        } else {
-        content.classList.add('expanded');
-        if (navbar) navbar.style.left = '0';
-        }
-    });
-    });
-</script>
 </body>
 </html>

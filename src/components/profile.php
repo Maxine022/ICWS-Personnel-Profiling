@@ -6,6 +6,7 @@ header("Expires: 0");
 
 // Include database connection
 include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection file
+include_once __DIR__ . '/ideas/salary.php'; // Include the file where Level is defined
 
 $emp_no = $_GET['Emp_No'] ?? null; // Get Emp_No from GET parameter
 $action = $_GET['action'] ?? null;
@@ -55,10 +56,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture']) &
 }
 
 // Query to get salary details from 'salary' table
-$query_salary = $conn->prepare("SELECT * FROM salary WHERE personnel_id = ?");
+$query_salary = $conn->prepare("SELECT salaryGrade, step, level, monthlySalary FROM salary WHERE personnel_id = ?");
 $query_salary->bind_param("i", $employee['personnel_id']);
 $query_salary->execute();
 $salary = $query_salary->get_result()->fetch_assoc();
+
+// Extract level as a string
+$level = $salary['level'] ?? null;
+
+// Debugging: Check the raw level value from the database
+echo "<!-- Debug: Raw level from database = " . ($level ?? 'NOT SET') . " -->";
+
+// Map level to the Level enum and get the description
+$levelDescription = 'Unknown Level';
+if ($level !== null) {
+    $levelEnum = Level::fromInteger((int)$level); // Convert integer to enum
+    if ($levelEnum) {
+        $levelDescription = Level::getDescription($levelEnum); // Get the description
+    } else {
+        // Debugging: Log if the level does not match any enum value
+        echo "<!-- Debug: Level value '$level' does not match any enum case -->";
+    }
+}
+
+// Debugging
+echo "<!-- Debug: levelDescription = " . $levelDescription . " -->";
 
 // Query to get reg_emp details
 $query_reg_emp = $conn->prepare("SELECT * FROM reg_emp WHERE personnel_id = ?");
@@ -72,15 +94,15 @@ $plantillaNo = $reg_emp['plantillaNo'] ?? null;
 $acaPera = $reg_emp['acaPera'] ?? null;
 
 // Query to get job order details
-$query_job_order = $conn->prepare("SELECT * FROM job_order WHERE personnel_id = ?");
-$query_job_order->bind_param("i", $employee['personnel_id']);
+$query_job_order = $conn->prepare("SELECT * FROM job_order WHERE personnel_id = ? AND salaryRate = ?");
+$query_job_order->bind_param("ii", $employee['personnel_id'], $employee['salaryRate']);
 $query_job_order->execute();
 $job_order_result = $query_job_order->get_result();
 $job_order = $job_order_result->fetch_assoc() ?: [];
 
 // Query to get contract details
-$query_cos = $conn->prepare("SELECT contractservice_id, salaryRate FROM contract_service WHERE personnel_id = ?");
-$query_cos->bind_param("i", $employee['personnel_id']);
+$query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ? AND salaryRate = ?");
+$query_cos->bind_param("ii", $employee['personnel_id'], $employee['salaryRate']);
 $query_cos->execute();
 $contracts_result = $query_cos->get_result();
 $contract_service = $contracts_result->fetch_assoc() ?: [];
@@ -103,6 +125,26 @@ if (!empty($reg_emp['plantillaNo'])) {
 
 // Normalize emp_type for logic and display
 $emp_type = strtolower(str_replace(' ', '_', $employee['emp_type'] ?? $employment_type ?? 'unknown'));
+
+if ($emp_type === 'job_order') {
+    $query_job_order = $conn->prepare("SELECT salaryRate FROM job_order WHERE personnel_id = ?");
+    $query_job_order->bind_param("i", $employee['personnel_id']);
+    $query_job_order->execute();
+    $job_order_result = $query_job_order->get_result();
+    $job_order = $job_order_result->fetch_assoc() ?: [];
+    $employee['salaryRate'] = $job_order['salaryRate'] ?? null;
+}
+
+if ($emp_type === 'contract') {
+    $query_cos = $conn->prepare("SELECT salaryRate FROM contract_service WHERE personnel_id = ?");
+    $query_cos->bind_param("i", $employee['personnel_id']);
+    $query_cos->execute();
+    $contracts_result = $query_cos->get_result();
+    $contract_service = $contracts_result->fetch_assoc() ?: [];
+    $employee['salaryRate'] = $contract_service['salaryRate'] ?? null;
+}
+
+var_dump($employee['salaryRate']);
 
 $success = false;
 $errors = [];
@@ -448,7 +490,7 @@ if ($action === 'delete') {
                     } elseif ($emp_type === 'job_order') {
                         echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_jo.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } elseif ($emp_type === 'contract') {
-                        echo '/src/components/edit_cos.php?Emp_No=' . urlencode($employee['Emp_No']);
+                        echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_cos.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } else {
                         echo 'javascript:void(0);'; // Default action if emp_type is unknown
                     }
@@ -462,8 +504,16 @@ if ($action === 'delete') {
             <div class="information-details row mt-3">
               <div class="col-md-6">
               <p><strong>Sex:</strong> <?php echo $employee['sex']; ?></p>
-              <p><strong>Birthdate:</strong> <?php echo $employee['birthdate']; ?></p>
+              <p><strong>Birthdate:</strong> 
+              <?php 
+              echo !empty($employee['birthdate']) 
+                  ? date('F d, Y', strtotime($employee['birthdate'])) 
+                  : 'N/A'; 
+              ?>
+              </p>
               <p><strong>Position:</strong> <?php echo $employee['position']; ?></p>
+              <p><strong>Unit:</strong> <?php echo $employee['unit']; ?></p>
+              <p><strong>Section:</strong> <?php echo $employee['section']; ?></p>
               <p><strong>Division:</strong> <?php echo $employee['division']; ?></p>
               </div>
               <div class="col-md-6">
@@ -471,13 +521,13 @@ if ($action === 'delete') {
                 <p><strong>Plantilla Number:</strong> <?php echo $plantillaNo ?? 'N/A'; ?></p>
                 <p><strong>Salary Grade:</strong> <?php echo $salary['salaryGrade']; ?></p>
                 <p><strong>Step:</strong> <?php echo $salary['step']; ?></p>
-                <p><strong>Level:</strong> <?php echo $salary['level']; ?></p>
                 <p><strong>Monthly Salary:</strong> <?php echo $salary['monthlySalary']; ?></p>
+                <p><strong>Level:</strong> <?php echo $levelDescription; ?></p>
                 <p><strong>ACA Pera:</strong> <?php echo $acaPera ?? 'N/A'; ?></p>
               <?php elseif ($emp_type === 'job_order'): ?>
-                <p><strong>Salary Rate:</strong> <?php echo $job_order['salaryRate'] ?? 'N/A'; ?></p>
+                <p><strong>Salary Rate:</strong> <?= htmlspecialchars($job_order['salaryRate'] ?? 'N/A'); ?></p>
               <?php elseif ($emp_type === 'contract'): ?>
-                  <p><strong>Salary Rate:</strong> <?php echo isset($contract_service['salaryRate']) ? number_format($contract_service['salaryRate'], 2) : 'N/A'; ?></p>
+                <p><strong>Salary Rate:</strong> <?= isset($contract_service['salaryRate']) ? number_format($contract_service['salaryRate'], 2) : 'N/A'; ?></p>
               <?php endif; ?>
             </div>
               <div class="col-md-6">
@@ -505,6 +555,7 @@ if ($action === 'delete') {
               <?php 
               $service_record_path = __DIR__ . '/service_record.php';
               if (file_exists($service_record_path)) {
+                  $_GET['Emp_No'] = $employee['Emp_No']; // Explicitly pass Emp_No
                   include $service_record_path; 
               } else {
                   echo "<p>Error: service_record.php not found.</p>";
@@ -527,9 +578,13 @@ if ($action === 'delete') {
               <?php 
               $contract_record_path = __DIR__ . '/service_contractRecord.php';
               if (file_exists($contract_record_path)) {
-                  // Pass the variable to the included file
-                  $contractservice_id_to_include = $contractservice_id;
-                  include $contract_record_path;
+                  // Validate and pass the variable to the included file
+                  if (!empty($contractservice_id)) {
+                      $contractservice_id_to_include = $contractservice_id;
+                      include $contract_record_path;
+                  } else {
+                      echo "<p>No contract service record found for this employee.</p>";
+                  }
               } else {
                   echo "<p>Error: service_contractRecord.php not found.</p>";
               }

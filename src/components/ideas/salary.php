@@ -77,7 +77,9 @@ enum SalaryGrade: int {
         return $salaryData[$salaryGrade->value] ?? [];
     }
 }
+?>
 
+<?php
 enum Level: string {
     case FirstLevelNS = '1st Level NS';
     case SecondLevelNS = '2nd Level NS';
@@ -85,15 +87,30 @@ enum Level: string {
     case SecondLevelM = '2nd Level M';
     case ThirdLevelCES = '3rd Level CES';
 
+    // Map integer values to enum cases
+    public static function fromInteger(int $level): ?self {
+        $mapping = [
+            1 => self::FirstLevelNS,
+            2 => self::SecondLevelNS,
+            3 => self::SecondLevelS,
+            4 => self::SecondLevelM,
+            5 => self::ThirdLevelCES,
+        ];
+
+        return $mapping[$level] ?? null;
+    }
+
+    // Get description for the enum case
     public static function getDescription(self $level): string {
         $descriptions = [
-            self::FirstLevelNS->value => 'First Level Non-Supervisory',
-            self::SecondLevelNS->value => 'Second Level Non-Supervisory',
-            self::SecondLevelS->value => 'Second Level Supervisory',
-            self::SecondLevelM->value => 'Second Level Managerial',
-            self::ThirdLevelCES->value => 'Third Level Career Executive Service',
+            self::FirstLevelNS->value => 'First Level NS',
+            self::SecondLevelNS->value => 'Second Level NS',
+            self::SecondLevelS->value => 'Second Level S',
+            self::SecondLevelM->value => 'Second Level M',
+            self::ThirdLevelCES->value => 'Third Level CES',
         ];
 
         return $descriptions[$level->value] ?? 'Unknown Level';
     }
 }
+?>

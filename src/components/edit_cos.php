@@ -22,7 +22,7 @@ if (!$emp_no) {
 // Retrieve employee details from the database
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, p.division,
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, p.division, p.emp_status,
         cs.salaryRate
     FROM personnel p
     LEFT JOIN contract_service cs ON p.personnel_id = cs.personnel_id
@@ -127,23 +127,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 // Fetch position data for dynamic dropdowns
 $jsPositionData = [];
 include_once __DIR__ . '/ideas/position.php';
-if (class_exists('Position')) {
-  foreach (Position::cases() as $position) {
-    $jsPositionData[] = $position->value;
-  }
+if (class_exists('Position') && method_exists('Position', 'cases')) {
+    foreach (Position::cases() as $position) {
+        $jsPositionData[] = $position->value;
+    }
 } else {
-  die("<div class='alert alert-danger'>Error: Position class not found in position.php.</div>");
+    die("<div class='alert alert-danger'>Error: Position class or cases method not found in position.php.</div>");
 }
 
 // Fetch division data for dynamic dropdowns
 $jsDivisionData = [];
 include_once __DIR__ . '/ideas/division.php';
-if (class_exists('Division')) {
-  foreach (Division::cases() as $division) {
-    $jsDivisionData[] = $division->value;
-  }
+if (class_exists('Division') && method_exists('Division', 'cases')) {
+    foreach (Division::cases() as $division) {
+        $jsDivisionData[] = $division->value;
+    }
 } else {
-  die("<div class='alert alert-danger'>Error: Division class not found in division.php.</div>");
+    die("<div class='alert alert-danger'>Error: Division class or cases method not found in division.php.</div>");
 }
 ?>
 
@@ -191,6 +191,18 @@ body { font-family: Arial; }
     <form method="POST">
         <div class="row g-3">
             <div class="col-md-6">
+                <label for="Emp_No" class="form-label">Employee Number</label>
+                <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
+            </div>
+            <div class="col-md-6">
+                <label for="emp_status" class="form-label">Employment Status</label>
+                <div class="dropdown"></div>
+                <select class="form-control" id="emp_status" name="emp_status" required>
+                    <option value="Active" <?php echo (isset($employee['emp_status']) && $employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
+                    <option value="Inactive" <?php echo (isset($employee['emp_status']) && $employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-6">
                 <label for="full_name" class="form-label">Full Name</label>
                 <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
             </div>
@@ -211,7 +223,7 @@ body { font-family: Arial; }
             </div>
             <div class="col-md-6">
                 <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="11" pattern="\d{11}" title="Contact number must be 11 digits">
             </div>
             <div class="col-md-6">
             <label for="position" class="form-label">Position</label>

@@ -1,20 +1,33 @@
 <?php
-include_once __DIR__ . '/../../backend/db.php';
+include_once __DIR__ . '/../../backend/db.php'; // Include database connection
 
-// Use the passed variable instead of $_GET
-$contractservice_id = $contractservice_id_to_include ?? null;
+// Retrieve contractservice_id from GET or fallback variable
+$contractservice_id = $_GET['contractservice_id'] ?? $contractservice_id_to_include ?? null;
 
-// Initialize error messages
-$errors = [];
-$success_message = null;
-
-// Debugging
+// Debugging: Check if contractservice_id is set
 echo "<!-- Debug: contractservice_id = " . ($contractservice_id ?? 'NOT SET') . " -->";
 
 if (!$contractservice_id) {
     echo "<div class='alert alert-warning'>No contract service record found. Please ensure you are accessing this page with a valid contractservice_id.</div>";
     return;
 }
+
+// Validate contractservice_id
+$validate_query = $conn->prepare("SELECT COUNT(*) FROM contract_service WHERE contractservice_id = ?");
+$validate_query->bind_param("i", $contractservice_id);
+$validate_query->execute();
+$validate_query->bind_result($count);
+$validate_query->fetch();
+$validate_query->close();
+
+if ($count === 0) {
+    echo "<div class='alert alert-warning'>Invalid contract service ID. Please ensure you are accessing this page with a valid contractservice_id.</div>";
+    return;
+}
+
+// Initialize error messages
+$errors = [];
+$success_message = null;
 
 // Handle form submission for adding a new contract record
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $contractservice_id && !isset($_POST['serviceRecord_id'])) {
@@ -53,6 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $contractservice_id && !isset($_POST
     }
 }
 
+// Handle form submission for updating an existing contract record
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['serviceRecord_id']) && !isset($_POST['delete_service_record'])) {
     $serviceRecord_id = intval($_POST['serviceRecord_id']);
     $contractStart = $_POST["contractStart"] ?? null;
@@ -83,6 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['serviceRecord_id']) &&
     }
 }
 
+// Handle form submission for deleting a contract record
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'])) {
     $serviceRecord_id = intval($_POST['serviceRecord_id']);
 

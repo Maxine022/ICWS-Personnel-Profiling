@@ -29,7 +29,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
       ORDER BY p.personnel_id DESC, p.full_name ASC
     ");
     if ($result === false) {
-        echo "<div style='color:red;'>SQL Error: " . $conn->error . "</div>";
+        echo "<div style='color:red;'>SQL Error: {$conn->error}</div>";
     } else {
         while ($row = $result->fetch_assoc()) {
             $data[] = $row;
@@ -51,7 +51,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
       FROM job_order jo
       JOIN personnel p ON jo.personnel_id = p.personnel_id
       WHERE p.emp_type = 'Job Order'
-      ORDER BY p.personnel_id ASC, p.full_name ASC
+      ORDER BY p.personnel_id DESC, p.full_name ASC
     ");
     if ($result === false) {
         echo "<div style='color:red;'>SQL Error: " . $conn->error . "</div>";
@@ -76,7 +76,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
       FROM contract_service cs
       JOIN personnel p ON cs.personnel_id = p.personnel_id
       WHERE p.emp_type = 'Contract'
-      ORDER BY p.personnel_id ASC, p.full_name ASC
+      ORDER BY p.personnel_id DESC, p.full_name ASC
     ");
     if ($result === false) {
         echo "<div style='color:red;'>SQL Error: " . $conn->error . "</div>";
@@ -168,7 +168,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
         <td><?= htmlspecialchars($emp['Emp_No']) ?></td>
         <td><?= htmlspecialchars($emp['full_name']) ?></td>
         <td><?= htmlspecialchars($emp['sex']) ?></td>
-        <td><?= htmlspecialchars($emp['birthdate']) ?></td>
+        <td><?= htmlspecialchars((new DateTime($emp['birthdate']))->format('m-d-Y')) ?></td>
         <td><?= htmlspecialchars($emp['contact_number']) ?></td>
         <td><?= htmlspecialchars($emp['address']) ?></td>
         <td><?= htmlspecialchars($emp['position']) ?></td>
@@ -207,7 +207,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
         <td><?= htmlspecialchars($emp['Emp_No']) ?></td>
         <td><?= htmlspecialchars($emp['full_name']) ?></td>
         <td><?= htmlspecialchars($emp['sex']) ?></td>
-        <td><?= htmlspecialchars($emp['birthdate']) ?></td>
+        <td><?= htmlspecialchars((new DateTime($emp['birthdate']))->format('m-d-Y')) ?></td>
         <td><?= htmlspecialchars($emp['contact_number']) ?></td>
         <td><?= htmlspecialchars($emp['address']) ?></td>
         <td><?= htmlspecialchars($emp['position']) ?></td>

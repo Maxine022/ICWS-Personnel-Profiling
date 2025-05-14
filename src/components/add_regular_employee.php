@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Insert into salary
         $stmt2 = $conn->prepare("INSERT INTO salary (personnel_id, salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
-        $stmt2->bind_param("iisis", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
+        $stmt2->bind_param("iisss", $personnel_id, $salaryGrade, $step, $level, $monthlySalary);
         
         if ($stmt2->execute()) {
             $salary_id = $stmt2->insert_id;
@@ -142,8 +142,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   <div class="form-section">
     <form method="POST" action="">
-      <div class="row g-2">
-        <div class="col-md-5">
+      <div class="row g-3">
+        <div class="col-md-6">
           <label class="form-label">Emp_No</label>
           <input type="text" class="form-control" name="Emp_No" required>
         </div>
@@ -152,6 +152,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <label class="form-label">Full Name</label>
           <input type="text" class="form-control" name="full_name" required>
         </div>
+        <div class="col-md-2">
+            <label class="form-label">Sex</label>
+            <select class="form-select" name="sex" required>
+              <option value="">Select Sex</option>
+              <?php
+                if ($enum_values) {
+                    foreach ($enum_values as $value) {
+                        echo "<option value=\"$value\">$value</option>";
+                    }
+                }
+              ?>
+            </select>
+        </div>
+          <div class="col-md-4">
+            <label class="form-label">Birthdate</label>
+            <input type="date" class="form-control" name="birthdate" required>
+          </div>
         <div class="col-md-6">
         <?php
           $positionFilePath = __DIR__ . '/ideas/position.php';
@@ -205,24 +222,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 title="Contact number must be exactly 11 digits" 
                 onkeypress="return isNumberKey(event)">
         </div>
-        <div class="col-md-2">
-            <label class="form-label">Sex</label>
-            <select class="form-select" name="sex" required>
-              <option value="">Select Sex</option>
-              <?php
-                if ($enum_values) {
-                    foreach ($enum_values as $value) {
-                        echo "<option value=\"$value\">$value</option>";
-                    }
-                }
-              ?>
-            </select>
-        </div>
-          <div class="col-md-4">
-            <label class="form-label">Birthdate</label>
-            <input type="date" class="form-control" name="birthdate" required>
-          </div>
-
           <div class="col-md-6">
             <label class="form-label">Address</label>
             <input type="text" class="form-control" name="address" required>

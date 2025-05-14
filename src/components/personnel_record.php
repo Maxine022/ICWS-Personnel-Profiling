@@ -9,64 +9,76 @@ include_once __DIR__ . '/../../backend/db.php';
 
 // Fetch the personnel, salary, and reg_emp tables
 $personnel = [];
-$regulars = [];
-$job_order = [];
-$contract_service = [];
 
 $result = $conn->query("
-  SELECT 
-    p.Emp_No,
-    p.emp_status AS employment_status,
-    p.full_name,
-    p.contact_number,
-    p.position,
-    p.division,
-    r.plantillaNo AS plantillaNo,
-    s.salaryGrade AS salaryGrade,
-    s.step AS step,
-    s.level AS level,
-    r.acaPera AS acaPera,
-    s.monthlySalary AS monthlySalary,
-    'Regular' AS employment_type
-  FROM reg_emp r
-  JOIN personnel p ON r.personnel_id = p.personnel_id
-  JOIN salary s ON r.salary_id = s.salary_id
-  UNION
-  SELECT 
-    p.Emp_No,
-    p.emp_status AS employment_status,
-    p.full_name,
-    p.contact_number,
-    p.position,
-    p.division,
-    NULL AS plantillaNo,
-    NULL AS salaryGrade,
-    NULL AS step,
-    NULL AS level,
-    NULL AS acaPera,
-    r.salaryRate AS monthlySalary,
-    'Job Order' AS employment_type
-  FROM job_order r
-  JOIN personnel p ON r.personnel_id = p.personnel_id
-  UNION
-  SELECT 
-    p.Emp_No,
-    p.emp_status AS employment_status,
-    p.full_name,
-    p.contact_number,
-    p.position,
-    p.division,
-    NULL AS plantillaNo,
-    NULL AS salaryGrade,
-    NULL AS step,
-    NULL AS level,
-    NULL AS acaPera,
-    r.salaryRate AS monthlySalary,
-    'Contract of Service' AS employment_type
-  FROM contract_service r
-  JOIN personnel p ON r.personnel_id = p.personnel_id
-  ORDER BY Emp_No ASC, full_name ASC
+SELECT * FROM (
+    SELECT 
+      p.personnel_id,
+      p.Emp_No,
+      p.emp_status AS employment_status,
+      p.full_name,
+      p.contact_number,
+      p.position,
+      p.unit,
+      p.section,
+      p.division,
+      r.plantillaNo AS plantillaNo,
+      s.salaryGrade AS salaryGrade,
+      s.step AS step,
+      s.level AS level,
+      r.acaPera AS acaPera,
+      s.monthlySalary AS monthlySalary,
+      'Regular' AS employment_type
+    FROM reg_emp r
+    JOIN personnel p ON r.personnel_id = p.personnel_id
+    JOIN salary s ON r.salary_id = s.salary_id
+    UNION
+    SELECT 
+      p.personnel_id,
+      p.Emp_No,
+      p.emp_status AS employment_status,
+      p.full_name,
+      p.contact_number,
+      p.position,
+      p.unit,
+      p.section,
+      p.division,
+      NULL AS plantillaNo,
+      NULL AS salaryGrade,
+      NULL AS step,
+      NULL AS level,
+      NULL AS acaPera,
+      r.salaryRate AS monthlySalary,
+      'Job Order' AS employment_type
+    FROM job_order r
+    JOIN personnel p ON r.personnel_id = p.personnel_id
+    UNION
+    SELECT 
+      p.personnel_id,
+      p.Emp_No,
+      p.emp_status AS employment_status,
+      p.full_name,
+      p.contact_number,
+      p.position,
+      p.unit,
+      p.section,
+      p.division,
+      NULL AS plantillaNo,
+      NULL AS salaryGrade,
+      NULL AS step,
+      NULL AS level,
+      NULL AS acaPera,
+      r.salaryRate AS monthlySalary,
+      'Contract of Service' AS employment_type
+    FROM contract_service r
+    JOIN personnel p ON r.personnel_id = p.personnel_id
+) AS combined
+ORDER BY CAST(Emp_No AS UNSIGNED) ASC, full_name ASC
 ");
+
+if (!$result) {
+    die("<div class='alert alert-danger'>Error fetching personnel records: " . $conn->error . "</div>");
+}
 
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -87,13 +99,15 @@ if ($result && $result->num_rows > 0) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-
   <style>
     body { 
       font-family: Arial;   
     }
     .content {
       padding: 30px;
+    }
+    .table-container {
+      margin-top: 20px;
     }
     .table-bordered td, .table-bordered th {
       border: 1px solid #dee2e6 !important;
@@ -115,9 +129,6 @@ if ($result && $result->num_rows > 0) {
     .view-link:hover {
       color: #0a58ca;
       text-decoration: underline;
-    }
-    .table-container {
-      margin-top: 0px;
     }
     .search-buttons-container {
       margin-top: 25px;
@@ -141,8 +152,10 @@ if ($result && $result->num_rows > 0) {
 
   <div class="search-buttons-container row align-items-center mb-4">
     <div class="col-md-6 d-flex align-items-center gap-2">
-      <label for="searchInput" class="form-label mb-0"><strong>Search:</strong></label>
-      <div id="customSearchContainer"></div>
+      <label for="searchInput" class="form-label mb-0">Search:</label>
+      <div id="customSearchContainer">
+        <input type="text" id="searchInput" class="form-control" placeholder="Type to search...">
+      </div>
     </div>
 
     <div class="col-md-6 text-end">
@@ -162,6 +175,8 @@ if ($result && $result->num_rows > 0) {
           <th>Full Name</th>
           <th>Contact Number</th>
           <th>Position</th>
+          <th>Unit</th>
+          <th>Section</th>
           <th>Division</th>
           <th>Type</th>
           <th>Status</th>
@@ -175,6 +190,8 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($p['full_name']) ?></td>
             <td><?= htmlspecialchars($p['contact_number']) ?></td>
             <td><?= htmlspecialchars($p['position']) ?></td>
+            <td><?= htmlspecialchars($p['unit']) ?></td>
+            <td><?= htmlspecialchars($p['section']) ?></td>
             <td><?= htmlspecialchars($p['division']) ?></td>
             <td><?= htmlspecialchars($p['employment_type']) ?></td>
             <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
@@ -191,6 +208,10 @@ if ($result && $result->num_rows > 0) {
   </div>
 </div>
 
+</body>
+</html>
+
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -206,32 +227,33 @@ if ($result && $result->num_rows > 0) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bs5-toast@1.0.0/dist/bs5-toast.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bs5-toast@1.0.0/dist/bs5-toast.min.js"></script>
 
 <script>
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
-      "pageLength": 20,
-      dom:
-        "<'d-none'f>" +
-        "<'row'<'col-12'tr>>" +
-        "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
-      buttons: [
-        { extend: 'csv', className: 'd-none', title: 'Personnel Records' },
-        { extend: 'pdf', className: 'd-none', title: 'Personnel Records' },
-        { extend: 'print', className: 'd-none', title: 'Personnel Records' }
-      ]
+        "pageLength": 30,
+        "order": [[0, "asc"]], // Sort by the first column (Emp No) in ascending order
+        dom:
+            "<'row'<'col-md-6'l><'col-md-6'f>>" + // Add custom layout for search and length
+            "<'row'<'col-12'tr>>" +
+            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
+        buttons: [
+            { extend: 'csv', title: 'Personnel Records' },
+            { extend: 'pdf', title: 'Personnel Records' },
+            { extend: 'print', title: 'Personnel Records' }
+        ]
     });
 
-    $('#customSearchContainer').append($('#personnelTable_filter input'));
-    $('#personnelTable_filter').remove();
+    // Move the search input to the custom container
+    const searchInput = $('#personnelTable_filter input'); // Get the default search input
+    searchInput.addClass('form-control'); // Add Bootstrap styling
+    $('#customSearchContainer').html(searchInput); // Replace any existing content in the custom container
+    $('#personnelTable_filter').remove(); // Remove the default search container
 
+    // Handle export button clicks
     $('.export-btn').on('click', function () {
-      const type = $(this).data('type');
-      table.button(`.buttons-${type}`).trigger();
+        const type = $(this).data('type');
+        table.button(`.buttons-${type}`).trigger();
     });
   });
 </script>
-
-</body>
-</html>

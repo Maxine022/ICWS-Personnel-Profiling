@@ -216,7 +216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($employee['contact_number']) ?>">
+          <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($employee['contact_number']) ?>" maxlength="11" pattern="\d{11}" title="Please enter an 11-digit contact number">
         </div>
         <div class="col-md-6">
           <label class="form-label">Birthdate</label>
@@ -231,62 +231,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endforeach; ?>
           </select>
         </div>
+        <div class="col-6">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($employee['address']) ?>">
+        </div>
         <div class="col-md-6">
-        <?php
-          $positionFilePath = __DIR__ . '/ideas/position.php';
-          if (!file_exists($positionFilePath)) {
-              die("Error: position.php file not found.");
-          }
-          include_once $positionFilePath;
-        ?>
           <label class="form-label">Position</label>
           <select class="form-select" name="position" required>
             <option value="">Select Position</option>
-            <?php
-            if (class_exists('Position')) {
-          foreach (Position::cases() as $position) {
-              echo "<option value=\"{$position->value}\">{$position->value}</option>";
-          }
-            } else {
-          echo "<option value=\"\">Error: Position class not found.</option>";
-            }
-            ?>
+            <?php foreach ($positions as $position): ?>
+              <option value="<?= htmlspecialchars($position) ?>" <?= ($employee['position'] === $position) ? 'selected' : '' ?>><?= htmlspecialchars($position) ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label">Division</label>
           <select class="form-select" name="division" required>
             <option value="">Select Division</option>
-            <?php
-            $divisionFilePath = __DIR__ . '/ideas/division.php';
-            if (!file_exists($divisionFilePath)) {
-          die("Error: division.php file not found.");
-            }
-            include_once $divisionFilePath;
-            if (class_exists('Division')) {
-          foreach (Division::cases() as $division) {
-              echo "<option value=\"{$division->value}\">{$division->value}</option>";
-          }
-            } else {
-          echo "<option value=\"\">Error: Division class not found.</option>";
-            }
-            ?>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Status</label>
-          <select name="emp_status" class="form-select" required>
-            <option value="Active" <?= ($employee['emp_status'] === 'Active') ? 'selected' : '' ?>>Active</option>
-            <option value="Inactive" <?= ($employee['emp_status'] === 'Inactive') ? 'selected' : '' ?>>Inactive</option>
+            <?php foreach ($divisions as $division): ?>
+              <option value="<?= htmlspecialchars($division) ?>" <?= ($employee['division'] === $division) ? 'selected' : '' ?>><?= htmlspecialchars($division) ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label">Salary Rate</label>
           <input type="number" step="0.01" class="form-control" name="salary_rate" value="<?= htmlspecialchars($employee['salaryRate']) ?>">
-        </div>
-        <div class="col-12">
-          <label class="form-label">Address</label>
-          <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($employee['address']) ?>">
         </div>
       <div class="mt-4 d-flex gap-2">
         <button type="submit" class="btn btn-success px-4">Save Changes</button>

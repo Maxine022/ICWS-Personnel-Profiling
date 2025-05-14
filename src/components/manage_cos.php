@@ -78,7 +78,9 @@ if ($result && $result->num_rows > 0) {
   <div class="search-buttons-container row align-items-center mb-4">
     <div class="col-md-6 d-flex align-items-center gap-2">
       <label for="searchInput" class="form-label mb-0">Search:</label>
-      <div id="customSearchContainer"></div>
+      <div id="customSearchContainer">
+        <input type="text" id="searchInput" class="form-control" placeholder=" ">
+      </div>
     </div>
 
     <div class="col-md-6 text-end">
@@ -116,7 +118,12 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($cos['Emp_No']) ?></td>
             <td><?= htmlspecialchars($cos['full_name']) ?></td>
             <td><?= htmlspecialchars($cos['sex']) ?></td>
-            <td><?= htmlspecialchars($cos['birthdate']) ?></td>
+            <td>
+            <?= !empty($cos['birthdate']) 
+                ? date('F d, Y', strtotime($cos['birthdate'])) 
+                : 'N/A'; 
+            ?>
+          </td>
             <td><?= htmlspecialchars($cos['contact_number']) ?></td>
             <td><?= htmlspecialchars($cos['address']) ?></td>
             <td><?= htmlspecialchars($cos['position']) ?></td>
@@ -135,13 +142,42 @@ if ($result && $result->num_rows > 0) {
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script>
-  $(document).ready(function () {
-    $('#personnelTable').DataTable({
+    var table = $('#personnelTable').DataTable({
       "pageLength": 20,
       dom: "<'row'<'col-12'tr>>" +
            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>"
     });
-  });
+
+    // Custom search input functionality
+    $('#searchInput').on('keyup', function () {
+      table.search(this.value).draw();
+    });
 </script>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow">
+      <form action="uploadContract.php" method="POST" enctype="multipart/form-data">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="uploadModalLabel">Upload Employee Data</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="data_file" class="form-label">Choose CSV File</label>
+            <input type="file" class="form-control" id="data_file" name="data_file" accept=".csv" required>
+            <small class="text-muted">Please upload a CSV file with the correct format.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Upload</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

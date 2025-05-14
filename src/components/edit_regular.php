@@ -35,7 +35,7 @@ if ($enum_result) {
 // Retrieve employee details from the database
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.division, p.emp_status, p.contact_number, p.address,
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.division, p.emp_status, p.contact_number, p.address, p.emp_status,
         r.plantillaNo, r.acaPera, r.salary_id,
         s.salaryGrade, s.step, s.level, s.monthlySalary
     FROM personnel p
@@ -77,6 +77,7 @@ $success = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve form data with default values to avoid warnings
     $fullName = $_POST["full_name"] ?? null;
+    $emp_status = $_POST["emp_status"] ?? null;
     $position = $_POST["position"] ?? null;
     $division = $_POST["division"] ?? null;
     $sex = $_POST["sex"] ?? null;
@@ -108,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $updatePersonnel->bind_param(
-        "sssssssss",
+        "sssssssss", // 9 placeholders
         $fullName,
         $position,
         $division,
@@ -119,6 +120,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $address,
         $emp_no
     );
+
+    if (!$updatePersonnel->execute()) {
+        echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
+    } else {
+        echo "<div class='alert alert-success'>Personnel details updated successfully!</div>";
+    }
 
     $updateRegEmp = $conn->prepare("
         UPDATE reg_emp 
@@ -137,6 +144,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $employee['personnel_id']
     );
 
+    // Calculate Monthly Salary
+    $monthlySalary = 0;
+    if ($salaryGrade && $step) {
+        $salaryGradeObj = SalaryGrade::tryFrom((int)$salaryGrade); // Convert integer to SalaryGrade enum
+        if ($salaryGradeObj) {
+            $steps = SalaryGrade::getStepsForGrade($salaryGradeObj); // Pass the enum instance
+            $monthlySalary = $steps[$step - 1] ?? 0; // Adjust for 0-based index
+        }
+    }
+
+    // Update the salary table
     $updateSalary = $conn->prepare("
         UPDATE salary 
         SET salaryGrade = ?, step = ?, level = ?, monthlySalary = ?
@@ -204,10 +222,10 @@ if (class_exists('Division')) {
 
 // Fetch level data for dynamic dropdowns
 $jsLevelData = [];
-include_once __DIR__ . '/ideas/salary.php';
+include_once __DIR__ . '/ideas/salary.php'; // Ensure this file contains the Level enum
 if (class_exists('Level')) {
     foreach (Level::cases() as $level) {
-        $jsLevelData[$level->value] = Level::getDescription($level);
+        $jsLevelData[$level->value] = Level::getDescription($level); // Assuming Level::getDescription() provides a human-readable description
     }
 } else {
     die("<div class='alert alert-danger'>Error: Level class not found in salary.php.</div>");
@@ -283,12 +301,20 @@ if (class_exists('Level')) {
                 <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
             </div>
             <div class="col-md-6">
+                <label for="emp_status" class="form-label">Employment Status</label>
+                <div class="dropdown"></div>
+                <select class="form-control" id="emp_status" name="emp_status" required>
+                    <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
+                    <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-6">
                 <label for="full_name" class="form-label">Full Name</label>
                 <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($employee['full_name']); ?>" required>
             </div>
             <div class="col-md-6">
                 <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>">
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="11">
             </div>
             <div class="col-md-6">
                 <label for="birthdate" class="form-label">Birthdate</label>
@@ -331,13 +357,6 @@ if (class_exists('Level')) {
               </select>
             </div>
             <div class="col-md-6">
-                <label for="emp_status" class="form-label">Status</label>
-                <select class="form-control" id="emp_status" name="emp_status" required>
-                    <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
-                    <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
-                </select>
-            </div>
-            <div class="col-md-6">
                 <label for="plantillaNo" class="form-label">Plantilla Number</label>
                 <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
             </div>
@@ -378,12 +397,7 @@ if (class_exists('Level')) {
                 <label for="level" class="form-label">Level</label>
                 <select class="form-control" id="level" name="level" required>
                     <option value="">Select Level</option>
-                    <?php
-                    foreach ($jsLevelData as $levelValue => $levelDescription) {
-                        $selected = ((int)$employee['level'] === $levelValue) ? 'selected' : '';
-                        echo "<option value=\"{$levelValue}\" $selected>{$levelDescription}</option>";
-                    }
-                    ?>
+                    <!-- Options will be populated dynamically -->
                 </select>
             </div>
             <div class="col-md-6">
@@ -403,6 +417,8 @@ document.getElementById('salary_grade').addEventListener('change', function () {
     const stepSelect = document.getElementById('step');
     const monthlySalaryInput = document.getElementById('monthly_salary');
     stepSelect.innerHTML = '<option value="">Select Step</option>';
+    monthlySalaryInput.value = ''; // Clear the monthly salary field
+
     if (salaryGrade) {
         <?php echo "const salaryData = " . json_encode($jsSalaryData) . ";"; ?>
         if (salaryData[salaryGrade]) {
@@ -414,6 +430,41 @@ document.getElementById('salary_grade').addEventListener('change', function () {
             });
         }
     }
+});
+
+document.getElementById('step').addEventListener('change', function () {
+    const salaryGrade = document.getElementById('salary_grade').value;
+    const step = this.value;
+    const monthlySalaryInput = document.getElementById('monthly_salary');
+
+    if (salaryGrade && step) {
+        <?php echo "const salaryData = " . json_encode($jsSalaryData) . ";"; ?>
+        if (salaryData[salaryGrade] && salaryData[salaryGrade][step - 1]) {
+            monthlySalaryInput.value = salaryData[salaryGrade][step - 1];
+        } else {
+            monthlySalaryInput.value = ''; // Clear if no valid salary is found
+        }
+    }
+});
+</script>
+<script>
+    const jsLevelData = <?php echo json_encode($jsLevelData); ?>;
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const levelSelect = document.getElementById('level');
+    const currentLevel = <?php echo json_encode((int)$employee['level']); ?>;
+
+    // Populate the level dropdown
+    Object.keys(jsLevelData).forEach(levelValue => {
+        const option = document.createElement('option');
+        option.value = levelValue;
+        option.textContent = jsLevelData[levelValue];
+        if (parseInt(levelValue) === currentLevel) {
+            option.selected = true;
+        }
+        levelSelect.appendChild(option);
+    });
 });
 </script>
 </body>
