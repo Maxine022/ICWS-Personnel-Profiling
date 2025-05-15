@@ -144,7 +144,7 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0" style="font-weight: bold;">Personnel Records</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">Personnel</li>
       </ol>
     </nav>
@@ -154,7 +154,6 @@ if ($result && $result->num_rows > 0) {
     <div class="col-md-6 d-flex align-items-center gap-2">
       <label for="searchInput" class="form-label mb-0">Search:</label>
       <div id="customSearchContainer">
-        <input type="text" id="searchInput" class="form-control" placeholder="Type to search...">
       </div>
     </div>
 
@@ -197,7 +196,7 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
             <td>
             <?php if (!empty($p['Emp_No'])): ?>
-              <a href="http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
+              <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
             <?php else: ?>
               <span class="text-muted">Employee Not Found</span>
             <?php endif; ?>
@@ -232,9 +231,9 @@ if ($result && $result->num_rows > 0) {
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
         "pageLength": 30,
-        "order": [[0, "asc"]], // Sort by the first column (Emp No) in ascending order
+        "order": [[0, "asc"]],
         dom:
-            "<'row'<'col-md-6'l><'col-md-6'f>>" + // Add custom layout for search and length
+            "<'row'<'col-md-6'l><'col-md-6'f>>" +
             "<'row'<'col-12'tr>>" +
             "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
         buttons: [
@@ -245,10 +244,11 @@ if ($result && $result->num_rows > 0) {
     });
 
     // Move the search input to the custom container
-    const searchInput = $('#personnelTable_filter input'); // Get the default search input
-    searchInput.addClass('form-control'); // Add Bootstrap styling
-    $('#customSearchContainer').html(searchInput); // Replace any existing content in the custom container
-    $('#personnelTable_filter').remove(); // Remove the default search container
+    const searchInput = $('#personnelTable_filter input');
+    searchInput.addClass('form-control');
+    searchInput.attr('placeholder', 'Type to search...');
+    $('#customSearchContainer').html(searchInput);
+    $('#personnelTable_filter').remove();
 
     // Handle export button clicks
     $('.export-btn').on('click', function () {

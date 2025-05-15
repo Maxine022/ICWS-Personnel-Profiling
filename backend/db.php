@@ -1,5 +1,6 @@
 <?php
-$conn = new mysqli('localhost', 'root', '', 'icws_db');  // Ensure 'icws_db' matches your database name
+// Use LAN IP for database connection (change '192.168.1.100' to your MySQL server's LAN IP)
+$conn = new mysqli('192.168.1.96', 'root', '', 'icws_db');  // LAN connection
 
 // Check connection
 if ($conn->connect_error) {

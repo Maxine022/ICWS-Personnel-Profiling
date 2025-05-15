@@ -1,4 +1,3 @@
-
 <?php
 enum Division: string {
     case AdministrativeAndPlanning = 'Administrative and Planning Division';

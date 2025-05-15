@@ -112,7 +112,7 @@ $email = $_SESSION['email'] ?? 'Guest';
 
 <div id="sidebar" class="sidebar">
     <div class="d-flex align-items-center justify-content-start mb-3 ps-3 pt-3">
-        <a href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php" class="text-decoration-none text-white"> <!-- Link added here -->
+        <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php" class="text-decoration-none text-white"> <!-- Link added here -->
             <img src="../../assets/logo.png" alt="ICWS Logo" width="40" height="40" class="me-2">
             <h3 class="m-0 fw-bold">ICWS</h3>
         </a>
@@ -120,37 +120,37 @@ $email = $_SESSION['email'] ?? 'Guest';
 
     <hr class="sidebar-divider">
     
-    <a href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php" class="<?php echo ($_SERVER['REQUEST_URI'] == 'hero.php') ? 'active' : ''; ?>">
+    <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php" class="<?php echo ($_SERVER['REQUEST_URI'] == 'hero.php') ? 'active' : ''; ?>">
         <i class="fas fa-home"></i> Dashboard
     </a>
-    </a><a href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/personnel_record.php') ? 'active' : ''; ?>">
+    </a><a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/personnel_record.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/personnel_record.php') ? 'active' : ''; ?>">
         <i class="fas fa-users"></i> Personnel
     </a>
     
-    <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php" id="manageToggle" class="manage-toggle">
+    <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_regEmp.php" id="manageToggle" class="manage-toggle">
         <i class="fas fa-chevron-right" id="chevron"></i>
         <i class="fas fa-tasks"></i> Manage Personnel
     </a>
 
     <div class="dropdown-container" id="manageDropdown">
-        <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php"
+        <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_regEmp.php"
             class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_regEmp.php') !== false) ? 'active' : ''; ?>">
             <i class="far fa-circle bullet-icon"></i> Regular Employee
         </a>
-        <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php"
+        <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_jo.php"
             class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_jo.php') !== false) ? 'active' : ''; ?>">
             <i class="far fa-circle bullet-icon"></i> Job Order
         </a>
-        <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php"
+        <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_cos.php"
             class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'manage_cos.php') !== false) ? 'active' : ''; ?>">
             <i class="far fa-circle bullet-icon"></i> Contract of Service
         </a>
     </div>
     
-    </a><a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_intern.php') ? 'active' : ''; ?>">
+    </a><a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="<?php echo ($_SERVER['REQUEST_URI'] == '/src/components/manage_intern.php') ? 'active' : ''; ?>">
         <i class="fas fa-users"></i> Internship
     </a>
-    <a href="http://localhost/ICWS-Personnel-Profiling/backend/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a href="http://192.168.1.96/ICWS-Personnel-Profiling/backend/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
 </div>
 
 <script>

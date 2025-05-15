@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
     $supervisor = $conn->real_escape_string($_POST["supervisor"]);
 
     // Validate required fields
-    if (empty($fullName) || empty($contactNumber) || empty($school) || empty($courseProgram) || empty($numberOfHours) || empty($internshipStart) || empty($internshipEnd) || empty($division) || empty($supervisor)) {
+    if (empty($fullName) || empty($numberOfHours) || empty($internshipStart) || empty($internshipEnd) || empty($division) || empty($supervisor)) {
         $errors[] = "All fields are required.";
     }
 
@@ -134,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
   <?php if ($success): ?>
     <div class="alert alert-success">
       Intern information has been successfully updated! 
-      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
+      <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
     </div>
   <?php endif; ?>
 
@@ -160,11 +160,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
           </div>
           <div class="col-md-6">
             <label class="form-label">Contact Number</label>
-            <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" required maxlength="11" pattern="\d{11}" title="Contact number must be exactly 11 digits" onkeypress="return isNumberKey(event)">
+            <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" 
+              maxlength="10" pattern="\d{10}" title="Contact number must be exactly 11 digits" onkeypress="return isNumberKey(event)">
           </div>
           <div class="col-md-12">
             <label class="form-label">School</label>
-            <select class="form-select" name="school" required>
+            <select class="form-select" name="school">
                 <option value="">Select School</option>
                 <?php
                     $collegeFilePath = __DIR__ . '/ideas/course.php';
@@ -185,7 +186,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
           </div>
           <div class="col-md-6">
             <label class="form-label">Course/Program</label>
-            <select class="form-select" name="course_program" required>
+            <select class="form-select" name="course_program">
                 <option value="">Select Course</option>
                 <?php
                     if (class_exists('CollegeCourse')) {

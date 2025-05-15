@@ -8,7 +8,6 @@ include_once __DIR__ . '/../../backend/db.php';
 if (!isset($conn) || !$conn) {
     die("Database connection failed.");
 }
-include_once __DIR__ . '/ideas/icws_position.php'; // Include only this file for enums
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve form data
@@ -32,11 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ");
     $stmt->bind_param("ssssssss", $emp_no, $full_name, $sex, $birthdate, $contact_number, $address, $position, $division);
     if (!$stmt->execute()) {
-        die("Error executing query: " . $stmt->error);
+        die("Error executing query: {$stmt->error}");
     }
     $personnel_id = $conn->insert_id;
     if (!$personnel_id) {
-        die("Error retrieving last inserted ID: " . $conn->error);
+        die("Error retrieving last inserted ID: {$conn->error}");
     }
 
     // Get the last inserted personnel_id
@@ -51,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
 
     // Redirect to manage_cos.php after successful insertion
-    header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php");
+    header("Location: http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_cos.php");
     exit;
 }
 ?>
@@ -108,6 +107,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateDependentFields();
         });
     </script>
+    <style>
+        .breadcrumb-link {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .breadcrumb-link:hover {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    .view-link {
+      color: #0d6efd;
+      text-decoration: none;
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+    .view-link:hover {
+      color: #0a58ca;
+      text-decoration: underline;
+    }
+    </style>
 </head>
 <body>
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
@@ -119,8 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h4 class="mb-0 fw-bold"> Add Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
@@ -156,80 +175,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="address" name="address" required>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Position</label>
-                <select class="form-select" name="position" required>
-                    <option value="">Select Position</option>
-                    <?php
-                    include_once __DIR__ . '/ideas/position.php';
-                    if (isset($positions) && is_array($positions)) {
-                        foreach ($positions as $position) {
-                            echo "<option value=\"{$position}\">{$position}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: Positions not found.</option>";
-                    }
-                    ?>
-                </select>
+            <?php
+            $positionFilePath = __DIR__ . '/ideas/position.php';
+            if (!file_exists($positionFilePath)) {
+                die("Error: position.php file not found.");
+            }
+            include_once $positionFilePath;
+            ?>
+            <label class="form-label">Position</label>
+            <select class="form-select" name="position" required>
+                <option value="">Select Position</option>
+                <?php
+                if (class_exists('Position')) {
+            foreach (Position::cases() as $position) {
+                echo "<option value=\"{$position->value}\">{$position->value}</option>";
+            }
+                } else {
+            echo "<option value=\"\">Error: Position class not found.</option>";
+                }
+                ?>
+            </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Division</label>
-                <select class="form-select" name="division" required>
-                    <option value="">Select Division</option>
-                    <?php
-                    if (class_exists('Division')) {
-                        foreach (Division::cases() as $division) {
-                            echo "<option value=\"{$division->value}\">{$division->value}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: Division class not found.</option>";
-                    }
-                    ?>
-                </select>
+            <label class="form-label">Division</label>
+            <select class="form-select" name="division" required>
+                <option value="">Select Division</option>
+                <?php
+                $divisionFilePath = __DIR__ . '/ideas/division.php';
+                if (!file_exists($divisionFilePath)) {
+            die("Error: division.php file not found.");
+                }
+                include_once $divisionFilePath;
+                if (class_exists('Division')) {
+            foreach (Division::cases() as $division) {
+                echo "<option value=\"{$division->value}\">{$division->value}</option>";
+            }
+                } else {
+            echo "<option value=\"\">Error: Division class not found.</option>";
+                }
+                ?>
+            </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Section</label>
-                <select class="form-select" name="section" required>
-                    <option value="">Select Section</option>
-                    <?php
-                    if (class_exists('Section')) {
-                        foreach (Section::cases() as $section) {
-                            echo "<option value=\"{$section->value}\">{$section->value}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: Section class not found.</option>";
-                    }
-                    ?>
-                </select>
+                <label for="unit" class="form-label">Unit</label>
+                <input type="text" class="form-control" id="unit" name="unit" required>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Unit</label>
-                <select class="form-select" name="unit" required>
-                    <option value="">Select Unit</option>
-                    <?php
-                    if (class_exists('Unit')) {
-                        foreach (Unit::cases() as $unit) {
-                            echo "<option value=\"{$unit->value}\">{$unit->value}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: Unit class not found.</option>";
-                    }
-                    ?>
-                </select>
+                <label for="section" class="form-label">Section</label>
+                <input type="text" class="form-control" id="section" name="section" required>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Team</label>
-                <select class="form-select" name="team">
-                    <option value="">Select Team</option>
-                    <?php
-                    if (class_exists('Team')) {
-                        foreach (Team::cases() as $team) {
-                            echo "<option value=\"{$team->value}\">{$team->value}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: Team class not found.</option>";
-                    }
-                    ?>
-                </select>
+                <label for="team" class="form-label">Team, if applicable</label>
+                <input type="text" class="form-control" id="team" name="team" required>
+            </div>
+            <div class="col-md-6">
+                <label for="operations" class="form-label">Operators, if applicable</label>
+                <input type="text" class="form-control" id="operations" name="operations" required>
             </div>
             <div class="col-md-6">
                 <label for="salary_rate" class="form-label">Salary Rate</label>
@@ -238,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">Add Contract of Service</button>
-            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
+            <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
     </div>

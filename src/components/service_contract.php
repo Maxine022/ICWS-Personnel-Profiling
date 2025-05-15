@@ -193,7 +193,7 @@ ob_end_flush();
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceRecordModal">
                 <i class="fas fa-plus"></i> Add COC Record
             </button>
-            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" target="_blank" class="btn btn-info btn-sm text-gray">
+            <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" target="_blank" class="btn btn-info btn-sm text-gray">
                 <i class="fas fa-print"></i> Print COC
             </a>
         </div>
