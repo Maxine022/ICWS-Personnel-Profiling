@@ -172,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="col-md-6">
                 <label for="address" class="form-label">Address</label>
-                <input type="text" class="form-control" id="address" name="address" required>
+                <input type="text" class="form-control" id="address" name="address">
             </div>
             <div class="col-md-6">
             <?php
@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             include_once $positionFilePath;
             ?>
             <label class="form-label">Position</label>
-            <select class="form-select" name="position" required>
+            <select class="form-select" name="position">
                 <option value="">Select Position</option>
                 <?php
                 if (class_exists('Position')) {
@@ -218,23 +218,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="col-md-6">
                 <label for="unit" class="form-label">Unit</label>
-                <input type="text" class="form-control" id="unit" name="unit" required>
+                <input type="text" class="form-control" id="unit" name="unit">
             </div>
             <div class="col-md-6">
                 <label for="section" class="form-label">Section</label>
-                <input type="text" class="form-control" id="section" name="section" required>
+                <input type="text" class="form-control" id="section" name="section">
             </div>
             <div class="col-md-6">
                 <label for="team" class="form-label">Team, if applicable</label>
-                <input type="text" class="form-control" id="team" name="team" required>
+                <input type="text" class="form-control" id="team" name="team">
             </div>
             <div class="col-md-6">
                 <label for="operations" class="form-label">Operators, if applicable</label>
-                <input type="text" class="form-control" id="operations" name="operations" required>
+                <input type="text" class="form-control" id="operations" name="operations">
             </div>
             <div class="col-md-6">
                 <label for="salary_rate" class="form-label">Salary Rate</label>
-                <input type="number" step="0.01" class="form-control" id="salary_rate" name="salary_rate" required>
+                <input type="number" step="0.01" class="form-control" id="salary_rate" name="salary_rate">
             </div>
         </div>
         <div class="mt-4">

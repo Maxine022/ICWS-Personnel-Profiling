@@ -33,19 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $division = $conn->real_escape_string($_POST["division"]);
         $supervisorName = $conn->real_escape_string($_POST["supervisorName"]);
 
-        // Check for duplicate entry
-        $checkDuplicateSql = "SELECT * FROM intern WHERE fullName = '$fullName' AND contactNo = '$contactNo' AND school = '$school' AND course = '$course'";
-        $duplicateResult = $conn->query($checkDuplicateSql);
-
-        if ($duplicateResult && $duplicateResult->num_rows > 0) {
-            $errors[] = "Duplicate entry: An intern with the same details already exists.";
-        } else {
+        if (empty($errors)) {
             // Insert into database
             $sql = "INSERT INTO intern (fullName, contactNo, school, course, hoursNo, startDate, endDate, division, supervisorName, createdAt) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssiisss", $fullName, $contactNo, $school, $course, $hoursNo, $startDate, $endDate, $division, $supervisorName);
+            $stmt->bind_param("ssssissss", $fullName, $contactNo, $school, $course, $hoursNo, $startDate, $endDate, $division, $supervisorName);
 
             if ($stmt->execute()) {
                 header("Location: http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_intern.php");
@@ -199,7 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label class="form-label">Internship End Date</label>
         <input type="date" class="form-control" name="endDate" required>
       </div>
-      <div class="col-md-12">
+      <div class="col-md-6">
           <label class="form-label">Division</label>
           <select class="form-select" name="division" required>
             <option value="">Select Division</option>
@@ -219,7 +213,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ?>
           </select>
       </div>
-      <div class="col-md-12">
+      <div class="col-md-6">
         <label class="form-label">Supervisor Name</label>
         <input type="text" class="form-control" name="supervisorName" required>
       </div>

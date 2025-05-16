@@ -215,7 +215,7 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
   <div class="certificate">
     <!-- Header -->
     <div class="header-logos">
-      <img src="assets/LGU.png" alt="City of Iligan Logo">
+      <img src="../../assets/LGU.png" alt="City of Iligan Logo">
       <div class="gov-header">
         <h3>Republic of the Philippines</h3>
         <h3><strong>City of Iligan</strong></h3>
@@ -223,7 +223,7 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
         <p>Lluch Park Street, Dona Juana Lluch Subdivision</p>
         <p>Pala-o, Iligan City 9200 Philippines</p>
       </div>
-      <img src="assets/logo.png" alt="Waterworks Logo">
+      <img src="../../assets/logo.png" alt="Waterworks Logo">
     </div>
 
     <!-- Title Banner -->
@@ -278,21 +278,22 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
     <!-- Signatures -->
     <div class="signature-section">
       <div class="prepared">
-        <p>Prepared by:</p>
-        <strong>JOHN RYAN C. DELA CRUZ, PhD.</strong><br>
-        <span>Supervising Administrative Officer</span>
-        <div class="copy-notes">
-          <p><em>First Copy: Admin</em></p>
-          <p><em>Second Copy: Employee</em></p>
-        </div>
+      <p>Prepared by:</p><br>
+      <p><strong>JOHN RYAN C. DELA CRUZ, PhD.</strong><br>
+      Supervising Administrative Officer</p>
+      <div class="copy-notes">
+        <p><em>First Copy: Admin</em></p>
+        <p><em>Second Copy: Employee</em></p>
+      </div>
       </div>
 
       <div class="approved-received">
-        <div>
-          <p>Approved by:</p>
-          <p><strong>Engr. JAIME C. SATO</strong><br>Department Head</p>
-        </div>
-        <div>
+      <div>
+        <p>Approved by:</p><br>
+        <p><strong>Engr. JAIME C. SATO</strong><br>
+        Department Head</p>
+      </div>
+      <div>
           <p>Received by:</p>
           <div class="received-line"></div>
           <p class="signature-label">Printed Name and Signature</p>

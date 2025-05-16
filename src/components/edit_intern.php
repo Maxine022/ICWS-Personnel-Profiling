@@ -161,7 +161,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
           <div class="col-md-6">
             <label class="form-label">Contact Number</label>
             <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" 
-              maxlength="10" pattern="\d{10}" title="Contact number must be exactly 11 digits" onkeypress="return isNumberKey(event)">
+              maxlength="10" pattern="\d{10}" title="Contact number must be exactly 10 digits" onkeypress="return isNumberKey(event)">
           </div>
           <div class="col-md-12">
             <label class="form-label">School</label>
@@ -212,11 +212,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
             <label class="form-label">Internship End Date</label>
             <input type="date" class="form-control" name="internship_end" value="<?= htmlspecialchars($intern['endDate']) ?>" required>
           </div>
-          <div class="col-md-12">
+          <div class="col-md-6">
             <label class="form-label">Assigned Division</label>
             <input type="text" class="form-control" name="division" value="<?= htmlspecialchars($intern['division']) ?>" required>
           </div>
-          <div class="col-md-12">
+          <div class="col-md-6">
             <label class="form-label">Supervisor Name</label>
             <input type="text" class="form-control" name="supervisor" value="<?= htmlspecialchars($intern['supervisorName']) ?>" required>
           </div>

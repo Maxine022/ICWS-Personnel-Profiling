@@ -50,7 +50,7 @@ if ($division_query && $division_query->num_rows > 0) {
 // Fetch personnel and job order info
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.division, p.emp_status, p.contact_number, p.address,
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.section, p.unit, p.team, p.operator, p.division, p.emp_status, p.contact_number, p.address,
         j.jo_id, j.salaryRate
     FROM personnel p
     LEFT JOIN job_order j ON p.personnel_id = j.personnel_id
@@ -76,6 +76,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $birthdate = $_POST["birthdate"] ?? null;
     $sex = $_POST["sex"] ?? null;
     $position = $_POST["position"] ?? null;
+    $division = $_POST["division"] ?? null; 
+    $unit = $_POST["unit"] ?? null;
+    $section = $_POST["section"] ?? null;
+    $team = $_POST["team"] ?? null;
+    $operator = $_POST["operator"] ?? null;
     $division = $_POST["division"] ?? null;
     $emp_status = $_POST["emp_status"] ?? null;
     $address = $_POST["address"] ?? null;
@@ -89,11 +94,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Update personnel
         $updatePersonnel = $conn->prepare("
             UPDATE personnel 
-            SET full_name = ?, position = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
+            SET full_name = ?, position = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?, section = ?, unit = ?, team = ?, operator = ?
             WHERE Emp_No = ?
         ");
         $updatePersonnel->bind_param(
-            "sssssssss",
+            "sssssssssssss",
             $fullName,
             $position,
             $division,
@@ -102,6 +107,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $birthdate,
             $emp_status,
             $address,
+            $section,
+            $unit,
+            $team,
+            $operator,
             $emp_no
         );
 
@@ -216,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($employee['contact_number']) ?>" maxlength="11" pattern="\d{11}" title="Please enter an 11-digit contact number">
+          <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($employee['contact_number']) ?>" maxlength="10" pattern="\d{10}" title="Please enter an 10-digit contact number">
         </div>
         <div class="col-md-6">
           <label class="form-label">Birthdate</label>
@@ -237,7 +246,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Position</label>
-          <select class="form-select" name="position" required>
+          <select class="form-select" name="position">
             <option value="">Select Position</option>
             <?php foreach ($positions as $position): ?>
               <option value="<?= htmlspecialchars($position) ?>" <?= ($employee['position'] === $position) ? 'selected' : '' ?>><?= htmlspecialchars($position) ?></option>
@@ -252,6 +261,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               <option value="<?= htmlspecialchars($division) ?>" <?= ($employee['division'] === $division) ? 'selected' : '' ?>><?= htmlspecialchars($division) ?></option>
             <?php endforeach; ?>
           </select>
+        </div>
+        <div class="col-md-6">
+            <label for="section" class="form-label">Section</label>
+            <input type="text" class="form-control" id="section" name="section" value="<?php echo htmlspecialchars($employee['section']); ?>">
+        </div>
+        <div class="col-md-6">
+            <label for="unit" class="form-label">Unit</label>
+            <input type="text" class="form-control" id="unit" name="unit" value="<?php echo htmlspecialchars($employee['unit']); ?>">
+        </div>
+        <div class="col-md-6">
+            <label for="team" class="form-label">Team, if applicable</label>
+            <input type="text" class="form-control" id="team" name="team" value="<?php echo htmlspecialchars($employee['team']); ?>">
+        </div>
+        <div class="col-md-6">
+            <label for="operations" class="form-label">Operators, if applicable</label>
+            <input type="text" class="form-control" id="operator" name="operator" value="<?php echo htmlspecialchars($employee['operator']); ?>">
         </div>
         <div class="col-md-6">
           <label class="form-label">Salary Rate</label>

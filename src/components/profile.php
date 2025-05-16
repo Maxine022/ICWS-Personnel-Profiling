@@ -101,11 +101,13 @@ $job_order_result = $query_job_order->get_result();
 $job_order = $job_order_result->fetch_assoc() ?: [];
 
 // Query to get contract details
-$query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ? AND salaryRate = ?");
-$query_cos->bind_param("ii", $employee['personnel_id'], $employee['salaryRate']);
+$query_cos = $conn->prepare("SELECT * FROM contract_service WHERE personnel_id = ?");
+$query_cos->bind_param("i", $employee['personnel_id']);
 $query_cos->execute();
 $contracts_result = $query_cos->get_result();
 $contract_service = $contracts_result->fetch_assoc() ?: [];
+$contractservice_id = $contract_service['contractservice_id'] ?? null;
+
 
 // Extract contractservice_id
 $contractservice_id = $contract_service['contractservice_id'] ?? null;
@@ -136,13 +138,9 @@ if ($emp_type === 'job_order') {
 }
 
 if ($emp_type === 'contract') {
-    $query_cos = $conn->prepare("SELECT salaryRate FROM contract_service WHERE personnel_id = ?");
-    $query_cos->bind_param("i", $employee['personnel_id']);
-    $query_cos->execute();
-    $contracts_result = $query_cos->get_result();
-    $contract_service = $contracts_result->fetch_assoc() ?: [];
     $employee['salaryRate'] = $contract_service['salaryRate'] ?? null;
 }
+
 
 var_dump($employee['salaryRate']);
 
@@ -214,7 +212,7 @@ if ($action === 'delete') {
             'joborder' => 'http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_jo.php',
             'contract' => 'http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_cos.php'
         ];
-        $redirect_url = $redirect_map[$emp_type_redirect] ?? 'http://192.168.1.96/ICWS-Personnel-Profiling/src/components/personnel_record.php';
+        $redirect_url = $redirect_map[$emp_type_redirect] ?? 'http:/192.168.1.96//ICWS-Personnel-Profiling/src/components/personnel_record.php';
 
         echo "<script>
             alert('Profile deleted successfully!');
@@ -512,9 +510,20 @@ if ($action === 'delete') {
               ?>
               </p>
               <p><strong>Position:</strong> <?php echo $employee['position']; ?></p>
-              <p><strong>Unit:</strong> <?php echo $employee['unit']; ?></p>
-              <p><strong>Section:</strong> <?php echo $employee['section']; ?></p>
               <p><strong>Division:</strong> <?php echo $employee['division']; ?></p>
+              <p><strong>Section:</strong> <?php echo $employee['section']; ?></p>
+              <p><strong>Unit:</strong> <?php echo $employee['unit']; ?></p>
+                <?php
+                // Only display Team and Operator if not "NO"
+                $team = isset($employee['team']) && trim($employee['team']) !== '' ? $employee['team'] : null;
+                $operator = isset($employee['operator']) && trim($employee['operator']) !== '' ? $employee['operator'] : null;
+                if ($team !== null && strtoupper($team) !== 'NO') {
+                  echo '<p><strong>Team:</strong> ' . htmlspecialchars($team) . '</p>';
+                }
+                if ($operator !== null && strtoupper($operator) !== 'NO') {
+                  echo '<p><strong>Operator:</strong> ' . htmlspecialchars($operator) . '</p>';
+                }
+                ?>
               </div>
               <div class="col-md-6">
               <?php if ($emp_type === 'regular'): ?>
@@ -527,7 +536,15 @@ if ($action === 'delete') {
               <?php elseif ($emp_type === 'job_order'): ?>
                 <p><strong>Salary Rate:</strong> <?= htmlspecialchars($job_order['salaryRate'] ?? 'N/A'); ?></p>
               <?php elseif ($emp_type === 'contract'): ?>
-                <p><strong>Salary Rate:</strong> <?= isset($contract_service['salaryRate']) ? number_format($contract_service['salaryRate'], 2) : 'N/A'; ?></p>
+                <p><strong>Salary Rate:</strong>
+                  <?php
+                    if (isset($contract_service['salaryRate']) && $contract_service['salaryRate'] !== null && $contract_service['salaryRate'] !== '') {
+                      echo number_format($contract_service['salaryRate'], 2);
+                    } else {
+                      echo 'N/A';
+                    }
+                  ?>
+                </p>
               <?php endif; ?>
             </div>
               <div class="col-md-6">
@@ -580,8 +597,11 @@ if ($action === 'delete') {
               if (file_exists($contract_record_path)) {
                   // Validate and pass the variable to the included file
                   if (!empty($contractservice_id)) {
-                      $contractservice_id_to_include = $contractservice_id;
-                      include $contract_record_path;
+                     $contractservice_id_to_include = $contractservice_id;
+                      $_GET['contractservice_id'] = $contractservice_id;
+                      include 'service_contractRecord.php';
+
+
                   } else {
                       echo "<p>No contract service record found for this employee.</p>";
                   }

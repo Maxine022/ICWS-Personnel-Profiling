@@ -35,7 +35,7 @@ if ($enum_result) {
 // Retrieve employee details from the database
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.division, p.emp_status, p.contact_number, p.address, p.emp_status,
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.section, p.unit, p.team, p.operator, p.division, p.emp_status, p.contact_number, p.address, p.emp_status,
         r.plantillaNo, r.acaPera, r.salary_id,
         s.salaryGrade, s.step, s.level, s.monthlySalary
     FROM personnel p
@@ -79,6 +79,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST["full_name"] ?? null;
     $emp_status = $_POST["emp_status"] ?? null;
     $position = $_POST["position"] ?? null;
+    $unit = $_POST["unit"] ?? null;
+    $section = $_POST["section"] ?? null;
+    $team = $_POST["team"] ?? null;
+    $operator = $_POST["operator"] ?? null;
     $division = $_POST["division"] ?? null;
     $sex = $_POST["sex"] ?? null;
     $birthdate = $_POST["birthdate"] ?? null;
@@ -100,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Prepare statements for updating the database
     $updatePersonnel = $conn->prepare("
         UPDATE personnel 
-        SET full_name = ?, position = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
+        SET full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
         WHERE Emp_No = ?
     ");
 
@@ -109,9 +113,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $updatePersonnel->bind_param(
-        "sssssssss", // 9 placeholders
+        "sssssssssssss", // 9 placeholders
         $fullName,
         $position,
+        $section,
+        $unit,
+        $team,
+        $operator,
         $division,
         $contactNumber,
         $sex,
@@ -314,13 +322,9 @@ if (class_exists('Level')) {
             </div>
             <div class="col-md-6">
                 <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="11">
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="10">
             </div>
-            <div class="col-md-6">
-                <label for="birthdate" class="form-label">Birthdate</label>
-                <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
-            </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label for="sex" class="form-label">Sex</label>
                 <select class="form-control" id="sex" name="sex" required>
                     <option value="">Select Sex</option>
@@ -328,13 +332,17 @@ if (class_exists('Level')) {
                     <option value="Female" <?php echo ($employee['sex'] === 'Female') ? 'selected' : ''; ?>>Female</option>
                 </select>
             </div>
+            <div class="col-md-3">
+                <label for="birthdate" class="form-label">Birthdate</label>
+                <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>">
+            </div>
             <div class="col-md-6">
                 <label for="address" class="form-label">Address</label>
-                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>" required>
+                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>">
             </div>
             <div class="col-md-6">
             <label for="position" class="form-label">Position</label>
-              <select class="form-control" id="position" name="position" required>
+              <select class="form-control" id="position" name="position">
                 <option value="">Select Position</option>
                 <?php
                 foreach ($jsPositionData as $position) {
@@ -357,8 +365,24 @@ if (class_exists('Level')) {
               </select>
             </div>
             <div class="col-md-6">
+                <label for="section" class="form-label">Section</label>
+                <input type="text" class="form-control" id="section" name="section" value="<?php echo htmlspecialchars($employee['section']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="unit" class="form-label">Unit</label>
+                <input type="text" class="form-control" id="unit" name="unit" value="<?php echo htmlspecialchars($employee['unit']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="team" class="form-label">Team, if applicable</label>
+                <input type="text" class="form-control" id="team" name="team" value="<?php echo htmlspecialchars($employee['team']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="operations" class="form-label">Operators, if applicable</label>
+                <input type="text" class="form-control" id="operations" name="operations" value="<?php echo htmlspecialchars($employee['operator']); ?>">
+            </div>
+            <div class="col-md-6">
                 <label for="plantillaNo" class="form-label">Plantilla Number</label>
-                <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>">
+                <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>0" required>
             </div>
             <div class="col-md-3">
                 <label for="salary_grade" class="form-label">Salary Grade</label>

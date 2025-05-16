@@ -8,9 +8,9 @@ $contractservice_id = $_GET['contractservice_id'] ?? $contractservice_id_to_incl
 echo "<!-- Debug: contractservice_id = " . ($contractservice_id ?? 'NOT SET') . " -->";
 
 if (!$contractservice_id) {
-    echo "<div class='alert alert-warning'>No contract service record found. Please ensure you are accessing this page with a valid contractservice_id.</div>";
-    return;
+    echo "<!-- No contractservice_id passed, but still rendering UI -->";
 }
+
 
 // Validate contractservice_id
 $validate_query = $conn->prepare("SELECT COUNT(*) FROM contract_service WHERE contractservice_id = ?");
@@ -177,7 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'
           <th>Contract Start</th>
           <th>Contract End</th>
           <th>Remarks</th>
-          <th>Actions</th>
+          <th>Actions</th>  
         </tr>
       </thead>
       <tbody>

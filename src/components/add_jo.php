@@ -173,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Birthdate</label>
-          <input type="date" class="form-control" name="birthdate" required>
+          <input type="date" class="form-control" name="birthdate">
         </div>
         <div class="col-md-6">
           <label class="form-label">Sex</label>
@@ -227,27 +227,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-6">
             <label for="unit" class="form-label">Unit</label>
-            <input type="text" class="form-control" id="unit" name="unit" required>
+            <input type="text" class="form-control" id="unit" name="unit">
         </div>
         <div class="col-md-6">
             <label for="section" class="form-label">Section</label>
-            <input type="text" class="form-control" id="section" name="section" required>
+            <input type="text" class="form-control" id="section" name="section">
         </div>
         <div class="col-md-6">
             <label for="team" class="form-label">Team, if applicable</label>
-            <input type="text" class="form-control" id="team" name="team" required>
+            <input type="text" class="form-control" id="team" name="team">
         </div>
         <div class="col-md-6">
             <label for="operators" class="form-label">Operators, if applicable</label>
-            <input type="text" class="form-control" id="operators" name="operators" required>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Salary</label>
-          <input type="text" class="form-control" name="salaryRate" required>
+            <input type="text" class="form-control" id="operators" name="operators">
         </div>
         <div class="col-6">
           <label class="form-label">Address</label>
-          <input type="text" class="form-control" name="address" required>
+          <input type="text" class="form-control" name="address">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Salary</label>
+          <input type="text" class="form-control" name="salaryRate">
         </div>
       </div>
       <div class="mt-4 d-flex gap-2">

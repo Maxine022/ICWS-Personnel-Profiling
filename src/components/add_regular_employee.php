@@ -167,7 +167,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
           <div class="col-md-4">
             <label class="form-label">Birthdate</label>
-            <input type="date" class="form-control" name="birthdate" required>
+            <input type="date" class="form-control" name="birthdate">
           </div>
         <div class="col-md-6">
         <?php
@@ -178,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           include_once $positionFilePath;
         ?>
           <label class="form-label">Position</label>
-          <select class="form-select" name="position" required>
+          <select class="form-select" name="position">
             <option value="">Select Position</option>
             <?php
             if (class_exists('Position')) {
@@ -212,35 +212,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           </select>
         </div>
         <div class="col-md-6">
-                <label for="unit" class="form-label">Unit</label>
-                <input type="text" class="form-control" id="unit" name="unit" required>
-            </div>
-            <div class="col-md-6">
-                <label for="section" class="form-label">Section</label>
-                <input type="text" class="form-control" id="section" name="section" required>
-            </div>
-            <div class="col-md-6">
-                <label for="team" class="form-label">Team, if applicable</label>
-                <input type="text" class="form-control" id="team" name="team" required>
-            </div>
-            <div class="col-md-6">
-                <label for="operations" class="form-label">Operations, if applicable</label>
-                <input type="text" class="form-control" id="operations" name="operations" required>
-            </div>
+            <label for="unit" class="form-label">Unit</label>
+            <input type="text" class="form-control" id="unit" name="unit">
+        </div>
+        <div class="col-md-6">
+            <label for="section" class="form-label">Section</label>
+            <input type="text" class="form-control" id="section" name="section">
+        </div>
+        <div class="col-md-6">
+            <label for="team" class="form-label">Team, if applicable</label>
+            <input type="text" class="form-control" id="team" name="team">
+        </div>
+        <div class="col-md-6">
+            <label for="operations" class="form-label">Operations, if applicable</label>
+            <input type="text" class="form-control" id="operations" name="operations">
+        </div>
         <div class="col-md-6">
           <label class="form-label">Plantilla Number</label>
-          <input type="text" class="form-control" name="plantillaNo">
+          <input type="text" class="form-control" name="plantillaNo" required>
         </div>
         <div class="col-md-6">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" required 
+          <input type="text" class="form-control" name="contact_number" 
                 maxlength="11" pattern="\d{11}" 
                 title="Contact number must be exactly 11 digits" 
                 onkeypress="return isNumberKey(event)">
         </div>
           <div class="col-md-6">
             <label class="form-label">Address</label>
-            <input type="text" class="form-control" name="address" required>
+            <input type="text" class="form-control" name="address">
           </div>
 
           <?php
@@ -263,39 +263,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ?>
                 </select>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label class="form-label">Step</label>
                 <select class="form-select" id="step" name="step" required disabled>
                     <option value="">Select</option>
                 </select>
             </div>
-            <div class="col-md-1">
-              <label class="form-label">Level</label>
-              <select class="form-select" name="level" required>
-                <option value="">Select Level</option>
-                <?php
-                $salaryFilePath = __DIR__ . '/ideas/salary.php';
-                if (!file_exists($salaryFilePath)) {
-                  die("Error: salary.php file not found.");
-                }
-                include_once $salaryFilePath;
-
-                if (class_exists('Level')) {
-                  foreach (Level::cases() as $level) {
-                    $selected = (isset($_POST['level']) && $_POST['level'] == $level->value) ? 'selected' : '';
-                    echo "<option value=\"{$level->value}\" $selected>{$level->value}</option>";
-                  }
-                } else {
-                  echo "<option value=\"\">Error: Level class not found.</option>";
-                }
-                ?>
-              </select>
-            </div>
             <div class="col-md-2">
                 <label class="form-label">Monthly Salary</label>
                 <input type="text" class="form-control" id="monthlySalary" name="monthly_salary" value="<?php echo $_POST['monthly_salary'] ?? ''; ?>" readonly>
             </div>
-
             <script>
                 document.getElementById('salaryGrade').addEventListener('change', function () {
                     const salaryGrade = this.value;
@@ -347,6 +324,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 });
             </script>
         
+            <div class="col-md-6">
+              <label class="form-label">Level</label>
+              <select class="form-select" name="level" required>
+                <option value="">Select Level</option>
+                <?php
+                $salaryFilePath = __DIR__ . '/ideas/salary.php';
+                if (!file_exists($salaryFilePath)) {
+                  die("Error: salary.php file not found.");
+                }
+                include_once $salaryFilePath;
+
+                if (class_exists('Level')) {
+                  foreach (Level::cases() as $level) {
+                    $selected = (isset($_POST['level']) && $_POST['level'] == $level->value) ? 'selected' : '';
+                    echo "<option value=\"{$level->value}\" $selected>{$level->value}</option>";
+                  }
+                } else {
+                  echo "<option value=\"\">Error: Level class not found.</option>";
+                }
+                ?>
+              </select>
+            </div>
         <div class="col-md-6">
           <label class="form-label">ACA Pera</label>
           <input type="text" class="form-control" name="acaPera">

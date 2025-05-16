@@ -22,7 +22,7 @@ if (!$emp_no) {
 // Retrieve employee details from the database
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, p.division, p.emp_status,
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, section = ?, unit = ?, team = ?, operator = ?, p.division, p.emp_status,
         cs.salaryRate
     FROM personnel p
     LEFT JOIN contract_service cs ON p.personnel_id = cs.personnel_id
@@ -57,6 +57,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contactNumber = $_POST["contact_number"] ?? null;
     $position = $_POST["position"] ?? null;
     $division = $_POST["division"] ?? null;
+    $unit = $_POST["unit"] ?? null;
+    $section = $_POST["section"] ?? null;
+    $team = $_POST["team"] ?? null;
+    $operator = $_POST["operator"] ?? null;
+    $division = $_POST["division"] ?? null;
     $salaryRate = $_POST["salary_rate"] ?? null;
 
     // Validate required fields
@@ -76,13 +81,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $updatePersonnel->bind_param(
-        "ssssssss",
+        "ssssssssssss",
         $fullName,
         $address,
         $sex,
         $birthdate,
         $contactNumber,
         $position,
+        $section,
+        $unit,
+        $team,
+        $operator,
         $division,
         $emp_no
     );
@@ -219,15 +228,15 @@ body { font-family: Arial; }
             </div>
             <div class="col-md-6">
                 <label for="birthdate" class="form-label">Birthdate</label>
-                <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
+                <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>">
             </div>
             <div class="col-md-6">
                 <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="11" pattern="\d{11}" title="Contact number must be 11 digits">
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="10" pattern="\d{10}" title="Contact number must be 10 digits">
             </div>
             <div class="col-md-6">
             <label for="position" class="form-label">Position</label>
-              <select class="form-control" id="position" name="position" required>
+              <select class="form-control" id="position" name="position">
                 <option value="">Select Position</option>
                 <?php
                 foreach ($jsPositionData as $position) {
@@ -248,6 +257,22 @@ body { font-family: Arial; }
               }
               ?>
               </select>
+            </div>
+            <div class="col-md-6">
+                <label for="section" class="form-label">Section</label>
+                <input type="text" class="form-control" id="section" name="section" value="<?php echo htmlspecialchars($employee['section']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="unit" class="form-label">Unit</label>
+                <input type="text" class="form-control" id="unit" name="unit" value="<?php echo htmlspecialchars($employee['unit']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="team" class="form-label">Team, if applicable</label>
+                <input type="text" class="form-control" id="team" name="team" value="<?php echo htmlspecialchars($employee['team']); ?>">
+            </div>
+            <div class="col-md-6">
+                <label for="operations" class="form-label">Operators, if applicable</label>
+                <input type="text" class="form-control" id="operations" name="operations" value="<?php echo htmlspecialchars($employee['operator']); ?>">
             </div>
             <div class="col-md-6">
                 <label for="salary_rate" class="form-label">Salary Rate</label>

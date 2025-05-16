@@ -45,6 +45,10 @@ if ($internResult) {
 }
 ?>
 
+<?php
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/ICWS-Personnel-Profiling";
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -170,7 +174,7 @@ if ($internResult) {
             <h4 class="mb-0" style="font-weight: bold;">Dashboard</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+                    <li class="breadcrumb-item"><a class="breadcrumb-link" href="<?php echo $baseUrl; ?>/src/hero/home.php">Home</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
                 </ol>
             </nav>

@@ -45,7 +45,7 @@ if ($result && $result->num_rows > 0) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body { 
       font-family: Arial; 
@@ -155,7 +155,10 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($intern['school']) ?></td>
             <td><?= htmlspecialchars($intern['course']) ?></td>
             <td><?= htmlspecialchars($intern['hoursNo']) ?></td>
-            <td><?= htmlspecialchars($intern['startDate']) ?> to <?= htmlspecialchars($intern['endDate']) ?></td>
+            <td>
+              <?= htmlspecialchars(date('F d, Y', strtotime($intern['startDate']))) ?> to 
+              <?= htmlspecialchars(date('F d, Y', strtotime($intern['endDate']))) ?>
+            </td>
             <td><?= htmlspecialchars($intern['division']) ?></td>
             <td><?= htmlspecialchars($intern['supervisorName']) ?></td>
             <td>
