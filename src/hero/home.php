@@ -223,6 +223,7 @@ $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "
             </div>
         </div>
         <hr/>
+        <?php include 'birthday.php'; ?>
     </div>
 
     <script>
