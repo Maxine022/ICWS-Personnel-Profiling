@@ -68,12 +68,15 @@ if (!$employee) {
     die("<div class='alert alert-danger'>Job Order employee not found. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
 }
 
+// Store original Emp_No before form submission
+$original_emp_no = $employee['Emp_No'];
+
 // Handle form submission
 $success = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST["full_name"] ?? null;
     $contactNumber = $_POST["contact_number"] ?? null;
-    $birthdate = $_POST["birthdate"] ?? null;
+    $birthdate = !empty($_POST["birthdate"]) ? $_POST["birthdate"] : null; // <-- allow null
     $sex = $_POST["sex"] ?? null;
     $position = $_POST["position"] ?? null;
     $division = $_POST["division"] ?? null; 
@@ -81,37 +84,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $section = $_POST["section"] ?? null;
     $team = $_POST["team"] ?? null;
     $operator = $_POST["operator"] ?? null;
-    $division = $_POST["division"] ?? null;
     $emp_status = $_POST["emp_status"] ?? null;
     $address = $_POST["address"] ?? null;
     $salaryRate = $_POST["salary_rate"] ?? null;
     $justification = $_POST["justification"] ?? null;
+    $emp_no = $_POST["Emp_No"] ?? null; // new Emp_No from form
 
     // Validate required fields
-    if (!$fullName || !$position || !$division || !$sex || !$birthdate || !$emp_status) {
-        echo "<div class='alert alert-danger'>Full Name, Position, Division, Sex, Birthdate, and Status are required fields.</div>";
+    if (!$fullName || !$division ) {
+        echo "<div class='alert alert-danger'>Full Name, and Division are required fields.</div>";
     } else {
         // Update personnel
         $updatePersonnel = $conn->prepare("
             UPDATE personnel 
-            SET full_name = ?, position = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?, section = ?, unit = ?, team = ?, operator = ?
+            SET Emp_No = ?, full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
             WHERE Emp_No = ?
         ");
         $updatePersonnel->bind_param(
-            "sssssssssssss",
+            "ssssssssssssss",
+            $emp_no,
             $fullName,
             $position,
-            $division,
-            $contactNumber,
-            $sex,
-            $birthdate,
-            $emp_status,
-            $address,
             $section,
             $unit,
             $team,
             $operator,
-            $emp_no
+            $division,
+            $contactNumber,
+            $sex,
+            $birthdate, // will be null if empty
+            $emp_status,
+            $address,
+            $original_emp_no
         );
 
         // Update job_order
@@ -138,13 +142,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         if ($success) {
-            echo "<div class='alert alert-success'>Employee details have been successfully updated!</div>";
-            echo "<script>window.location.href='http://192.168.1.96/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+            echo "<div class='alert alert-success' role='alert'>
+                    Employee details have been successfully updated!
+                  </div>";
+            echo "<script>window.location.href='http://192.168.1.26/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
             exit();
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -197,8 +204,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h4 class="mb-0 fw-bold">Update Job Order Employee</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>
@@ -209,7 +216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="row g-3">
         <div class="col-md-6">
             <label for="Emp_No" class="form-label">Employee Number</label>
-            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
+            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" required>
         </div>
         <div class="col-md-6">
             <label for="emp_status" class="form-label">Employment Status</label>
@@ -245,13 +252,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($employee['address']) ?>">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Position</label>
-          <select class="form-select" name="position">
-            <option value="">Select Position</option>
-            <?php foreach ($positions as $position): ?>
-              <option value="<?= htmlspecialchars($position) ?>" <?= ($employee['position'] === $position) ? 'selected' : '' ?>><?= htmlspecialchars($position) ?></option>
-            <?php endforeach; ?>
-          </select>
+            <label for="position" class="form-label">Position</label>
+            <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($employee['position']); ?>">
         </div>
         <div class="col-md-6">
           <label class="form-label">Division</label>

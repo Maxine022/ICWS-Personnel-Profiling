@@ -1,6 +1,5 @@
 <?php
 include_once __DIR__ . '/../../backend/db.php'; // Path to your db connection file
-include_once __DIR__ . '/ideas/salary.php'; // Include the SalaryGrade definition
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
     $file = $_FILES['data_file'];
@@ -16,23 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                     $Emp_No = $data[0];
                     $full_name = $data[1];
                     $sex = $data[2];
+                    if (!empty($data[3])) {
                     $birthdate = date('Y-m-d', strtotime(str_replace('-', '/', $data[3])));
+                    } else {
+                        $birthdate = null;
+                    }
                     $contact_number = $data[4];
                     $address = $data[5];
                     $position = $data[6];
                     $division = $data[7];
                     $plantillaNo = $data[8];
-                    $salary_grade = (int)$data[9];
+                    $salary_grade = str_replace(',', '', $data[9]); // Remove commas, keep as string or float
                     $step = (int)$data[10];
+                    $monthlySalary = is_numeric($data[12]) ? number_format((float)$data[12], 2, '.', '') : $data[12];
                     $level = $data[11];
                     $acaPera = is_numeric($data[13]) ? number_format((float)$data[13], 2, '.', '') : $data[13];
-
-                    // Calculate Monthly Salary
-                    $monthly_salary = 0;
-                    if (class_exists('SalaryGrade')) {
-                        $salaryGradeObj = SalaryGrade::tryFrom($salary_grade);
-                        $monthly_salary = $salaryGradeObj ? (SalaryGrade::getStepsForGrade($salaryGradeObj)[$step - 1] ?? 0) : 0;
-                    }
 
                     // Insert into personnel table
                     $stmt1 = $conn->prepare("INSERT INTO personnel (Emp_No, full_name, position, division, contact_number, sex, birthdate, address, emp_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'regular')");
@@ -43,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
 
                     // Insert into salary table
                     $stmt2 = $conn->prepare("INSERT INTO salary (personnel_id, salaryGrade, step, level, monthlySalary) VALUES (?, ?, ?, ?, ?)");
-                    $stmt2->bind_param("iisss", $personnel_id, $salary_grade, $step, $level, $monthly_salary);
+                    $stmt2->bind_param("ssssd", $personnel_id, $salary_grade, $step, $level, $monthlySalary);
                     $stmt2->execute();
                     $salary_id = $stmt2->insert_id;
                     $stmt2->close();

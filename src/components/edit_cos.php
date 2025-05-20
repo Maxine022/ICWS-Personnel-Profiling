@@ -22,7 +22,7 @@ if (!$emp_no) {
 // Retrieve employee details from the database
 $query = $conn->prepare("
     SELECT 
-        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, section = ?, unit = ?, team = ?, operator = ?, p.division, p.emp_status,
+        p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.contact_number, p.address, p.position, section, unit, team, operator, p.division, p.emp_status,
         cs.salaryRate
     FROM personnel p
     LEFT JOIN contract_service cs ON p.personnel_id = cs.personnel_id
@@ -46,33 +46,37 @@ if (!$employee) {
     die("<div class='alert alert-danger'>Employee not found in the database. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
 }
 
+// Store the original Emp_No before any changes
+$original_emp_no = $employee['Emp_No'];
+
 // Handle form submission
 $success = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve form data
+    $Emp_No = $_POST["Emp_No"] ?? null;
     $fullName = $_POST["full_name"] ?? null;
     $address = $_POST["address"] ?? null;
     $sex = $_POST["sex"] ?? null;
-    $birthdate = $_POST["birthdate"] ?? null;
+    $birthdate = !empty($_POST["birthdate"]) ? $_POST["birthdate"] : null; // <-- allow null
     $contactNumber = $_POST["contact_number"] ?? null;
     $position = $_POST["position"] ?? null;
     $division = $_POST["division"] ?? null;
     $unit = $_POST["unit"] ?? null;
     $section = $_POST["section"] ?? null;
     $team = $_POST["team"] ?? null;
-    $operator = $_POST["operator"] ?? null;
-    $division = $_POST["division"] ?? null;
+    $operator = $_POST["operations"] ?? null; // <-- match form field name
     $salaryRate = $_POST["salary_rate"] ?? null;
+    $emp_status = $_POST["emp_status"] ?? null;
 
     // Validate required fields
-    if (!$fullName || !$position || !$division || !$sex || !$birthdate) {
-        die("<div class='alert alert-danger'>Full Name, Position, Division, Sex, and Birthdate are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+    if (!$fullName || !$division ) {
+        die("<div class='alert alert-danger'>Full Name, and Division are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
     }
 
     // Update personnel table
     $updatePersonnel = $conn->prepare("
         UPDATE personnel 
-        SET full_name = ?, address = ?, sex = ?, birthdate = ?, contact_number = ?, position = ?, division = ?
+        SET Emp_No = ?, full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
         WHERE Emp_No = ?
     ");
 
@@ -81,19 +85,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $updatePersonnel->bind_param(
-        "ssssssssssss",
+        "ssssssssssssss",
+        $Emp_No,         // New Emp_No from the form
         $fullName,
-        $address,
-        $sex,
-        $birthdate,
-        $contactNumber,
         $position,
         $section,
         $unit,
         $team,
         $operator,
         $division,
-        $emp_no
+        $contactNumber,
+        $sex,
+        $birthdate,
+        $emp_status,
+        $address,
+        $original_emp_no // Use the original Emp_No for WHERE clause
     );
 
     // Update contract_service table
@@ -108,7 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $updateContractService->bind_param(
-        "si",
+        "di",
         $salaryRate,
         $employee['personnel_id']
     );
@@ -128,20 +134,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<div class='alert alert-success' role='alert'>
                 Employee details have been successfully updated!
               </div>";
-        echo "<script>window.location.href='http://192.168.1.96/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+        echo "<script>window.location.href='http://192.168.1.26/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
         exit();
     }
-}
-
-// Fetch position data for dynamic dropdowns
-$jsPositionData = [];
-include_once __DIR__ . '/ideas/position.php';
-if (class_exists('Position') && method_exists('Position', 'cases')) {
-    foreach (Position::cases() as $position) {
-        $jsPositionData[] = $position->value;
-    }
-} else {
-    die("<div class='alert alert-danger'>Error: Position class or cases method not found in position.php.</div>");
 }
 
 // Fetch division data for dynamic dropdowns
@@ -191,8 +186,8 @@ body { font-family: Arial; }
         <h4 class="mb-0" style="font-weight: bold;">Edit Contract of Service Employee</h4>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Contract of Service Employee</li>
             </ol>
         </nav>
@@ -201,7 +196,7 @@ body { font-family: Arial; }
         <div class="row g-3">
             <div class="col-md-6">
                 <label for="Emp_No" class="form-label">Employee Number</label>
-                <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" readonly>
+                <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" required>
             </div>
             <div class="col-md-6">
                 <label for="emp_status" class="form-label">Employment Status</label>
@@ -219,14 +214,14 @@ body { font-family: Arial; }
                 <label for="address" class="form-label">Address</label>
                 <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($employee['address']); ?>">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label for="sex" class="form-label">Sex</label>
                 <select class="form-control" id="sex" name="sex" required>
                     <option value="Male" <?php echo ($employee['sex'] === 'Male') ? 'selected' : ''; ?>>Male</option>
                     <option value="Female" <?php echo ($employee['sex'] === 'Female') ? 'selected' : ''; ?>>Female</option>
                 </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label for="birthdate" class="form-label">Birthdate</label>
                 <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>">
             </div>
@@ -235,16 +230,8 @@ body { font-family: Arial; }
                 <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="10" pattern="\d{10}" title="Contact number must be 10 digits">
             </div>
             <div class="col-md-6">
-            <label for="position" class="form-label">Position</label>
-              <select class="form-control" id="position" name="position">
-                <option value="">Select Position</option>
-                <?php
-                foreach ($jsPositionData as $position) {
-                  $selected = ($employee['position'] === $position) ? 'selected' : '';
-                  echo "<option value=\"{$position}\" $selected>{$position}</option>";
-                }
-                ?>
-              </select>
+                <label for="position" class="form-label">Position</label>
+                <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($employee['position']); ?>">
             </div>
             <div class="col-md-6">
             <label for="division" class="form-label">Division</label>
@@ -252,7 +239,7 @@ body { font-family: Arial; }
               <option value="">Select Division</option>
               <?php
               foreach ($jsDivisionData as $division) {
-                $selected = ($employee['division'] === $division) ? 'selected' : '';
+                $selected = (trim(strtolower($employee['division'])) === trim(strtolower($division))) ? 'selected' : '';
                 echo "<option value=\"{$division}\" $selected>{$division}</option>";
               }
               ?>

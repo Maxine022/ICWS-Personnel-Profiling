@@ -89,9 +89,7 @@ $fullName = $_SESSION['fullName'] ?? 'Guest';
             <i class="fas fa-user-circle fs-4 text-secondary"></i>
             <i class="fas fa-caret-down" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"></i>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/profile.php">Profile</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="http://192.168.1.96/ICWS-Personnel-Profiling/backend/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a class="dropdown-item" href="http://192.168.1.26/ICWS-Personnel-Profiling/backend/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
     </div>

@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param("ssssissss", $fullName, $contactNo, $school, $course, $hoursNo, $startDate, $endDate, $division, $supervisorName);
 
             if ($stmt->execute()) {
-                header("Location: http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_intern.php");
+                header("Location: http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_intern.php");
                 exit;
             } else {
                 $errors[] = "Error: " . $stmt->error;
@@ -107,8 +107,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h5 class="mb-0 fw-semibold">Add New Intern</h5>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Intern</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Intern</a></li>
         <li class="breadcrumb-item active" aria-current="page">Add New Intern</li>
       </ol>
     </nav>
@@ -148,38 +148,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
       <div class="col-md-12">
         <label class="form-label">School</label>
-        <select class="form-select" name="school">
-            <option value="">Select School</option>
-            <?php
-                $collegeFilePath = __DIR__ . '/ideas/course.php';
-                if (!file_exists($collegeFilePath)) {
-                    die("Error: course.php file not found.");
-                }
-                include_once $collegeFilePath;
-                if (class_exists('College')) {
-                    foreach (College::cases() as $college) {
-                        echo "<option value=\"{$college->value}\">{$college->value}</option>";
-                    }
-                } else {
-                    echo "<option value=\"\">Error: College class not found.</option>";
-                }
-            ?>
-        </select>
+        <input type="text" class="form-control" name="school" required>
       </div>
       <div class="col-md-6">
         <label class="form-label">Course/Program</label>
-        <select class="form-select" name="course">
-            <option value="">Select Course</option>
-            <?php
-                if (class_exists('CollegeCourse')) {
-                    foreach (CollegeCourse::cases() as $course) {
-                        echo "<option value=\"{$course->value}\">{$course->value}</option>";
-                    }
-                } else {
-                    echo "<option value=\"\">Error: CollegeCourse class not found.</option>";
-                }
-            ?>
-        </select>
+        <input type="text" class="form-control" name="course" required>
       </div>
       <div class="col-md-6">
         <label class="form-label">Number of Hours</label>
@@ -219,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
   
       <div class="col-md-12 d-flex mt-5 gap-4">
-        <button type="submit" onclick="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="btn btn-primary px-4">Submit</button>
+        <button type="submit" onclick="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="btn btn-primary px-4">Submit</button>
         <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
       </div>  
     </form>

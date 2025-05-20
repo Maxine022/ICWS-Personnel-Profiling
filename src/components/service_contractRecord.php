@@ -358,7 +358,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'
     function deleteRecord(serviceRecordId) {
       if (confirm("Are you sure you want to delete this record? This action cannot be undone.")) {
         // Redirect to a PHP script to handle deletion
-        window.location.href = `http://192.168.1.96/ICWS-Personnel-Profiling/src/components/delete_contractRecord.php?serviceRecord_id=${serviceRecordId}`;
+        window.location.href = `http://192.168.1.26/ICWS-Personnel-Profiling/src/components/delete_contractRecord.php?serviceRecord_id=${serviceRecordId}`;
       }
     }
   </script>

@@ -26,14 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate required fields
     if (empty($Emp_No)) $errors[] = "Employee Number is required.";
     if (empty($full_name)) $errors[] = "Full Name is required.";
-    if (empty($contact_number)) $errors[] = "Contact Number is required.";
-    if (empty($birthdate)) $errors[] = "Birthdate is required.";
-    if (empty($sex)) $errors[] = "Sex is required.";
-    if (empty($position)) $errors[] = "Position is required.";
     if (empty($division)) $errors[] = "Division is required.";
-    if (empty($salaryRate)) $errors[] = "Salary Rate is required.";
-    if (empty($address)) $errors[] = "Address is required.";
-
+    
     // If no errors, insert into the database
     if (empty($errors)) {
         // Insert into the personnel table
@@ -133,8 +127,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h5 class="mb-0 fw-bold">Add New Job Order Employees</h5>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>
@@ -167,44 +161,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <label class="form-label">Full Name</label>
           <input type="text" class="form-control" name="full_name" required>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" maxlength="11" pattern="\d{11}" title="Please enter an 11-digit contact number" required>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Birthdate</label>
-          <input type="date" class="form-control" name="birthdate">
-        </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <label class="form-label">Sex</label>
-          <select name="sex" class="form-select" required>
+          <select name="sex" class="form-select">
             <option value="">Select</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
         </div>
-        <div class="col-md-6">
-        <?php
-          $positionFilePath = __DIR__ . '/ideas/position.php';
-          if (!file_exists($positionFilePath)) {
-              die("Error: position.php file not found.");
-          }
-          include_once $positionFilePath;
-        ?>
-          <label class="form-label">Position</label>
-          <select class="form-select" name="position" required>
-            <option value="">Select Position</option>
-            <?php
-            if (class_exists('Position')) {
-          foreach (Position::cases() as $position) {
-              echo "<option value=\"{$position->value}\">{$position->value}</option>";
-          }
-            } else {
-          echo "<option value=\"\">Error: Position class not found.</option>";
-            }
-            ?>
-          </select>
+        <div class="col-md-3">
+          <label class="form-label">Birthdate</label>
+          <input type="date" class="form-control" name="birthdate">
         </div>
+        <div class="col-md-6">
+          <label class="form-label">Contact Number</label>
+          <input type="text" class="form-control" name="contact_number" maxlength="11" pattern="\d{11}" title="Please enter an 11-digit contact number">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-control" name="address">
+        </div>
+        <div class="col-md-6">
+                <label for="position" class="form-label">Position</label>
+                <input type="text" class="form-control" id="position" name="position">
+            </div>
         <div class="col-md-6">
           <label class="form-label">Division</label>
           <select class="form-select" name="division" required>
@@ -226,12 +206,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           </select>
         </div>
         <div class="col-md-6">
-            <label for="unit" class="form-label">Unit</label>
-            <input type="text" class="form-control" id="unit" name="unit">
-        </div>
-        <div class="col-md-6">
             <label for="section" class="form-label">Section</label>
             <input type="text" class="form-control" id="section" name="section">
+        </div>
+        <div class="col-md-6">
+            <label for="unit" class="form-label">Unit</label>
+            <input type="text" class="form-control" id="unit" name="unit">
         </div>
         <div class="col-md-6">
             <label for="team" class="form-label">Team, if applicable</label>
@@ -240,10 +220,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="col-md-6">
             <label for="operators" class="form-label">Operators, if applicable</label>
             <input type="text" class="form-control" id="operators" name="operators">
-        </div>
-        <div class="col-6">
-          <label class="form-label">Address</label>
-          <input type="text" class="form-control" name="address">
         </div>
         <div class="col-md-6">
           <label class="form-label">Salary</label>

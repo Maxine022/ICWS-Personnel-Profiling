@@ -144,7 +144,7 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0" style="font-weight: bold;">Personnel Records</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.96/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">Personnel</li>
       </ol>
     </nav>
@@ -196,7 +196,7 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
             <td>
             <?php if (!empty($p['Emp_No'])): ?>
-              <a href="http://192.168.1.96/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
+              <a href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
             <?php else: ?>
               <span class="text-muted">Employee Not Found</span>
             <?php endif; ?>

@@ -12,7 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                 $Emp_No = $data[0];
                 $full_name = $data[1];
                 $sex = $data[2];
-                $birthdate = date('Y-m-d', strtotime(str_replace('-', '/', $data[3])));
+                if (!empty($data[3])) {
+                    $birthdate = date('Y-m-d', strtotime(str_replace('-', '/', $data[3])));
+                } else {
+                    $birthdate = null;
+                }
                 $contact_number = $data[4];
                 $address = $data[5];
                 $position = $data[6];
@@ -21,8 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
 
                 // Insert into personnel table
                 $stmt1 = $conn->prepare("INSERT INTO personnel (Emp_No, full_name, position, division, contact_number, sex, birthdate, address, emp_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'job order')");
-                $stmt1->bind_param("ssssssss", $Emp_No, $full_name, $position, $division, $contact_number, $sex, $birthdate, $address);
-                $stmt1->execute();
+                $stmt1->bind_param("ssssssss", $Emp_No, $full_name, $position, $division, $contact_number, $sex, $birthdate, $address);$stmt1->execute();
                 $personnel_id = $stmt1->insert_id;
                 $stmt1->close();
 
@@ -33,8 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
                 $stmt2->close();
             }
             fclose($handle);
-            header("Location: manage_jo.php?status=success");
-            exit();
+            // Redirect after successful upload
+            header("Location: http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_jo.php");
+            exit;
         }
     }
 }
