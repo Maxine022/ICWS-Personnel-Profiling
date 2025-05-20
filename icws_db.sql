@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 20, 2025 at 04:52 AM
+-- Generation Time: May 20, 2025 at 10:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -377,7 +377,7 @@ INSERT INTO `personnel` (`personnel_id`, `Emp_No`, `emp_type`, `emp_status`, `fu
 (28, '28', 'Regular', 'Active', 'DENNIS P. GUMISONG', 'ENGINEERING ASSISTANT', '', '', '', '', '', 0, 'Male', '1988-04-29', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
 (29, '29', 'Regular', 'Active', 'FAIDAH A. GURO', 'METER READER I', '', '', '', '', '', 0, 'Female', '1986-09-20', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
 (30, '30', 'Regular', 'Active', 'STEPHEN M. INTALIGANDO', 'PLUMBER II', '', '', '', '', '', 0, 'Male', '1979-09-17', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
-(31, '31', 'Regular', 'Active', 'FREDDERICK B. ISEK', 'ENGINEERING ASSISTANT', '', '', '', '', '', 0, 'Male', '1976-05-10', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
+(31, '31', 'Regular', 'Active', 'FREDDERICK B. ISEK', 'ENGINEERING ASSISTANT', '', '', '', '', '', 0, 'Male', '1976-05-10', '', '/uploads/profile_31.png', '2025-05-20 07:25:08', '2025-05-20 07:25:08'),
 (32, '32', 'Regular', 'Active', 'LARRY A. JIMENA', 'ENGINEERING ASSISTANT', '', '', '', '', '', 0, 'Male', '1983-12-06', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
 (33, '33', 'Regular', 'Active', 'GLENDON B. LONOY', 'WELL DRILLER I', '', '', '', '', '', 0, 'Male', '1989-06-23', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
 (34, '34', 'Regular', 'Active', 'RAFAEL A. LONOY', 'MECHANIC III', '', '', '', '', '', 0, 'Male', '1964-02-26', '', '', '2025-05-20 02:51:17', '2025-05-20 02:51:17'),
@@ -407,11 +407,11 @@ INSERT INTO `personnel` (`personnel_id`, `Emp_No`, `emp_type`, `emp_status`, `fu
 (58, '58', 'Job Order', 'Active', 'RITCHEL L. ARCEGA', 'Administrative Assistant V', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', '1973-08-14', 'BRGY. HINAPLANON', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
 (59, '59', 'Job Order', 'Active', 'WENIFREDA F. AMOR', 'Administrative Assistant III', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Male', '1983-11-02', 'BRGY. PALAO', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
 (60, '60', 'Job Order', 'Active', 'CLARIENCE B. CUBAR', 'Administrative Assistant VI', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', '1984-12-25', 'BRGY. DEL CARMEN', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
-(61, '61', 'Job Order', 'Active', 'EMMA C. LU', 'Administrative Assistant V', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', '1967-08-12', 'BRGY. LUINAB', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
+(61, '61', 'Job Order', 'Active', 'EMMA C. LU', 'Administrative Assistant V', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 2424242424, 'Female', '1967-08-12', 'BRGY. LUINAB', '/uploads/profile_61.png', '2025-05-20 07:47:11', '2025-05-20 07:47:11'),
 (62, '62', 'Job Order', 'Active', 'RYAN ANTHONY E. MAGLASANG', 'Administrative Assistant VI (Guard)', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Male', '1983-04-15', 'BRGY. SAN MIGUEL', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
 (63, '63', 'Job Order', 'Active', 'FELIX SR. MUNDALA', 'Administrative Assistant V (Guard)', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Male', '1998-08-13', 'BRGY. HINAPLANON', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
 (64, '64', 'Job Order', 'Active', 'MARIA CECILIA C. MUTYA', 'Senior Administrative Assistant IV', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', '2000-01-30', 'BRGY. SARAY', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
-(65, '65', 'Job Order', 'Active', 'TEODELITA P. REUYAN', 'Administrative Assistant V', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', NULL, 'BRGY. BAGONG SILANG', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
+(65, '65', 'Job Order', 'Active', 'TEODELITA P. REUYAN', 'Administrative Assistant V', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', '1969-05-05', 'BRGY. BAGONG SILANG', '/uploads/profile_65.png', '2025-05-20 07:11:35', '2025-05-20 07:11:35'),
 (66, '66', 'Job Order', 'Active', 'CHRISTIANNE JAMES L. SATO', 'Administrative Assistant VI (Guard)', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Male', NULL, 'BRGY. PALAO', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
 (67, '67', 'Job Order', 'Active', 'REY A. BALONGAG', 'Administrative Assistant VI', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Male', NULL, '', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
 (68, '68', 'Job Order', 'Active', 'HELEN E. NADAYAG', 'Senior Administrative Assistant IV', '', '', '', '', 'ADMINISTRATIVE AND PLANNING', 0, 'Female', NULL, '', '', '2025-05-20 02:51:31', '2025-05-20 02:51:31'),
