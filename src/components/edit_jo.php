@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $operator = $_POST["operator"] ?? null;
     $emp_status = $_POST["emp_status"] ?? null;
     $address = $_POST["address"] ?? null;
-    $salaryRate = $_POST["salary_rate"] ?? null;
+    $salaryRate = $_POST["salaryRate"] ?? null;
     $justification = $_POST["justification"] ?? null;
     $emp_no = $_POST["Emp_No"] ?? null; // new Emp_No from form
 
@@ -230,11 +230,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <label class="form-label">Full Name</label>
           <input type="text" class="form-control" name="full_name" value="<?= htmlspecialchars($employee['full_name']) ?>" required>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <label class="form-label">Contact Number</label>
           <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($employee['contact_number']) ?>" maxlength="10" pattern="\d{10}" title="Please enter an 10-digit contact number">
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <label class="form-label">Birthdate</label>
           <input type="date" class="form-control" name="birthdate" value="<?= htmlspecialchars($employee['birthdate']) ?>">
         </div>
@@ -282,7 +282,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-6">
           <label class="form-label">Salary Rate</label>
-          <input type="number" step="0.01" class="form-control" name="salary_rate" value="<?= htmlspecialchars($employee['salaryRate']) ?>">
+          <input type="number" step="0.01" class="form-control" name="salaryRate" value="<?= htmlspecialchars($employee['salaryRate']) ?>">
         </div>
       <div class="mt-4 d-flex gap-2">
         <button type="submit" class="btn btn-success px-4">Save Changes</button>

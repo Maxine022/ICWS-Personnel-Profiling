@@ -15,7 +15,7 @@ $pagedRecords = [];
 if ($emp_no) {
     // Get personnel_id for this Emp_No
     $stmt = $conn->prepare("
-    SELECT c.certificatecomp_id, c.startingDate, c.endDate, c.ActJust, c.remarks, c.earned_hours, c.used_hours
+    SELECT c.certificatecomp_id, c.date, c.date_usage, c.ActJust, c.remarks, c.earned_hours, c.used_hours
     FROM coc c
     INNER JOIN job_order j ON c.jo_id = j.jo_id
     INNER JOIN personnel p ON j.personnel_id = p.personnel_id
@@ -31,63 +31,38 @@ if ($emp_no) {
 
 // Handle Add
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service_record'])) {
-    $startingDate = $_POST["startingDate"];
-    $endDate = $_POST["endDate"];
+    $date = $_POST["startingDate"];
+    $date_usage = $_POST["endDate"];
     $ActJust = $_POST["ActJust"];
     $remarks = $_POST["remarks"];
     $jo_id = $_POST["jo_id"];
+    $earned_hours = $_POST["earned_hours"] ?? 0;
+    $used_hours = $_POST["used_hours"] ?? 0;
 
     // Error trapping
     $errors = [];
 
     // Validate required fields
     if (!$jo_id) $errors[] = "Job Order ID (jo_id) is required.";
-    if (!$startingDate || !$endDate) $errors[] = "Both starting and end dates are required.";
-    if ($startingDate >= $endDate) $errors[] = "Starting date must be before end date.";
+    if (!$date || !$date_usage) $errors[] = "Both are required.";
+    if ($date >= $date_usage) $errors[] = "Date of CTO must be before the date of usage.";
 
     // Limit: COC record should not exceed 1 year from starting date
-    $start = new DateTime($startingDate);
-    $end = new DateTime($endDate);
+    $start = new DateTime($date);
+    $end = new DateTime($date_usage);
     $interval = $start->diff($end);
     if ($interval->y > 1 || ($interval->y == 1 && ($interval->m > 0 || $interval->d > 0))) {
         $errors[] = "COC record duration must not exceed 1 year.";
     }
-
-    // Check for overlapping dates for this jo_id
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM coc WHERE jo_id = ? AND (
-        (startingDate <= ? AND endDate >= ?) OR
-        (startingDate <= ? AND endDate >= ?) OR
-        (startingDate >= ? AND endDate <= ?)
-    )");
-    $stmt->bind_param(
-        "issssss",
-        $jo_id,
-        $startingDate, $startingDate,
-        $endDate, $endDate,
-        $startingDate, $endDate
-    );
-    $stmt->execute();
-    $stmt->bind_result($overlap_count);
-    $stmt->fetch();
-    $stmt->close();
-
-    if ($overlap_count > 0) {
-        $errors[] = "The provided dates overlap with an existing COC record.";
-    }
-
+    
     if (!empty($errors)) {
         echo "<div class='alert alert-danger'><ul>";
         foreach ($errors as $err) echo "<li>" . htmlspecialchars($err) . "</li>";
         echo "</ul></div>";
     } else {
         // Insert using jo_id
-        $earned_hours = $_POST["earned_hours"] ?? 0;
-        $used_hours = $_POST["used_hours"] ?? 0;
-
-        $stmt = $conn->prepare("INSERT INTO coc (jo_id, startingDate, endDate, ActJust, remarks, earned_hours, used_hours) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("issssdd", $jo_id, $startingDate, $endDate, $ActJust, $remarks, $earned_hours, $used_hours);
-
-        
+        $stmt = $conn->prepare("INSERT INTO coc (jo_id, date, date_usage, ActJust, remarks, earned_hours, used_hours) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issssdd", $jo_id, $date, $date_usage, $ActJust, $remarks, $earned_hours, $used_hours);
 
         if ($stmt->execute()) {
             echo "<script>window.location.href = '?Emp_No=" . urlencode($emp_no) . "';</script>";
@@ -100,15 +75,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service_record']))
 // handle EDIT
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_service_record'])) {
     $id = $_POST['certificatecomp_id'];
-    $startingDate = $_POST["startingDate"];
-    $endDate = $_POST["endDate"];
+    $date = $_POST["startingDate"];
+    $date_usage = $_POST["endDate"];
     $ActJust = $_POST["ActJust"];
     $remarks = $_POST["remarks"];
     $earned_hours = $_POST["earned_hours"] ?? 0;
     $used_hours = $_POST["used_hours"] ?? 0;
 
-    $stmt = $conn->prepare("UPDATE coc SET startingDate=?, endDate=?, ActJust=?, remarks=?, earned_hours=?, used_hours=? WHERE certificatecomp_id=?");
-    $stmt->bind_param("ssssdsi", $startingDate, $endDate, $ActJust, $remarks, $earned_hours, $used_hours, $id);
+    $stmt = $conn->prepare("UPDATE coc SET date=?, date_usage=?, ActJust=?, remarks=?, earned_hours=?, used_hours=? WHERE certificatecomp_id=?");
+    $stmt->bind_param("ssssddi", $date, $date_usage, $ActJust, $remarks, $earned_hours, $used_hours, $id);
 
     if ($stmt->execute()) {
         echo "<script>window.location.href = '?Emp_No=" . urlencode($emp_no) . "';</script>";
@@ -202,10 +177,10 @@ ob_end_flush();
         <table class="table table-bordered">
         <thead class="table-dark">
                 <tr>
-                    <th>Starting Date</th>
-                    <th>Ending Date</th>
-                    <th>Earned Hours</th>
-                    <th>Used Hours</th>
+                    <th>Date of CTO</th>
+                    <th>Earned COC</th>
+                    <th>Date of Usage</th>
+                    <th>Remaining COC</th>
                     <th>Title of Activity</th>
                     <th>Remarks</th>
                     <th>Actions</th>
@@ -214,9 +189,9 @@ ob_end_flush();
             <tbody>
                 <?php foreach ($pagedRecords as $record): ?>
                     <tr>
-                            <td><?= htmlspecialchars($record['startingDate']) ?></td>
-                            <td><?= htmlspecialchars($record['endDate']) ?></td>
+                            <td><?= htmlspecialchars($record['date']) ?></td>
                             <td><?= htmlspecialchars($record['earned_hours'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($record['date_usage']) ?></td>
                             <td><?= htmlspecialchars($record['used_hours'] ?? '') ?></td>
                             <td><?= htmlspecialchars($record['ActJust'] ?? '') ?></td>
                             <td><?= htmlspecialchars($record['remarks'] ?? 'Approved') ?></td>
@@ -322,20 +297,20 @@ ob_end_flush();
 
         <div class="modal-body">
           <div class="mb-3">
-            <label for="startingDate" class="form-label">Starting Date</label>
-            <input type="datetime-local" class="form-control" id="startingDate" name="startingDate" required>
+            <label for="startingDate" class="form-label">Date of CTO</label>
+            <input type="date" class="form-control" id="startingDate" name="startingDate" required>
           </div>
           <div class="mb-3">
-            <label for="endDate" class="form-label">End Date</label>
-            <input type="datetime-local" class="form-control" id="endDate" name="endDate" required>
+            <label for="earned_hours" class="form-label">Earned COC</label>
+            <input type="number" class="form-control" id="earned_hours" name="earned_hours" required>
           </div>
           <div class="mb-3">
-            <label for="earned_hours" class="form-label">Earned Hours</label>
-            <input type="number" class="form-control" id="earned_hours" name="earned_hours" step="0.01" min="0" required>
+            <label for="endDate" class="form-label">Date of Usage</label>
+            <input type="date" class="form-control" id="endDate" name="endDate" required>
           </div>
           <div class="mb-3">
-            <label for="used_hours" class="form-label">Used Hours</label>
-            <input type="number" class="form-control" id="used_hours" name="used_hours" step="0.01" min="0" value="0">
+            <label for="used_hours" class="form-label">Remaining Hours</label>
+            <input type="number" class="form-control" id="used_hours" name="used_hours"required>
           </div>
           <div class="mb-3">
             <label for="ActJust" class="form-label">Title of Activity</label>

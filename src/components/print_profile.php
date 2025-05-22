@@ -201,6 +201,15 @@ $profile_picture_url = file_exists($profile_picture_path)
     <tr><td><strong>Employment Type:</strong></td><td><?= ucfirst($employment_type) ?></td></tr>
     <tr><td><strong>Position:</strong></td><td><?= htmlspecialchars($employee['position'] ?? 'N/A') ?></td></tr>
     <tr><td><strong>Division:</strong></td><td><?= htmlspecialchars($employee['division'] ?? 'N/A') ?></td></tr>
+    <tr><td><strong>Section:</strong></td><td><?= htmlspecialchars($employee['section'] ?? 'N/A') ?></td></tr>
+    <tr><td><strong>Unit</strong>:</strong></td><td><?= htmlspecialchars($employee['unit'] ?? 'N/A') ?></td></tr>
+
+    <?php if (!empty($employee['team'])): ?>
+    <tr><td><strong>Team:</strong></td><td><?= htmlspecialchars($employee['team']) ?></td></tr>
+    <?php endif; ?>
+    <?php if (!empty($employee['operator'])): ?>
+    <tr><td><strong>Operator:</strong></td><td><?= htmlspecialchars($employee['operator']) ?></td></tr>
+    <?php endif; ?>
 
     <?php if ($employment_type === 'regular'): ?>
       <tr><td><strong>Plantilla Number:</strong></td><td><?= htmlspecialchars($reg_emp['plantillaNo'] ?? 'N/A') ?></td></tr>

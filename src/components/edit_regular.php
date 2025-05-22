@@ -37,8 +37,8 @@ $query = $conn->prepare("
     SELECT 
         p.personnel_id, p.Emp_No, p.full_name, p.sex, p.birthdate, p.position, p.section, p.unit, p.team, p.operator, p.division, p.emp_status, p.contact_number, p.address, p.emp_status,
         r.plantillaNo, r.acaPera, r.salary_id,
-        s.salaryGrade, s.step, s.level, s.monthlySalary
-    FROM personnel p
+        s.salaryGrade, s.step, s.monthlySalary, s.level
+        FROM personnel p
     LEFT JOIN reg_emp r ON p.personnel_id = r.personnel_id
     LEFT JOIN salary s ON r.salary_id = s.salary_id
     WHERE p.Emp_No = ?
@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $step = $_POST["step"] ?? null;
     $level = $_POST["level"] ?? null;
     $acaPera = $_POST["aca_pera"] ?? null;
-    $monthlySalary = $_POST["monthly_salary"] ?? 0;
+    $monthlySalary = $_POST["monthlySalary"] ?? 0;
 
     // Validate required fields
     if (!$fullName || !$position || !$division || !$sex || !$birthdate || !$emp_status) {
@@ -197,17 +197,6 @@ if (class_exists('Division')) {
   }
 } else {
   die("<div class='alert alert-danger'>Error: Division class not found in division.php.</div>");
-}
-
-// Fetch level data for dynamic dropdowns
-$jsLevelData = [];
-include_once __DIR__ . '/ideas/salary.php';
-if (class_exists('Level')) {
-  foreach (Level::cases() as $level) {
-    $jsLevelData[$level->value] = $level->value;
-  }
-} else {
-  die("<div class='alert alert-danger'>Error: Level class not found in salary.php.</div>");
 }
 ?>
 
@@ -350,17 +339,16 @@ if (class_exists('Level')) {
             </div>
             <div class="col-md-2">
                 <label for="salaryGrade" class="form-label">Salary Grade</label>
-                <input type="text" class="form-control" id="salaryGrade" name="salaryGrade" value="<?php echo htmlspecialchars($employee['salaryGrade']); ?>0">
+                <input type="text" class="form-control" id="salaryGrade" name="salaryGrade" value="<?php echo htmlspecialchars($employee['salaryGrade']); ?>">
             </div>
             <div class="col-md-2">
                 <label for="step" class="form-label">Step</label>
-                <input type="text" class="form-control" id="step" name="step" value="<?php echo htmlspecialchars($employee['step']); ?>0">
+                <input type="text" class="form-control" id="step" name="step" value="<?php echo htmlspecialchars($employee['step']); ?>">
             </div>
             <div class="col-md-2">
                 <label for="monthlySalary" class="form-label">Monthly Salary</label>
-                <input type="text" class="form-control" id="monthlySalary" name= "monthlySalary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>0">
+                <input type="text" class="form-control" id="monthlySalary" name="monthlySalary" value="<?php echo htmlspecialchars($employee['monthlySalary']); ?>">
             </div>
-
             <div class="col-md-6">
                 <label for="level" class="form-label">Level</label>
                 <select class="form-control" id="level" name="level" >

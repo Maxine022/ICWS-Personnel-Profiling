@@ -40,7 +40,6 @@ $stmt->execute();
 $coc_entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Totals
-// Totals
 $total_earned = array_sum(array_column($coc_entries, 'earned_hours')) ?? 0;
 $total_used = array_sum(array_column($coc_entries, 'used_hours')) ?? 0;
 $net_balance = $total_earned - $total_used;
@@ -244,10 +243,11 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
     <table>
       <thead>
         <tr>
-          <th>Beginning Balance (COC)</th>
           <th>Date of CTO</th>
-          <th>Used COCs</th>
+          <th>Earned COCs</th>
+          <th>Date of Usage</th>
           <th>Remaining COCs</th>
+          <th>Title of Activity</th>
           <th>Remarks</th>
 
         </tr>
@@ -260,17 +260,18 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
                       $remaining = $earned - $used;
                     ?>
                     <tr>
+                    <td><?= htmlspecialchars(date('F d, Y', strtotime($entry['date']))) ?></td>
                     <td><?= htmlspecialchars($entry['earned_hours']) ?></td>
-                    <td><?= htmlspecialchars($entry['startingDate']) ?></td>
+                    <td><?= htmlspecialchars(date('F d, Y', strtotime($entry['date_usage']))) ?></td>
                     <td><?= htmlspecialchars($entry['used_hours']) ?></td>
-                    <td><?= htmlspecialchars($entry['earned_hours'] - $entry['used_hours']) ?></td>
+                    <td><?= htmlspecialchars($entry['ActJust']) ?></td>
                     <td><?= htmlspecialchars(!empty($entry['remarks']) ? $entry['remarks'] : 'Approved') ?></td>
 
               </tr>
               <?php endforeach; ?>
 
         <?php else: ?>
-          <tr><td colspan="5">No COC records available.</td></tr>
+          <tr><td colspan="6">No COC records available.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
@@ -290,7 +291,7 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
       <div class="approved-received">
       <div>
         <p>Approved by:</p><br>
-        <p><strong>Engr. JAIME C. SATO</strong><br>
+        <p>_______________________________<br>
         Department Head</p>
       </div>
       <div>
