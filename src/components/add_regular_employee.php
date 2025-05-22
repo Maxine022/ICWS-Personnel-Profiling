@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     //$check->store_result();
     //if ($check->num_rows > 0) {
         //echo "<script>alert('Employee number or name already exists.');</script>";
-        //echo "<script>window.location.href = 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_regEmp.php';</script>";
+        //echo "<script>window.location.href = 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php';</script>";
         //exit();
     //}
     //$check->close();
@@ -152,8 +152,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="fw-semibold mb-0">Add New Regular Employee</h5>
     <div class="breadcrumb-custom text-end">
-      <a href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php" class="breadcrumb-link">Home</a> /
-      <a href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_regEmp.php" class="breadcrumb-link">Manage</a> /
+      <a href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php" class="breadcrumb-link">Home</a> /
+      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php" class="breadcrumb-link">Manage</a> /
       <span class="text-dark">Add New Regular Employee</span>
     </div>
   </div>
@@ -282,7 +282,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
 
         <div class="mt-4 d-flex gap-2">
-        <button type="submit" onclick="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_regEmp.php" class="btn btn-primary px-4">Submit</button>
+        <button type="submit" onclick="http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php" class="btn btn-primary px-4">Submit</button>
         <button type="button" onclick="history.back()" class="btn btn-cancel px-4">Cancel</button>
       </div>
       </div>

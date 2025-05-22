@@ -98,8 +98,8 @@ $result = $conn->query("
     <h4 class="mb-0 fw-bold">Manage Regular Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Regular</li>
       </ol>
     </nav>
@@ -113,14 +113,14 @@ $result = $conn->query("
 
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-        <button class="btn btn-primary btn-sm" onclick="window.location.href='http://192.168.1.26/ICWS-Personnel-Profiling/src/components/add_regular_employee.php'"><i class="fas fa-plus"></i> Add</button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/add_regular_employee.php'"><i class="fas fa-plus"></i> Add</button>
         <button class="btn btn-success btn-sm shadow-custom text-white" style="background-color: success;" data-bs-toggle="modal" data-bs-target="#uploadModal">
           <i class="fas fa-upload"></i> Upload File
         </button>
 
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
-        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://192.168.1.26/ICWS-Personnel-Profiling/src/components/print.php'">
+        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/print.php'">
           Print
         </button>
 

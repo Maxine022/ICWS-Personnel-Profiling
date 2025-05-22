@@ -208,11 +208,11 @@ if ($action === 'delete') {
 
         // Redirect to the appropriate manage page
         $redirect_map = [
-            'regular' => 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_regEmp.php',
-            'joborder' => 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_jo.php',
-            'contract' => 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_cos.php'
+            'regular' => 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_regEmp.php',
+            'joborder' => 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php',
+            'contract' => 'http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php'
         ];
-        $redirect_url = $redirect_map[$emp_type_redirect] ?? 'http://192.168.1.26//ICWS-Personnel-Profiling/src/components/personnel_record.php';
+        $redirect_url = $redirect_map[$emp_type_redirect] ?? 'http://localhost//ICWS-Personnel-Profiling/src/components/personnel_record.php';
 
         echo "<script>
             alert('Profile deleted successfully!');
@@ -232,7 +232,7 @@ if ($action === 'delete') {
 <?php if (!empty($success)): ?>
   <div class="alert alert-success">
     Profile deleted successfully!
-    <a href="<?= htmlspecialchars($redirect_url ?? 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/personnel_record.php') ?>" class="alert-link">Go to Manage Page</a>.
+    <a href="<?= htmlspecialchars($redirect_url ?? 'http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php') ?>" class="alert-link">Go to Manage Page</a>.
   </div>
 <?php endif; ?>
 
@@ -411,7 +411,7 @@ if ($action === 'delete') {
       <h4 class="mb-0" style="font-weight: bold;">Profile</h4>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
           <li class="breadcrumb-item active" aria-current="page">Profile</li>
         </ol>
       </nav>
@@ -425,7 +425,7 @@ if ($action === 'delete') {
               <div class="profile-pic-container">
               <img
                   id="profileImage"
-                  src="<?php echo !empty($employee['profile_picture']) ? 'http://192.168.1.26/ICWS-Personnel-Profiling' . $employee['profile_picture'] : '../../assets/profile.jpg'; ?>"
+                  src="<?php echo !empty($employee['profile_picture']) ? 'http://localhost/ICWS-Personnel-Profiling' . $employee['profile_picture'] : '../../assets/profile.jpg'; ?>"
                   alt="Profile Picture"
                   class="profile-img-preview"
                 >
@@ -484,17 +484,17 @@ if ($action === 'delete') {
                 <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
                 <a href="<?php 
                     if ($emp_type === 'regular') {
-                        echo 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/edit_regular.php?Emp_No=' . urlencode($employee['Emp_No']);
+                        echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_regular.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } elseif ($emp_type === 'job_order') {
-                        echo 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/edit_jo.php?Emp_No=' . urlencode($employee['Emp_No']);
+                        echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_jo.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } elseif ($emp_type === 'contract') {
-                        echo 'http://192.168.1.26/ICWS-Personnel-Profiling/src/components/edit_cos.php?Emp_No=' . urlencode($employee['Emp_No']);
+                        echo 'http://localhost/ICWS-Personnel-Profiling/src/components/edit_cos.php?Emp_No=' . urlencode($employee['Emp_No']);
                     } else {
                         echo 'javascript:void(0);'; // Default action if emp_type is unknown
                     }
                 ?>" class="btn btn-success btn-sm">Update</a>
                 <a href="javascript:void(0);" onclick="showDeleteModal()" class="btn btn-danger btn-sm">Delete</a>
-                <a href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
+                <a href="http://localhost/ICWS-Personnel-Profiling/src/components/print_profile.php?Emp_No=<?= urlencode($employee['Emp_No']) ?>" target="_blank" class="btn btn-warning btn-sm">Print</a>
             </div>
         </div>
 
@@ -619,7 +619,7 @@ if ($action === 'delete') {
             function deleteProfile() {
               if (confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
                   // Redirect to the delete_profile.php script with the Emp_No as a parameter
-                  window.location.href = "http://192.168.1.26/ICWS-Personnel-Profiling/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
+                  window.location.href = "http://localhost/ICWS-Personnel-Profiling/src/components/delete_profile.php?Emp_No=<?php echo urlencode($employee['Emp_No']); ?>";
               }
             }
 </script>

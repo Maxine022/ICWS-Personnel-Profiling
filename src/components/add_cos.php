@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = "Error inserting contract_service: {$stmt->error}";
                 } else {
                     // Redirect after successful insertion
-                    header("Location: http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_cos.php");
+                    header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php");
                     exit;
                 }
             }
@@ -145,8 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h4 class="mb-0 fw-bold"> Add Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">Add Contract of Service</button>
-            <a href="http://192.168.1.26/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
+            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
     </div>
