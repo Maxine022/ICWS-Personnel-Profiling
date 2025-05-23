@@ -27,7 +27,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($Emp_No)) $errors[] = "Employee Number is required.";
     if (empty($full_name)) $errors[] = "Full Name is required.";
     if (empty($division)) $errors[] = "Division is required.";
-    
+
+    // Duplicate Emp_No check
+    if (empty($errors)) {
+        $dupCheck = $conn->prepare("SELECT COUNT(*) FROM personnel WHERE Emp_No = ?");
+        $dupCheck->bind_param("s", $Emp_No);
+        $dupCheck->execute();
+        $dupCheck->bind_result($dupCount);
+        $dupCheck->fetch();
+        $dupCheck->close();
+
+        if ($dupCount > 0) {
+            $errors[] = "The Employee Number <strong>" . htmlspecialchars($Emp_No) . "</strong> already exists. Please use a unique Employee Number.";
+        }
+    }
+
     // If no errors, insert into the database
     if (empty($errors)) {
         // Insert into the personnel table
@@ -127,8 +141,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h5 class="mb-0 fw-bold">Add New Job Order Employees</h5>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>

@@ -134,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
   <?php if ($success): ?>
     <div class="alert alert-success">
       Intern information has been successfully updated! 
-      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
+      <a href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
     </div>
   <?php endif; ?>
 
@@ -163,42 +163,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
             <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($intern['contactNo']) ?>" 
               maxlength="10" pattern="\d{10}" title="Contact number must be exactly 10 digits" onkeypress="return isNumberKey(event)">
           </div>
-          <div class="col-md-12">
+          <div class="col-md-6">
             <label class="form-label">School</label>
-            <select class="form-select" name="school">
-                <option value="">Select School</option>
-                <?php
-                    $collegeFilePath = __DIR__ . '/ideas/course.php';
-                    if (!file_exists($collegeFilePath)) {
-                        die("Error: course.php file not found.");
-                    }
-                    include_once $collegeFilePath;
-                    if (class_exists('College')) {
-                        foreach (College::cases() as $college) {
-                            $selected = ($intern['school'] === $college->value) ? 'selected' : '';
-                            echo "<option value=\"{$college->value}\" $selected>{$college->value}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: College class not found.</option>";
-                    }
-                ?>
-            </select>
+            <input type="text" class="form-control" name="school" value="<?= htmlspecialchars($intern['school']) ?>">
           </div>
           <div class="col-md-6">
             <label class="form-label">Course/Program</label>
-            <select class="form-select" name="course_program">
-                <option value="">Select Course</option>
-                <?php
-                    if (class_exists('CollegeCourse')) {
-                        foreach (CollegeCourse::cases() as $course) {
-                            $selected = ($intern['course'] === $course->value) ? 'selected' : '';
-                            echo "<option value=\"{$course->value}\" $selected>{$course->value}</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">Error: CollegeCourse class not found.</option>";
-                    }
-                ?>
-            </select>
+            <input type="text" class="form-control" name="course" value="<?= htmlspecialchars($intern['course']) ?>">
           </div>
           <div class="col-md-6">
             <label class="form-label">Number of Hours</label>

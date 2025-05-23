@@ -80,6 +80,7 @@ enum SalaryGrade: int {
 ?>
 
 <?php
+
 enum Level: string {
     case FirstLevelNS = '1st Level NS';
     case SecondLevelNS = '2nd Level NS';
@@ -96,7 +97,6 @@ enum Level: string {
             4 => self::SecondLevelM,
             5 => self::ThirdLevelCES,
         ];
-
         return $mapping[$level] ?? null;
     }
 
@@ -109,8 +109,18 @@ enum Level: string {
             self::SecondLevelM->value => 'Second Level M',
             self::ThirdLevelCES->value => 'Third Level CES',
         ];
-
         return $descriptions[$level->value] ?? 'Unknown Level';
     }
+}
+
+// Now define the function outside the enum
+function getLevelData(): array {
+    return [
+        1 => Level::getDescription(Level::FirstLevelNS),
+        2 => Level::getDescription(Level::SecondLevelNS),
+        3 => Level::getDescription(Level::SecondLevelS),
+        4 => Level::getDescription(Level::SecondLevelM),
+        5 => Level::getDescription(Level::ThirdLevelCES),
+    ];
 }
 ?>

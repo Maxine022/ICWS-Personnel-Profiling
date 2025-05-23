@@ -72,8 +72,7 @@ SELECT * FROM (
       'Contract of Service' AS employment_type
     FROM contract_service r
     JOIN personnel p ON r.personnel_id = p.personnel_id
-) AS combined
-ORDER BY CAST(Emp_No AS UNSIGNED) ASC, full_name ASC
+) AS combined ORDER BY full_name ASC
 ");
 
 if (!$result) {
@@ -144,7 +143,7 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0" style="font-weight: bold;">Personnel Records</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">Personnel</li>
       </ol>
     </nav>
@@ -196,7 +195,7 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
             <td>
             <?php if (!empty($p['Emp_No'])): ?>
-              <a href="http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
+              <a href="http://192.168.1.100//ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
             <?php else: ?>
               <span class="text-muted">Employee Not Found</span>
             <?php endif; ?>
@@ -231,15 +230,33 @@ if ($result && $result->num_rows > 0) {
   $(document).ready(function () {
     const table = $('#personnelTable').DataTable({
         "pageLength": 30,
-        "order": [[0, "asc"]],
+        "order": [[1, "asc"]],
         dom:
             "<'row'<'col-md-6'l><'col-md-6'f>>" +
             "<'row'<'col-12'tr>>" +
             "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>",
         buttons: [
-            { extend: 'csv', title: 'Personnel Records' },
-            { extend: 'pdf', title: 'Personnel Records' },
-            { extend: 'print', title: 'Personnel Records' }
+            { 
+                extend: 'csv', 
+                title: 'Personnel Records',
+                exportOptions: {
+                    columns: ':not(:last-child)'
+                }
+            },
+            { 
+                extend: 'pdf', 
+                title: 'Personnel Records',
+                exportOptions: {
+                    columns: ':not(:last-child)'
+                }
+            },
+            { 
+                extend: 'print', 
+                title: 'Personnel Records',
+                exportOptions: {
+                    columns: ':not(:last-child)'
+                }
+            }
         ]
     });
 

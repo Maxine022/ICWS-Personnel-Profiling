@@ -259,7 +259,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="error-message"><?php echo $error_message; ?></div>
                 <?php endif; ?>
 
-                <a href="#" class="forgot-password">I forgot my password</a>
                 <button type="submit" class="login-btn">Sign In</button>
             </form>
         </div>

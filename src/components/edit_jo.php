@@ -38,13 +38,14 @@ if ($position_query && $position_query->num_rows > 0) {
     }
 }
 
-// Fetch divisions from the database
-$divisions = [];
-$division_query = $conn->query("SELECT DISTINCT division FROM personnel ORDER BY division ASC");
-if ($division_query && $division_query->num_rows > 0) {
-    while ($row = $division_query->fetch_assoc()) {
-        $divisions[] = $row['division'];
-    }
+// Fetch division data for dynamic dropdowns
+include_once __DIR__ . '/ideas/division.php';
+if (class_exists('Division')) {
+  foreach (Division::cases() as $division) {
+    $jsDivisionData[] = $division->value;
+  }
+} else {
+  die("<div class='alert alert-danger'>Error: Division class not found in division.php.</div>");
 }
 
 // Fetch personnel and job order info
@@ -73,6 +74,8 @@ $original_emp_no = $employee['Emp_No'];
 
 // Handle form submission
 $success = false;
+$showDupAlert = false;
+$dupAlertMsg = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullName = $_POST["full_name"] ?? null;
     $contactNumber = $_POST["contact_number"] ?? null;
@@ -91,62 +94,88 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $emp_no = $_POST["Emp_No"] ?? null; // new Emp_No from form
 
     // Validate required fields
-    if (!$fullName || !$division ) {
-        echo "<div class='alert alert-danger'>Full Name, and Division are required fields.</div>";
+    if (!$fullName) {
+        echo "<div class='alert alert-danger'>Full Name is a required field.</div>";
     } else {
-        // Update personnel
-        $updatePersonnel = $conn->prepare("
-            UPDATE personnel 
-            SET Emp_No = ?, full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
-            WHERE Emp_No = ?
-        ");
-        $updatePersonnel->bind_param(
-            "ssssssssssssss",
-            $emp_no,
-            $fullName,
-            $position,
-            $section,
-            $unit,
-            $team,
-            $operator,
-            $division,
-            $contactNumber,
-            $sex,
-            $birthdate, // will be null if empty
-            $emp_status,
-            $address,
-            $original_emp_no
-        );
+        // Check for duplicate Emp_No (excluding the current record)
+        $dupCheck = $conn->prepare("SELECT COUNT(*) FROM personnel WHERE Emp_No = ? AND Emp_No != ?");
+        $dupCheck->bind_param("ss", $emp_no, $original_emp_no);
+        $dupCheck->execute();
+        $dupCheck->bind_result($dupCount);
+        $dupCheck->fetch();
+        $dupCheck->close();
 
-        // Update job_order
-        $updateJobOrder = $conn->prepare("
-            UPDATE job_order 
-            SET salaryRate = ?
-            WHERE jo_id = ?
-        ");
-        
-        $updateJobOrder->bind_param(
-            "di", // double, int
-            $salaryRate,
-            $employee['jo_id']
-        );
+        if ($dupCount > 0) {
+            $showDupAlert = true;
+            $dupAlertMsg = "The Employee Number <strong>" . htmlspecialchars($emp_no) . "</strong> already exists. Please use a unique Employee Number.";
+        } else {
+            // Update personnel
+            $updatePersonnel = $conn->prepare("
+                UPDATE personnel 
+                SET Emp_No = ?, full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
+                WHERE Emp_No = ?
+            ");
+            $updatePersonnel->bind_param(
+                "ssssssssssssss",
+                $emp_no,
+                $fullName,
+                $position,
+                $section,
+                $unit,
+                $team,
+                $operator,
+                $division,
+                $contactNumber,
+                $sex,
+                $birthdate, // will be null if empty
+                $emp_status,
+                $address,
+                $original_emp_no
+            );
 
-        $success = true;
-        if (!$updatePersonnel->execute()) {
-            $success = false;
-            echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
+            // Update job_order
+            $updateJobOrder = $conn->prepare("
+                UPDATE job_order 
+                SET salaryRate = ?
+                WHERE jo_id = ?
+            ");
+            
+            $updateJobOrder->bind_param(
+                "di", // double, int
+                $salaryRate,
+                $employee['jo_id']
+            );
+
+            $success = true;
+            if (!$updatePersonnel->execute()) {
+                $success = false;
+                echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
+            }
+            if (!$updateJobOrder->execute()) {
+                $success = false;
+                echo "<div class='alert alert-danger'>Failed to update job order details: {$updateJobOrder->error}</div>";
+            }
+
+            if ($success) {
+                echo "<div class='alert alert-success' role='alert'>
+                        Employee details have been successfully updated!
+                      </div>";
+                echo "<script>window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                exit();
+            }
         }
-        if (!$updateJobOrder->execute()) {
-            $success = false;
-            echo "<div class='alert alert-danger'>Failed to update job order details: {$updateJobOrder->error}</div>";
-        }
+    }
+}
 
-        if ($success) {
-            echo "<div class='alert alert-success' role='alert'>
-                    Employee details have been successfully updated!
-                  </div>";
-            echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
-            exit();
+// After your POST logic, before the HTML output
+$formData = $employee;
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    foreach ($_POST as $key => $value) {
+        // If duplicate error, keep Emp_No as original
+        if ($key === 'Emp_No' && !empty($showDupAlert)) {
+            $formData['Emp_No'] = $original_emp_no;
+        } else {
+            $formData[$key] = $value;
         }
     }
 }
@@ -199,13 +228,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
+<?php if (!empty($showDupAlert)): ?>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <?= $dupAlertMsg ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+</div>
+<?php endif; ?>
+
 <div class="content" id="content">
 <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
     <h4 class="mb-0 fw-bold">Update Job Order Employee</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>
@@ -216,73 +254,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="row g-3">
         <div class="col-md-6">
             <label for="Emp_No" class="form-label">Employee Number</label>
-            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($employee['Emp_No']); ?>" required>
+            <input type="text" class="form-control" id="Emp_No" name="Emp_No" value="<?php echo htmlspecialchars($formData['Emp_No'] ?? ''); ?>" required>
         </div>
         <div class="col-md-6">
             <label for="emp_status" class="form-label">Employment Status</label>
             <div class="dropdown"></div>
             <select class="form-control" id="emp_status" name="emp_status" required>
-                <option value="Active" <?php echo ($employee['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
-                <option value="Inactive" <?php echo ($employee['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
+                <option value="Active" <?php echo (isset($formData['emp_status']) && $formData['emp_status'] === 'Active') ? 'selected' : ''; ?>>Active</option>
+                <option value="Inactive" <?php echo (isset($formData['emp_status']) && $formData['emp_status'] === 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
             </select>
         </div>
         <div class="col-md-6">
           <label class="form-label">Full Name</label>
-          <input type="text" class="form-control" name="full_name" value="<?= htmlspecialchars($employee['full_name']) ?>" required>
+          <input type="text" class="form-control" name="full_name" value="<?= htmlspecialchars($formData['full_name'] ?? '') ?>" required>
         </div>
         <div class="col-md-3">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($employee['contact_number']) ?>" maxlength="10" pattern="\d{10}" title="Please enter an 10-digit contact number">
+          <input type="text" class="form-control" name="contact_number" value="<?= htmlspecialchars($formData['contact_number'] ?? '') ?>" maxlength="11" pattern="\d{11}" title="Please enter an 11-digit contact number">
         </div>
         <div class="col-md-3">
           <label class="form-label">Birthdate</label>
-          <input type="date" class="form-control" name="birthdate" value="<?= htmlspecialchars($employee['birthdate']) ?>">
+          <input type="date" class="form-control" name="birthdate" value="<?= htmlspecialchars($formData['birthdate'] ?? '') ?>">
         </div>
         <div class="col-md-6">
           <label class="form-label">Sex</label>
-          <select name="sex" class="form-select" required>
+          <select name="sex" class="form-select">
             <option value="">Select</option>
             <?php foreach ($enum_values as $sex): ?>
-              <option value="<?= htmlspecialchars($sex) ?>" <?= ($employee['sex'] === $sex) ? 'selected' : '' ?>><?= htmlspecialchars($sex) ?></option>
+              <option value="<?= htmlspecialchars($sex) ?>" <?= (isset($formData['sex']) && $formData['sex'] === $sex) ? 'selected' : '' ?>><?= htmlspecialchars($sex) ?></option>
             <?php endforeach; ?>
           </select>
         </div>
         <div class="col-6">
           <label class="form-label">Address</label>
-          <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($employee['address']) ?>">
+          <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($formData['address'] ?? '') ?>">
         </div>
         <div class="col-md-6">
             <label for="position" class="form-label">Position</label>
-            <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($employee['position']); ?>">
+            <input type="text" class="form-control" id="position" name="position" value="<?php echo htmlspecialchars($formData['position'] ?? ''); ?>">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Division</label>
-          <select class="form-select" name="division" required>
-            <option value="">Select Division</option>
-            <?php foreach ($divisions as $division): ?>
-              <option value="<?= htmlspecialchars($division) ?>" <?= ($employee['division'] === $division) ? 'selected' : '' ?>><?= htmlspecialchars($division) ?></option>
-            <?php endforeach; ?>
+        <label for="division" class="form-label">Division</label>
+          <select class="form-control" id="division" name="division">
+          <option value="">Select Division</option>
+          <?php
+          foreach ($jsDivisionData as $division) {
+            $selected = ($employee['division'] === $division) ? 'selected' : '';
+            echo "<option value=\"{$division}\" $selected>{$division}</option>";
+          }
+          ?>
           </select>
         </div>
         <div class="col-md-6">
             <label for="section" class="form-label">Section</label>
-            <input type="text" class="form-control" id="section" name="section" value="<?php echo htmlspecialchars($employee['section']); ?>">
+            <input type="text" class="form-control" id="section" name="section" value="<?php echo htmlspecialchars($formData['section'] ?? ''); ?>">
         </div>
         <div class="col-md-6">
             <label for="unit" class="form-label">Unit</label>
-            <input type="text" class="form-control" id="unit" name="unit" value="<?php echo htmlspecialchars($employee['unit']); ?>">
+            <input type="text" class="form-control" id="unit" name="unit" value="<?php echo htmlspecialchars($formData['unit'] ?? ''); ?>">
         </div>
         <div class="col-md-6">
             <label for="team" class="form-label">Team, if applicable</label>
-            <input type="text" class="form-control" id="team" name="team" value="<?php echo htmlspecialchars($employee['team']); ?>">
+            <input type="text" class="form-control" id="team" name="team" value="<?php echo htmlspecialchars($formData['team'] ?? ''); ?>">
         </div>
         <div class="col-md-6">
-            <label for="operations" class="form-label">Operators, if applicable</label>
-            <input type="text" class="form-control" id="operator" name="operator" value="<?php echo htmlspecialchars($employee['operator']); ?>">
+            <label for="operator" class="form-label">Operators, if applicable</label>
+            <input type="text" class="form-control" id="operator" name="operator" value="<?php echo htmlspecialchars($formData['operator'] ?? ''); ?>">
         </div>
         <div class="col-md-6">
           <label class="form-label">Salary Rate</label>
-          <input type="number" step="0.01" class="form-control" name="salaryRate" value="<?= htmlspecialchars($employee['salaryRate']) ?>">
+          <input type="number" step="0.01" class="form-control" name="salaryRate" value="<?= htmlspecialchars($formData['salaryRate'] ?? '') ?>">
         </div>
       <div class="mt-4 d-flex gap-2">
         <button type="submit" class="btn btn-success px-4">Save Changes</button>
@@ -291,5 +332,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </form>
   </div>
 </div>
+<script>
+function showDivisionSelect() {
+  document.getElementById('division-static').style.display = 'none';
+  document.getElementById('division-select').style.display = '';
+  document.getElementById('division-dropdown').focus();
+}
+</script>
 </body>
 </html>

@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->bind_param("issss", $personnel_id, $start_date, $end_date, $position, $company);
     
                             if ($stmt->execute()) {
-                                echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                                echo "<script>window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                                 $stmt->close();
                             } else {
                                 echo "<script>alert('Error: Unable to add service record. {$stmt->error}');</script>";
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->execute()) {
                 error_log("Service Record Updated: ID $record_id"); // Debug: Log the updated record_id
                 $stmt->close();
-                echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                echo "<script>window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                 exit();
             } else {
                 echo "<script>alert('Error: Unable to update service record. {$stmt->error}');</script>";
@@ -202,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
             if ($stmt->execute()) {
                 $stmt->close();
-                echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+                echo "<script>window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
                 exit();
             } else {
                 echo "<script>alert('Error: Unable to delete service record. {$stmt->error}');</script>";
@@ -255,7 +255,7 @@ ob_end_flush(); // Flush the output buffer
                     <th>Starting Date</th>
                     <th>Ending Date</th>
                     <th>Position</th>
-                    <th>Division</th>
+                    <th>Department</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -297,7 +297,7 @@ ob_end_flush(); // Flush the output buffer
                                                 <input type="text" class="form-control" name="position" value="<?= htmlspecialchars($record['position']); ?>" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Company</label>
+                                                <label class="form-label">Department</label>
                                                 <input type="text" class="form-control" name="company" value="<?= htmlspecialchars($record['company']); ?>" required>
                                             </div>
                                         </div>

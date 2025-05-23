@@ -233,11 +233,10 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
     <!-- Content -->
         <p>
       This certificate entitles <?= $gender ?> <?= htmlspecialchars($employee['full_name']) ?> to 
-      <strong><?= $net_balance ?> hours</strong> of Compensatory Overtime Credits, 
-      based on a total of <strong><?= $total_earned ?> hours earned</strong> 
-      and <strong><?= $total_used ?> hours used</strong>.
+      <strong><?= $net_balance ?> hours</strong> of Compensatory Overtime Credits (COC).
     </p>
 
+    <!-- based on a total of <strong><?= $total_earned ?> hours earned</strong> and <strong><?= $total_used ?> hours used</strong>. -->
 
     <!-- Table -->
     <table>

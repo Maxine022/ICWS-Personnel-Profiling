@@ -93,6 +93,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_service_record'])
     }
 }
 
+// Handle Edit Work Experience
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_work_experience'])) {
+    $experience_id = $_POST["experience_id"];
+    $date_from = $_POST["date_from"];
+    $date_to = $_POST["date_to"];
+    $position_title = $_POST["position_title"];
+    $department = $_POST["department"];
+    $monthly_salary = $_POST["monthly_salary"];
+
+   $stmt = $conn->prepare("UPDATE jo_work_experience SET date_from=?, date_to=?, position_title=?, department=?, monthly_salary=? WHERE experience_id=?");
+    $stmt->bind_param("ssssdi", $date_from, $date_to, $position_title, $department, $monthly_salary, $experience_id);
+
+    if ($stmt->execute()) {
+        echo "<script>location.href='?Emp_No=" . urlencode($emp_no) . "';</script>";
+        exit();
+    } else {
+        echo "<script>alert('Error: Unable to update work experience. {$stmt->error}');</script>";
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_work_experience'])) {
+    $experience_id = $_POST["experience_id"];
+
+    $stmt = $conn->prepare("DELETE FROM jo_work_experience WHERE experience_id=?");
+    $stmt->bind_param("i", $experience_id);
+
+    if ($stmt->execute()) {
+        echo "<script>location.href='?Emp_No=" . urlencode($emp_no) . "';</script>";
+        exit();
+    } else {
+        echo "<script>alert('Error: Unable to delete work experience. {$stmt->error}');</script>";
+    }
+}
+
+
 // Handle Delete
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'])) {
     $id = $_POST['certificatecomp_id'];
@@ -105,6 +140,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'
         echo "<script>alert('Error: Unable to delete service record. {$stmt->error}');</script>";
     }
 }
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_work_experience'])) {
+    $date_from = $_POST["date_from"];
+    $date_to = $_POST["date_to"];
+    $position_title = $_POST["position_title"];
+    $department = $_POST["department"];
+    $monthly_salary = $_POST["monthly_salary"];
+    $personnel_id = $_POST["personnel_id"];
+
+    $stmt = $conn->prepare("INSERT INTO jo_work_experience (personnel_id, date_from, date_to, position_title, department, monthly_salary) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssd", $personnel_id, $date_from, $date_to, $position_title, $department, $monthly_salary);
+
+    if ($stmt->execute()) {
+        echo "<script>location.href='?Emp_No=" . urlencode($emp_no) . "';</script>";
+        exit();
+    } else {
+        echo "<script>alert('Error: Unable to add work experience. {$stmt->error}');</script>";
+    }
+}
+
 
 // Get personnel_id for this Emp_No
 $personnel_id = null;
@@ -133,165 +188,138 @@ ob_end_flush();
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Service Contracts</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-  <style>
-    body {
-      font-family: 'Arial';
-      background-color: #f8f9fa;
-    }
-    .container {
-      margin-top: 20px;
-    }
-    .dataTables_wrapper .dataTables_filter {
-      float: right;
-    }
-    .dataTables_wrapper .dataTables_paginate {
-      float: right;
-    }
-    .btn-add {
-      margin-bottom: 15px;
-    }
-  </style>
 </head>
 <body>
-<div class="container mt-1">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="fw-bold">COC Service Record</h5>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceRecordModal">
-                <i class="fas fa-plus"></i> Add COC Record
-            </button>
-            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" target="_blank" class="btn btn-info btn-sm text-gray">
-                <i class="fas fa-print"></i> Print COC
-            </a>
-        </div>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold">COC Service Record</h5>
+    <div>
+      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceRecordModal">
+        <i class="fas fa-plus"></i> Add COC Record
+      </button>
+      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" class="btn btn-info btn-sm" target="_blank">
+        <i class="fas fa-print"></i> Print COC
+      </a>
     </div>
-    <div class="table-container">
-        <table class="table table-bordered">
-        <thead class="table-dark">
-                <tr>
-                    <th>Date of CTO</th>
-                    <th>Earned COC</th>
-                    <th>Date of Usage</th>
-                    <th>Remaining COC</th>
-                    <th>Title of Activity</th>
-                    <th>Remarks</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-            <tbody>
-                <?php foreach ($pagedRecords as $record): ?>
-                    <tr>
-                            <td><?= htmlspecialchars($record['date']) ?></td>
-                            <td><?= htmlspecialchars($record['earned_hours'] ?? '') ?></td>
-                            <td><?= htmlspecialchars($record['date_usage']) ?></td>
-                            <td><?= htmlspecialchars($record['used_hours'] ?? '') ?></td>
-                            <td><?= htmlspecialchars($record['ActJust'] ?? '') ?></td>
-                            <td><?= htmlspecialchars($record['remarks'] ?? 'Approved') ?></td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editServiceRecordModal<?= $record['certificatecomp_id'] ?>">Edit</button>
-                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteServiceRecordModal<?= $record['certificatecomp_id'] ?>">Delete</button>
-                            </td>
-                            </tr>
+  </div>
 
-            <!-- Edit Modal -->
-            <div class="modal fade" id="editServiceRecordModal<?= $record['certificatecomp_id'] ?>" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form method="POST" action="">
-                        <input type="hidden" name="edit_service_record" value="1">
-                        <input type="hidden" name="certificatecomp_id" value="<?= htmlspecialchars($record['certificatecomp_id']); ?>">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Edit Service Record</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Start Date</label>
-                                    <input type="datetime-local" class="form-control" name="startingDate"
-                                        value="<?= date('Y-m-d\TH:i', strtotime($record['startingDate'])) ?>" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">End Date</label>
-                                    <input type="datetime-local" class="form-control" name="endDate"
-                                        value="<?= date('Y-m-d\TH:i', strtotime($record['endDate'])) ?>" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Earned Hours</label>
-                                    <input type="number" class="form-control" name="earned_hours"
-                                        value="<?= htmlspecialchars($record['earned_hours']) ?>" step="0.01" min="0" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Used Hours</label>
-                                    <input type="number" class="form-control" name="used_hours"
-                                        value="<?= htmlspecialchars($record['used_hours']) ?>" step="0.01" min="0" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Title of Activity</label>
-                                    <textarea class="form-control" name="ActJust"><?= htmlspecialchars($record['ActJust']) ?></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="remarks" class="form-label">Remarks</label>
-                                    <select class="form-select" id="remarks" name="remarks" required>
-                                        <option value="Approved" <?= ($record['remarks'] === 'Approved' ? 'selected' : '') ?>>Approved</option>
-                                        <option value="Reject" <?= ($record['remarks'] === 'Reject' ? 'selected' : '') ?>>Reject</option>
-                                    </select>
-                                    </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                            </div>
-                        </div>
-                    </form>
+  <table class="table table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Date of CTO</th>
+        <th>Earned COC</th>
+        <th>Date of Usage</th>
+        <th>Remaining COC</th>
+        <th>Title of Activity</th>
+        <th>Remarks</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if (!empty($pagedRecords)): ?>
+        <?php foreach ($pagedRecords as $record): ?>
+          <tr>
+            <td><?= htmlspecialchars($record['date'] ?? '') ?></td>
+            <td><?= htmlspecialchars((string)($record['earned_hours'] ?? '')) ?></td>
+            <td><?= htmlspecialchars($record['date_usage'] ?? '') ?></td>
+            <td><?= htmlspecialchars((string)($record['used_hours'] ?? '')) ?></td>
+            <td><?= htmlspecialchars($record['ActJust'] ?? '') ?></td>
+            <td><?= htmlspecialchars($record['remarks'] ?? '') ?></td>
+            <td>
+              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editServiceRecordModal<?= $record['certificatecomp_id'] ?>">Edit</button>
+              <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteServiceRecordModal<?= $record['certificatecomp_id'] ?>">Delete</button>
+            </td>
+          </tr>
+
+        
+
+          <!-- Edit Modal -->
+          <div class="modal fade" id="editServiceRecordModal<?= $record['certificatecomp_id'] ?>" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <form method="POST" action="">
+                <input type="hidden" name="edit_service_record" value="1">
+                <input type="hidden" name="certificatecomp_id" value="<?= htmlspecialchars($record['certificatecomp_id'] ?? '') ?>">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Edit Service Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="startingDate<?= $record['certificatecomp_id'] ?>" class="form-label">Date of CTO</label>
+                        <input type="date" class="form-control" id="startingDate<?= $record['certificatecomp_id'] ?>" name="startingDate" value="<?= htmlspecialchars($record['date'] ?? '') ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="earned_hours<?= $record['certificatecomp_id'] ?>" class="form-label">Earned COC</label>
+                        <input type="number" step="0.01" class="form-control" id="earned_hours<?= $record['certificatecomp_id'] ?>" name="earned_hours" value="<?= htmlspecialchars((string)($record['earned_hours'] ?? '')) ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate<?= $record['certificatecomp_id'] ?>" class="form-label">Date of Usage</label>
+                        <input type="date" class="form-control" id="endDate<?= $record['certificatecomp_id'] ?>" name="endDate" value="<?= htmlspecialchars($record['date_usage'] ?? '') ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="used_hours<?= $record['certificatecomp_id'] ?>" class="form-label">Remaining COC</label>
+                        <input type="number" step="0.01" class="form-control" id="used_hours<?= $record['certificatecomp_id'] ?>" name="used_hours" value="<?= htmlspecialchars((string)($record['used_hours'] ?? '')) ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ActJust<?= $record['certificatecomp_id'] ?>" class="form-label">Title of Activity</label>
+                        <textarea class="form-control" id="ActJust<?= $record['certificatecomp_id'] ?>" name="ActJust" rows="2"><?= htmlspecialchars($record['ActJust'] ?? '') ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="remarks<?= $record['certificatecomp_id'] ?>" class="form-label">Remarks</label>
+                        <select class="form-select" id="remarks<?= $record['certificatecomp_id'] ?>" name="remarks" required>
+                        <option value="Approved" <?= ($record['remarks'] ?? '') === 'Approved' ? 'selected' : '' ?>>Approved</option>
+                        <option value="Reject" <?= ($record['remarks'] ?? '') === 'Reject' ? 'selected' : '' ?>>Reject</option>
+                        </select>
+                    </div>
+                    </div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                  </div>
                 </div>
+              </form>
             </div>
+          </div>
 
-                                <!-- Delete Modal -->
-                                <div class="modal fade" id="deleteServiceRecordModal<?= $record['certificatecomp_id'] ?>" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <form method="POST" action="">
-                                            <input type="hidden" name="delete_service_record" value="1">
-                                            <input type="hidden" name="certificatecomp_id" value="<?= htmlspecialchars($record['certificatecomp_id']); ?>">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Delete Service Record</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    Are you sure you want to delete this service record?
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+          <!-- Delete Modal -->
+          <div class="modal fade" id="deleteServiceRecordModal<?= $record['certificatecomp_id'] ?>" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <form method="POST" action="">
+                <input type="hidden" name="delete_service_record" value="1">
+                <input type="hidden" name="certificatecomp_id" value="<?= htmlspecialchars($record['certificatecomp_id']); ?>">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Delete Service Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">Are you sure you want to delete this record?</div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </div>
                 </div>
+              </form>
             </div>
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <tr><td colspan="7" class="text-center">No COC records found.</td></tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
 
-<!-- Add Service Record Modal -->
+  <!-- Add COC Record Modal -->
 <div class="modal fade" id="addServiceRecordModal" tabindex="-1" aria-labelledby="addServiceRecordModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="POST" action="">
-        <input type="hidden" name="add_service_record" value="1">
-        <input type="hidden" name="jo_id" value="<?= htmlspecialchars($jo_id ?? '') ?>">
+    <form method="POST" action="">
+      <input type="hidden" name="add_service_record" value="1">
+      <input type="hidden" name="jo_id" value="<?= htmlspecialchars($jo_id ?? '') ?>">
 
+      <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="addServiceRecordModalLabel">Add COC Record for <?= htmlspecialchars($emp_no) ?></h5>
+          <h5 class="modal-title" id="addServiceRecordModalLabel">Add COC Record</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
@@ -309,32 +337,227 @@ ob_end_flush();
             <input type="date" class="form-control" id="endDate" name="endDate" required>
           </div>
           <div class="mb-3">
-            <label for="used_hours" class="form-label">Remaining Hours</label>
-            <input type="number" class="form-control" id="used_hours" name="used_hours"required>
+            <label for="used_hours" class="form-label">Remaining COC</label>
+            <input type="number" class="form-control" id="used_hours" name="used_hours" required>
           </div>
           <div class="mb-3">
             <label for="ActJust" class="form-label">Title of Activity</label>
             <textarea class="form-control" id="ActJust" name="ActJust" rows="2"></textarea>
           </div>
-                    <div class="mb-3">
+          <div class="mb-3">
             <label for="remarks" class="form-label">Remarks</label>
             <select class="form-select" id="remarks" name="remarks" required>
-                <option value="Approved">Approved</option>
-                <option value="Reject">Reject</option>
+              <option value="Approved">Approved</option>
+              <option value="Reject">Reject</option>
             </select>
-            </div>
-
+          </div>
+        </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Add Record</button>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
+  </div>
+</div>
+<hr/>
+
+
+
+
+<!-- Add Work Experience Modal -->
+<div class="modal fade" id="addWorkExperienceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="">
+      <input type="hidden" name="add_work_experience" value="1">
+      <input type="hidden" name="personnel_id" value="<?= htmlspecialchars($personnel_id ?? '') ?>">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Work Experience</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Date From</label>
+            <input type="date" name="date_from" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Date To</label>
+            <input type="date" name="date_to" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Position Title</label>
+            <input type="text" name="position_title" value="<?= htmlspecialchars($_POST['position_title'] ?? '') ?>" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Department</label>
+            <input type="text" name="department" value="<?= htmlspecialchars($_POST['department'] ?? '') ?>" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Monthly Salary</label>
+            <input type="number" step="0.01" name="monthly_salary" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 
-<!-- Bootstrap JS -->
+
+<!-- Job Order Work Experience Section -->
+<div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+  <h5 class="fw-bold">Job Order Work Experience</h5>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addWorkExperienceModal">
+    <i class="fas fa-plus"></i> Add Work Experience
+  </button>
+</div>
+<table class="table table-bordered">
+    <thead class="table-dark">
+
+    <tr>
+      <th>Date From</th>
+      <th>Date To</th>
+      <th>Position Title</th>
+      <th>Department</th>
+      <th>Monthly Salary</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php
+    if ($personnel_id) {
+        $stmt = $conn->prepare("SELECT experience_id, date_from, date_to, position_title, department, monthly_salary FROM jo_work_experience WHERE personnel_id = ?");
+        $stmt->bind_param("i", $personnel_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>" . htmlspecialchars($row['date_from']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['date_to']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['position_title']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['department']) . "</td>";
+        echo "<td>₱" . number_format($row['monthly_salary'] ?? 0, 2) . "</td>";
+        echo "<td>
+            <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#editWorkExpModal{$row['experience_id']}'>Edit</button>
+            <button class='btn btn-danger btn-sm' data-bs-toggle='modal' data-bs-target='#deleteWorkExpModal{$row['experience_id']}'>Delete</button>
+        </td>";
+        echo "</tr>";
+
+        // Store modal HTML in a buffer (next section)
+        $editModals[] = $row;
+    }
+} else {
+    echo '<tr><td colspan="6" class="text-center">No work experience found.</td></tr>';
+}
+$stmt->close();
+} else {
+    echo '<tr><td colspan="6" class="text-center">Personnel ID not found.</td></tr>';
+}
+?>
+  </tbody>
+</table>
+</div>
+<?php if (!empty($editModals)): ?>
+  <?php foreach ($editModals as $row): ?>
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editWorkExpModal<?= $row['experience_id'] ?>" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="">
+          <input type="hidden" name="edit_work_experience" value="1">
+            <input type="hidden" name="experience_id" value="<?= $row['experience_id'] ?>">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Edit Work Experience</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-2"><label>Date From</label><input type="date" name="date_from" value="<?= $row['date_from'] ?>" class="form-control" required></div>
+              <div class="mb-2"><label>Date To</label><input type="date" name="date_to" value="<?= $row['date_to'] ?>" class="form-control" required></div>
+              <div class="mb-2"><label>Position Title</label><input type="text" name="position_title" value="<?= htmlspecialchars($row['position_title'] ?? '') ?>" class="form-control" required></div>
+              <div class="mb-2"><label>Department</label><input type="text" name="department" value="<?= htmlspecialchars($row['department'] ?? '') ?>" class="form-control" required></div>
+              <div class="mb-2"><label>Monthly Salary</label><input type="number" name="monthly_salary" step="0.01" value="<?= $row['monthly_salary'] ?>" class="form-control" required></div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteWorkExpModal<?= $row['experience_id'] ?>" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="">
+          <input type="hidden" name="delete_work_experience" value="1">
+          <input type="hidden" name="experience_id" value="<?= $row['experience_id'] ?>">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm Deletion</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">Are you sure you want to delete this record?</div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-danger">Delete</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  <?php endforeach; ?>
+<?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editWorkExpModal<?= $row['experience_id'] ?>" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="">
+      <input type="hidden" name="edit_work_experience" value="1">
+      <input type="hidden" name="experience_id" value="<?= htmlspecialchars($row['experience_id'] ?? '') ?>">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Work Experience</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label>Date From</label>
+            <input type="date" name="date_from" value="<?= htmlspecialchars($row['date_from'] ?? '') ?>" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Date To</label>
+            <input type="date" name="date_to" value="<?= htmlspecialchars($row['date_to'] ?? '') ?>" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Position Title</label>
+            <input type="text" name="position_title" value="<?= htmlspecialchars($row['position_title'] ?? '') ?>" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Department</label>
+            <input type="text" name="department" value="<?= htmlspecialchars($row['department'] ?? '') ?>" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Monthly Salary</label>
+            <input type="number" name="monthly_salary" step="0.01" value="<?= htmlspecialchars($row['monthly_salary'] ?? '0') ?>" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

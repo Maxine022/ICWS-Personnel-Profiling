@@ -23,7 +23,7 @@ $result = $conn->query("
   FROM contract_service cs
   JOIN personnel p ON cs.personnel_id = p.personnel_id
   WHERE p.emp_type = 'Contract' AND p.emp_status = 'Active'
-  ORDER BY p.personnel_id ASC, p.full_name ASC
+  ORDER BY p.full_name ASC
   LIMIT 50
 ");
 
@@ -69,8 +69,8 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0 fw-bold">Manage Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
@@ -86,13 +86,13 @@ if ($result && $result->num_rows > 0) {
 
     <div class="col-md-6 text-end">
       <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-        <button class="btn btn-primary btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/add_cos.php'"><i class="fas fa-plus"></i> Add</button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/add_cos.php'"><i class="fas fa-plus"></i> Add</button>
         <button class="btn btn-success btn-sm shadow-custom text-white" data-bs-toggle="modal" data-bs-target="#uploadModal">
           <i class="fas fa-upload"></i> Upload File
         </button>
         <span class="vr d-none d-md-inline"></span>
         <button class="btn btn-outline-success export-btn btn-sm" data-type="csv">CSV</button>
-        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/print.php'">Print</button>
+        <button class="btn btn-warning btn-sm" onclick="window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/print.php'">Print</button>
       </div>
     </div>
   </div>
@@ -145,6 +145,7 @@ if ($result && $result->num_rows > 0) {
 <script>
     var table = $('#personnelTable').DataTable({
       "pageLength": 20,
+      "order": [[1, "asc"]],
       dom: "<'row'<'col-12'tr>>" +
            "<'row mt-3'<'col-md-6'i><'col-md-6 text-end'p>>"
     });

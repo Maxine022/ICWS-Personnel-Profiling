@@ -26,7 +26,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
       FROM reg_emp r
       JOIN personnel p ON r.personnel_id = p.personnel_id
       JOIN salary s ON r.salary_id = s.salary_id
-      ORDER BY p.personnel_id DESC, p.full_name ASC
+      ORDER BY p.full_name ASC
     ");
     if ($result === false) {
         echo "<div style='color:red;'>SQL Error: {$conn->error}</div>";
@@ -51,7 +51,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
       FROM job_order jo
       JOIN personnel p ON jo.personnel_id = p.personnel_id
       WHERE p.emp_type = 'Job Order'
-      ORDER BY p.personnel_id DESC, p.full_name ASC
+      ORDER BY p.full_name ASC
     ");
     if ($result === false) {
         echo "<div style='color:red;'>SQL Error: " . $conn->error . "</div>";
@@ -76,7 +76,7 @@ if ($current_page === 'manage_regEmp.php' || $current_page === 'regular') {
       FROM contract_service cs
       JOIN personnel p ON cs.personnel_id = p.personnel_id
       WHERE p.emp_type = 'Contract'
-      ORDER BY p.personnel_id DESC, p.full_name ASC
+      ORDER BY p.full_name ASC
     ");
     if ($result === false) {
         echo "<div style='color:red;'>SQL Error: " . $conn->error . "</div>";

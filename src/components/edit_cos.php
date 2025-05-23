@@ -69,73 +69,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $emp_status = $_POST["emp_status"] ?? null;
 
     // Validate required fields
-    if (!$fullName || !$division ) {
-        die("<div class='alert alert-danger'>Full Name, and Division are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+    if (!$fullName) {
+        die("<div class='alert alert-danger'>Full Name is a required field. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
     }
 
-    // Update personnel table
-    $updatePersonnel = $conn->prepare("
-        UPDATE personnel 
-        SET Emp_No = ?, full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
-        WHERE Emp_No = ?
-    ");
+    // Check for duplicate Emp_No (excluding the current record)
+    $dupCheck = $conn->prepare("SELECT COUNT(*) FROM personnel WHERE Emp_No = ? AND Emp_No != ?");
+    $dupCheck->bind_param("ss", $Emp_No, $original_emp_no);
+    $dupCheck->execute();
+    $dupCheck->bind_result($dupCount);
+    $dupCheck->fetch();
+    $dupCheck->close();
 
-    if (!$updatePersonnel) {
-        die("<div class='alert alert-danger'>Failed to prepare personnel update query: {$conn->error}</div>");
-    }
+    if ($dupCount > 0) {
+        echo "<div class='alert alert-danger'>The Employee Number <strong>" . htmlspecialchars($Emp_No) . "</strong> already exists in the database. Please use a unique Employee Number.</div>";
+    } else {
+        // Update personnel table
+        $updatePersonnel = $conn->prepare("
+            UPDATE personnel 
+            SET Emp_No = ?, full_name = ?, position = ?, section = ?, unit = ?, team = ?, operator = ?, division = ?, contact_number = ?, sex = ?, birthdate = ?, emp_status = ?, address = ?
+            WHERE Emp_No = ?
+        ");
 
-    $updatePersonnel->bind_param(
-        "ssssssssssssss",
-        $Emp_No,         // New Emp_No from the form
-        $fullName,
-        $position,
-        $section,
-        $unit,
-        $team,
-        $operator,
-        $division,
-        $contactNumber,
-        $sex,
-        $birthdate,
-        $emp_status,
-        $address,
-        $original_emp_no // Use the original Emp_No for WHERE clause
-    );
+        if (!$updatePersonnel) {
+            die("<div class='alert alert-danger'>Failed to prepare personnel update query: {$conn->error}</div>");
+        }
 
-    // Update contract_service table
-    $updateContractService = $conn->prepare("
-        UPDATE contract_service 
-        SET salaryRate = ?
-        WHERE personnel_id = ?
-    ");
+        $updatePersonnel->bind_param(
+            "ssssssssssssss",
+            $Emp_No,         // New Emp_No from the form
+            $fullName,
+            $position,
+            $section,
+            $unit,
+            $team,
+            $operator,
+            $division,
+            $contactNumber,
+            $sex,
+            $birthdate,
+            $emp_status,
+            $address,
+            $original_emp_no // Use the original Emp_No for WHERE clause
+        );
 
-    if (!$updateContractService) {
-        die("<div class='alert alert-danger'>Failed to prepare contract_service update query: {$conn->error}</div>");
-    }
+        // Update contract_service table
+        $updateContractService = $conn->prepare("
+            UPDATE contract_service 
+            SET salaryRate = ?
+            WHERE personnel_id = ?
+        ");
 
-    $updateContractService->bind_param(
-        "di",
-        $salaryRate,
-        $employee['personnel_id']
-    );
+        if (!$updateContractService) {
+            die("<div class='alert alert-danger'>Failed to prepare contract_service update query: {$conn->error}</div>");
+        }
 
-    // Execute updates
-    $success = true;
-    if (!$updatePersonnel->execute()) {
-        $success = false;
-        echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
-    }
-    if (!$updateContractService->execute()) {
-        $success = false;
-        echo "<div class='alert alert-danger'>Failed to update contract_service details: {$updateContractService->error}</div>";
-    }
+        $updateContractService->bind_param(
+            "di",
+            $salaryRate,
+            $employee['personnel_id']
+        );
 
-    if ($success) {
-        echo "<div class='alert alert-success' role='alert'>
-                Employee details have been successfully updated!
-              </div>";
-        echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
-        exit();
+        // Execute updates
+        $success = true;
+        if (!$updatePersonnel->execute()) {
+            $success = false;
+            echo "<div class='alert alert-danger'>Failed to update personnel details: {$updatePersonnel->error}</div>";
+        }
+        if (!$updateContractService->execute()) {
+            $success = false;
+            echo "<div class='alert alert-danger'>Failed to update contract_service details: {$updateContractService->error}</div>";
+        }
+
+        if ($success) {
+            echo "<div class='alert alert-success' role='alert'>
+                    Employee details have been successfully updated!
+                  </div>";
+            echo "<script>window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($Emp_No) . "';</script>";
+            exit();
+        }
     }
 }
 
@@ -179,6 +191,14 @@ body { font-family: Arial; }
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
+<?php if (isset($dupCount) && $dupCount > 0): ?>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    The Employee Number <strong><?= htmlspecialchars($Emp_No) ?></strong> already exists in the database. Please use a unique Employee Number.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="content" id="content">
 <div class="container mt-0">
@@ -186,8 +206,8 @@ body { font-family: Arial; }
         <h4 class="mb-0" style="font-weight: bold;">Edit Contract of Service Employee</h4>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Contract of Service Employee</li>
             </ol>
         </nav>
@@ -227,7 +247,7 @@ body { font-family: Arial; }
             </div>
             <div class="col-md-6">
                 <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="10" pattern="\d{10}" title="Contact number must be 10 digits">
+                <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" maxlength="11" pattern="\d{11}" title="Contact number must be 11 digits">
             </div>
             <div class="col-md-6">
                 <label for="position" class="form-label">Position</label>
@@ -235,7 +255,7 @@ body { font-family: Arial; }
             </div>
             <div class="col-md-6">
             <label for="division" class="form-label">Division</label>
-              <select class="form-control" id="division" name="division" required>
+              <select class="form-control" id="division" name="division">
               <option value="">Select Division</option>
               <?php
               foreach ($jsDivisionData as $division) {

@@ -27,34 +27,46 @@ $salary_rate = $_POST['salary_rate'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate required fields
-    if (!$Emp_no || !$full_name || !$division) {
+    if (!$Emp_no || !$full_name) {
         $error = "Please fill in all required fields.";
     } else {
-        // Insert into personnel table
-        $stmt = $conn->prepare("
-            INSERT INTO personnel (Emp_No, full_name, sex, birthdate, contact_number, address, position, division, section, unit, team, operator, emp_type, emp_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Contract', 'Active')
-        ");
-        $stmt->bind_param("ssssssssssss", $Emp_no, $full_name, $sex, $birthdate, $contact_number, $address, $position, $division, $section, $unit, $team, $operator);
-        if (!$stmt->execute()) {
-            $error = "Error executing query: {$stmt->error}";
+        // Check for duplicate Emp_No
+        $dupCheck = $conn->prepare("SELECT COUNT(*) FROM personnel WHERE Emp_No = ?");
+        $dupCheck->bind_param("s", $Emp_no);
+        $dupCheck->execute();
+        $dupCheck->bind_result($dupCount);
+        $dupCheck->fetch();
+        $dupCheck->close();
+
+        if ($dupCount > 0) {
+            $error = "The Employee Number <strong>" . htmlspecialchars($Emp_no) . "</strong> already exists. Please use a unique Employee Number.";
         } else {
-            $personnel_id = $conn->insert_id;
-            if (!$personnel_id) {
-                $error = "Error retrieving last inserted ID: {$conn->error}";
+            // Insert into personnel table
+            $stmt = $conn->prepare("
+                INSERT INTO personnel (Emp_No, full_name, sex, birthdate, contact_number, address, position, division, section, unit, team, operator, emp_type, emp_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Contract', 'Active')
+            ");
+            $stmt->bind_param("ssssssssssss", $Emp_no, $full_name, $sex, $birthdate, $contact_number, $address, $position, $division, $section, $unit, $team, $operator);
+            if (!$stmt->execute()) {
+                $error = "Error executing query: {$stmt->error}";
             } else {
-                // Insert into contract_service table
-                $stmt = $conn->prepare("
-                    INSERT INTO contract_service (personnel_id, salaryRate)
-                    VALUES (?, ?)
-                ");
-                $stmt->bind_param("id", $personnel_id, $salary_rate);
-                if (!$stmt->execute()) {
-                    $error = "Error inserting contract_service: {$stmt->error}";
+                $personnel_id = $conn->insert_id;
+                if (!$personnel_id) {
+                    $error = "Error retrieving last inserted ID: {$conn->error}";
                 } else {
-                    // Redirect after successful insertion
-                    header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php");
-                    exit;
+                    // Insert into contract_service table
+                    $stmt = $conn->prepare("
+                        INSERT INTO contract_service (personnel_id, salaryRate)
+                        VALUES (?, ?)
+                    ");
+                    $stmt->bind_param("id", $personnel_id, $salary_rate);
+                    if (!$stmt->execute()) {
+                        $error = "Error inserting contract_service: {$stmt->error}";
+                    } else {
+                        // Redirect after successful insertion
+                        header("Location: http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_cos.php");
+                        exit;
+                    }
                 }
             }
         }
@@ -145,8 +157,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h4 class="mb-0 fw-bold"> Add Contract of Service Employees</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/personnel_record.php">Manage Personnel</a></li>
         <li class="breadcrumb-item active" aria-current="page">Contract of Service</li>
       </ol>
     </nav>
@@ -190,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="col-md-6">
             <label class="form-label">Division</label>
-            <select class="form-select" name="division" required>
+            <select class="form-select" name="division">
                 <option value="">Select Division</option>
                 <?php
                 $divisionFilePath = __DIR__ . '/ideas/division.php';
@@ -231,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">Add Contract of Service</button>
-            <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
+            <a href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_cos.php" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
     </div>

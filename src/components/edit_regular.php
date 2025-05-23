@@ -6,6 +6,8 @@ header("Expires: 0");
 
 // Include database connection
 include_once __DIR__ . '/../../backend/db.php';
+include_once __DIR__ . '/ideas/salary.php';
+$jsLevelData = getLevelData(); 
 
 // Check database connection
 if ($conn->connect_error) {
@@ -69,6 +71,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve form data with default values to avoid warnings
     $emp_no = $_POST["Emp_No"] ?? null;
     $fullName = $_POST["full_name"] ?? null;
+    $sex = $_POST["sex"] ?? null;
+    $birthdate = $_POST["birthdate"] ?? null;
     $emp_status = $_POST["emp_status"] ?? null;
     $position = $_POST["position"] ?? null;
     $unit = $_POST["unit"] ?? null;
@@ -76,8 +80,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $team = $_POST["team"] ?? null;
     $operator = $_POST["operator"] ?? null;
     $division = $_POST["division"] ?? null;
-    $sex = $_POST["sex"] ?? null;
-    $birthdate = !empty($_POST["birthdate"]) ? $_POST["birthdate"] : null; // <-- allow null
     $address = $_POST["address"] ?? null;
     $emp_status = $_POST["emp_status"] ?? null;
     $plantillaNo = $_POST["plantillaNo"] ?? null;
@@ -89,10 +91,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $monthlySalary = $_POST["monthlySalary"] ?? 0;
 
     // Validate required fields
-    if (!$fullName || !$position || !$division || !$sex || !$birthdate || !$emp_status) {
-        die("<div class='alert alert-danger'>Full Name, Position, Division, Sex, Birthdate, and Status are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
+    if (!$fullName) {
+        die("<div class='alert alert-danger'>Full Name and Division are required fields. <a href='javascript:history.back()' class='btn btn-secondary'>Go Back</a></div>");
     }
 
+    // Check for duplicate Emp_No (excluding the current record)
+    $dupCheck = $conn->prepare("SELECT COUNT(*) FROM personnel WHERE Emp_No = ? AND Emp_No != ?");
+    $dupCheck->bind_param("ss", $emp_no, $original_emp_no);
+    $dupCheck->execute();
+    $dupCheck->bind_result($dupCount);
+    $dupCheck->fetch();
+    $dupCheck->close();
+
+    if ($dupCount > 0) {
+        $showDupAlert = true;
+        $dupAlertMsg = "The Employee Number <strong>" . htmlspecialchars($emp_no) . "</strong> already exists in the database. Please use a unique Employee Number.";
+    } else {
     // Prepare statements for updating the database
     $updatePersonnel = $conn->prepare("
         UPDATE personnel 
@@ -103,7 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!$updatePersonnel) {
         die("<div class='alert alert-danger'>Failed to prepare personnel update query: {$conn->error}</div>");
     }
-
     $updatePersonnel->bind_param(
         "ssssssssssssss",
         $emp_no,        // new Emp_No from form
@@ -184,9 +197,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<div class='alert alert-success' role='alert'>
                 Employee details have been successfully updated!
               </div>";
-        echo "<script>window.location.href='http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
+        echo "<script>window.location.href='http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=" . urlencode($emp_no) . "';</script>";
         exit();
     }
+}
 }
 
 // Fetch division data for dynamic dropdowns
@@ -251,14 +265,22 @@ if (class_exists('Division')) {
 <?php include __DIR__ . '/../hero/navbar.php'; ?>
 <?php include __DIR__ . '/../hero/sidebar.php'; ?>
 
+<?php if (!empty($showDupAlert)): ?>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <?= $dupAlertMsg ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="content" id="content">
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
         <h4 class="mb-0" style="font-weight: bold;">Edit Employee</h4>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+                <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?php echo htmlspecialchars($emp_no); ?>">Profile</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Edit Employee</li>
             </ol>
         </nav>
@@ -307,7 +329,7 @@ if (class_exists('Division')) {
             </div>
             <div class="col-md-6">
             <label for="division" class="form-label">Division</label>
-              <select class="form-control" id="division" name="division" required>
+              <select class="form-control" id="division" name="division">
               <option value="">Select Division</option>
               <?php
               foreach ($jsDivisionData as $division) {
@@ -335,7 +357,7 @@ if (class_exists('Division')) {
             </div>
             <div class="col-md-6">
                 <label for="plantillaNo" class="form-label">Plantilla Number</label>
-                <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>0" required>
+                <input type="text" class="form-control" id="plantillaNo" name="plantillaNo" value="<?php echo htmlspecialchars($employee['plantillaNo']); ?>" required>
             </div>
             <div class="col-md-2">
                 <label for="salaryGrade" class="form-label">Salary Grade</label>
@@ -351,12 +373,12 @@ if (class_exists('Division')) {
             </div>
             <div class="col-md-6">
                 <label for="level" class="form-label">Level</label>
-                <select class="form-control" id="level" name="level" >
+                <select class="form-control" id="level" name="level">
                     <option value="">Select Level</option>
                     <?php
-                    foreach ($jsLevelData as $levelValue) {
-                        $selected = ($employee['level'] == $levelValue) ? 'selected' : '';
-                        echo "<option value=\"$levelValue\" $selected>$levelValue</option>";
+                    foreach ($jsLevelData as $levelKey => $levelLabel) {
+                        $selected = ($employee['level'] == $levelKey) ? 'selected' : '';
+                        echo "<option value=\"$levelKey\" $selected>$levelLabel</option>";
                     }
                     ?>
                 </select>
@@ -373,25 +395,7 @@ if (class_exists('Division')) {
     </form>
 </div>
 <script>
-<script>
     const jsLevelData = <?php echo json_encode($jsLevelData); ?>;
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const levelSelect = document.getElementById('level');
-    const currentLevel = <?php echo json_encode((int)$employee['level']); ?>;
-
-    // Populate the level dropdown
-    Object.keys(jsLevelData).forEach(levelValue => {
-        const option = document.createElement('option');
-        option.value = levelValue;
-        option.textContent = jsLevelData[levelValue];
-        if (parseInt(levelValue) === currentLevel) {
-            option.selected = true;
-        }
-        levelSelect.appendChild(option);
-    });
-});
 </script>
 </body>
 </html>

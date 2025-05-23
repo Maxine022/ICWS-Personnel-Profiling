@@ -17,6 +17,7 @@ $stmt = $conn->prepare("SELECT * FROM personnel WHERE Emp_No = ?");
 $stmt->bind_param("s", $emp_no);
 $stmt->execute();
 $employee = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
 if (!$employee) {
     echo "<h3>Error: Employee not found.</h3>";
@@ -29,6 +30,7 @@ $stmt->bind_param("i", $employee['personnel_id']);
 $stmt->execute();
 $result = $stmt->get_result();
 $employment_type = strtolower($result->fetch_assoc()['emp_type'] ?? '');
+$stmt->close();
 
 // Fetch service records with proper aliases
 $service_records = [];
@@ -47,57 +49,79 @@ if ($employment_type === 'regular') {
     $service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
-$coc = [];
-$contract_service_records = [];
-
-if ($employment_type === 'job_order') {
+// Fetch job order work experience for all job order type variants
+$jo_work_experience = [];
+if (in_array($employment_type, ['job order', 'job_order', 'joborder']) && !empty($employee['personnel_id'])) {
     $stmt = $conn->prepare("
-        SELECT c.startingDate, c.endDate, c.ActJust, c.remarks, c.earned_hours, c.used_hours
-        FROM coc c
-        INNER JOIN job_order j ON c.jo_id = j.jo_id
-        INNER JOIN personnel p ON j.personnel_id = p.personnel_id
-        WHERE p.Emp_No = ?
-    ");
-    $stmt->bind_param("s", $emp_no);
-    $stmt->execute();
-    $coc = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-}
-
-// Fetch contract service records if employment type is 'contract'
-$contract_service_records = [];
-if ($employment_type === 'contract') {
-    $stmt = $conn->prepare("
-        SELECT contractStart, contractEnd, remarks
-        FROM contractservice_record csr
-        JOIN contract_service cs ON csr.contractservice_id = cs.contractservice_id
-        WHERE cs.personnel_id = ?
+        SELECT date_from, date_to, position_title, department, monthly_salary
+        FROM jo_work_experience
+        WHERE personnel_id = ?
     ");
     $stmt->bind_param("i", $employee['personnel_id']);
     $stmt->execute();
-    $contract_service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $result = $stmt->get_result();
+    $jo_work_experience = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 }
 
+// Fetch salaryRate for job order
+if ($employment_type === 'job_order') {
+    $stmt = $conn->prepare("SELECT salaryRate FROM job_order WHERE personnel_id = ?");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $job_order_info = $stmt->get_result()->fetch_assoc();
+    $employee['salaryRate'] = $job_order_info['salaryRate'] ?? null;
+    $stmt->close();
+}
 
+if (in_array($employment_type, ['job order', 'job_order', 'joborder'])) {
+    $stmt = $conn->prepare("SELECT salaryRate FROM job_order WHERE personnel_id = ?");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $job_order_info = $stmt->get_result()->fetch_assoc();
+    $employee['salaryRate'] = $job_order_info['salaryRate'] ?? null;
+    $stmt->close();
+}
 
-// Salary
+// Contract service records
+$contract_service_records = [];
+if ($employment_type === 'contract') {
+    $stmt = $conn->prepare("SELECT contractStart, contractEnd, remarks FROM contractservice_record csr JOIN contract_service cs ON csr.contractservice_id = cs.contractservice_id WHERE cs.personnel_id = ?");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $contract_service_records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
+
+// Salary info
 $stmt = $conn->prepare("SELECT * FROM salary WHERE personnel_id = ?");
 $stmt->bind_param("i", $employee['personnel_id']);
 $stmt->execute();
 $salary = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-// Regular Employee Info
+// Regular employee details
 $stmt = $conn->prepare("SELECT * FROM reg_emp WHERE personnel_id = ?");
 $stmt->bind_param("i", $employee['personnel_id']);
 $stmt->execute();
 $reg_emp = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-// Profile picture path
+// Profile picture
 $profile_picture_path = __DIR__ . '/../../uploads/profile_' . $employee['personnel_id'] . '.png';
 $profile_picture_url = file_exists($profile_picture_path)
     ? '../../uploads/profile_' . $employee['personnel_id'] . '.png'
     : '../../assets/profile.jpg';
-?>
+
+$cos = [];
+if ($employment_type === 'contract') {
+    $stmt = $conn->prepare("SELECT salaryRate FROM contract_service WHERE personnel_id = ?");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $cos = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
+?>  
 
 
 <!DOCTYPE html>
@@ -218,89 +242,96 @@ $profile_picture_url = file_exists($profile_picture_path)
       <tr><td><strong>Salary Grade:</strong></td><td><?= htmlspecialchars($salary['salaryGrade'] ?? 'N/A') ?></td></tr>
       <tr><td><strong>Monthly Salary:</strong></td><td><?= htmlspecialchars($salary['monthlySalary'] ?? 'N/A') ?></td></tr>
       <tr><td><strong>ACA Pera:</strong></td><td><?= htmlspecialchars($reg_emp['acaPera'] ?? 'N/A') ?></td></tr>
-    <?php elseif ($employment_type === 'job_order' || $employment_type === 'contract'): ?>
-      <tr><td><strong>Salary Rate:</strong></td><td><?= htmlspecialchars($employee['salaryRate'] ?? 'N/A') ?></td></tr>
-    <?php endif; ?>
+      <?php elseif (in_array(strtolower($employment_type), ['job order', 'job_order', 'joborder'])): ?>
+      <tr><td><strong>Salary Rate:</strong></td>
+      <td>
+          <?= isset($employee['salaryRate']) ? '₱' . number_format((float)$employee['salaryRate'], 2) : 'N/A' ?>
+      </td>
+      </tr>
+          <?php elseif (strtolower($employment_type) === 'contract'): ?>
+          <tr><td><strong>Salary Rate:</strong></td>
+        <td>
+            <?= isset($cos['salaryRate']) ? '₱' . number_format((float)$cos['salaryRate'], 2) : 'N/A' ?>
+        </td>
+      </tr>
+      <?php endif; ?>
   </table>
 </section>
 
-<!-- RECORD -->
+<!-- WORK EXPERIENCE -->
 <section>
-  <div class="section-title">WORK EXPERIENCE</div>
-  <table class="service-record">
-    <thead>
+<div class="section-title">WORK EXPERIENCE</div>
+<table class="service-record">
+<thead>
+<tr>
+  <?php if ($employment_type === 'regular'): ?>
+    <th>Starting Date</th>
+    <th>Ending Date</th>
+    <th>Position</th>
+    <th>Department</th>
+  <?php elseif (in_array($employment_type, ['job order', 'job_order', 'joborder'])): ?>
+    <th>Date From</th>
+    <th>Date To</th>
+    <th>Position Title</th>
+    <th>Department</th>
+    <th>Monthly Salary</th>
+  <?php elseif ($employment_type === 'contract'): ?>
+    <th>Contract Start</th>
+    <th>Contract End</th>
+    <th>Remarks</th>
+  <?php endif; ?>
+</tr>
+</thead>
+<tbody>
+<?php if ($employment_type === 'regular'): ?>
+  <?php if (!empty($service_records)): ?>
+    <?php foreach ($service_records as $record): ?>
       <tr>
-        <?php if ($employment_type === 'regular'): ?>
-          <th>Starting Date</th>
-          <th>Ending Date</th>
-          <th>Position</th>
-          <th>Division</th>
-        <?php elseif ($employment_type === 'job_order'): ?>
-          <th>Starting Date</th>
-          <th>Ending Date</th>
-          <th>Earned Hours</th>
-          <th>Used Hours</th>
-          <th>Title of Activity</th>
-          <th>Remarks</th>
-        <?php elseif ($employment_type === 'contract'): ?>
-          <th>Contract Start</th>
-          <th>Contract End</th>
-          <th>Remarks</th>
-        <?php endif; ?>
+        <td><?= htmlspecialchars($record['start_date']) ?></td>
+        <td><?= htmlspecialchars($record['end_date']) ?></td>
+        <td><?= htmlspecialchars($record['position']) ?></td>
+        <td><?= htmlspecialchars($record['company']) ?></td>
       </tr>
-    </thead>
-    <tbody>
-      <?php if ($employment_type === 'regular'): ?>
-        <?php if (!empty($service_records)): ?>
-          <?php foreach ($service_records as $record): ?>
-            <tr>
-              <td><?= htmlspecialchars($record['start_date']) ?></td>
-              <td><?= htmlspecialchars($record['end_date']) ?></td>
-              <td><?= htmlspecialchars($record['position']) ?></td>
-              <td><?= htmlspecialchars($record['company']) ?></td>
-            </tr>
-            <?php endforeach; ?>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <tr><td colspan="4">No service records available.</td></tr>
+  <?php endif; ?>
 
-        <?php else: ?>
-          <tr><td colspan="4">No service records available.</td></tr>
-        <?php endif; ?>
-      <?php elseif ($employment_type === 'job_order'): ?>
-        <?php if (!empty($coc)): ?>
-          <?php foreach ($coc as $record): ?>
-            <tr>
-              <td><?= htmlspecialchars($record['startingDate'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['endDate'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['earned_hours'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['used_hours'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['ActJust'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($record['remarks'] ?? 'N/A') ?></td>
-            </tr>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <tr><td colspan="6">No COC records available.</td></tr>
-        <?php endif; ?>
-            <?php elseif ($employment_type === 'contract'): ?>
-        <?php if (!empty($contract_service_records)): ?>
-            <?php foreach ($contract_service_records as $record): ?>
-                <tr>
-                    <td><?= htmlspecialchars($record['contractStart'] ?? 'N/A') ?></td>
-                    <td><?= htmlspecialchars($record['contractEnd'] ?? 'N/A') ?></td>
-                    <td><?= htmlspecialchars($record['remarks'] ?? 'N/A') ?></td>
-                </tr>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <tr><td colspan="3">No contract service records available.</td></tr>
-        <?php endif; ?>
-      <?php else: ?>
-        <tr><td colspan="6">No service records available.</td></tr>
-      <?php endif; ?>
-    </tbody>
-  </table>
+  <?php elseif (in_array($employment_type, ['job order', 'job_order', 'joborder'])): ?>
+  <?php if (!empty($jo_work_experience)): ?>
+      <?php foreach ($jo_work_experience as $exp): ?>
+          <tr>
+              <td><?= htmlspecialchars($exp['date_from']) ?></td>
+              <td><?= htmlspecialchars($exp['date_to']) ?></td>
+              <td><?= htmlspecialchars($exp['position_title']) ?></td>
+              <td><?= htmlspecialchars($exp['department']) ?></td>
+              <td>₱<?= number_format($exp['monthly_salary'], 2) ?></td>
+          </tr>
+      <?php endforeach; ?>
+  <?php else: ?>
+      <tr><td colspan="5">No job order work experience records available.</td></tr>
+  <?php endif; ?>
+
+<?php elseif ($employment_type === 'contract'): ?>
+  <?php if (!empty($contract_service_records)): ?>
+    <?php foreach ($contract_service_records as $record): ?>
+      <tr>
+        <td><?= htmlspecialchars($record['contractStart']) ?></td>
+        <td><?= htmlspecialchars($record['contractEnd']) ?></td>
+        <td><?= htmlspecialchars($record['remarks']) ?></td>
+      </tr>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <tr><td colspan="3">No contract service records available.</td></tr>
+  <?php endif; ?>
+<?php endif; ?>
+</tbody>
+</table>
 </section>
 
 <footer>
-  <div><strong>Date Printed:</strong> <?= date('F d, Y') ?></div>
-  <div>Generated by ICWS Personnel Profiling System</div>
+<div><strong>Date Printed:</strong> <?= date('F d, Y') ?></div>
+<div>Generated by ICWS Personnel Profiling System</div>
 </footer>
 
 </body>
