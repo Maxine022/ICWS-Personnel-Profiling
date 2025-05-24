@@ -259,9 +259,9 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
                       $remaining = $earned - $used;
                     ?>
                     <tr>
-                    <td><?= htmlspecialchars(date('F d, Y', strtotime($entry['date']))) ?></td>
+                    <td><?= htmlspecialchars(date('m/d/Y', strtotime($entry['date']))) ?></td>
                     <td><?= htmlspecialchars($entry['earned_hours']) ?></td>
-                    <td><?= htmlspecialchars(date('F d, Y', strtotime($entry['date_usage']))) ?></td>
+                    <td><?= htmlspecialchars(date('m/d/Y', strtotime($entry['date_usage']))) ?></td>
                     <td><?= htmlspecialchars($entry['used_hours']) ?></td>
                     <td><?= htmlspecialchars($entry['ActJust']) ?></td>
                     <td><?= htmlspecialchars(!empty($entry['remarks']) ? $entry['remarks'] : 'Approved') ?></td>

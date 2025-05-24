@@ -107,9 +107,63 @@ if ($result && $result->num_rows > 0) {
     }
     .table-container {
       margin-top: 20px;
+      overflow-x: auto;
     }
-    .table-bordered td, .table-bordered th {
-      border: 1px solid #dee2e6 !important;
+    .table {
+      table-layout: fixed !important;
+      width: 100% !important;
+    }
+    .table th, .table td {
+      white-space: normal !important;
+      word-break: break-word !important;
+      vertical-align: middle;
+      font-size: 15px;
+      padding: 8px 6px;
+    }
+    .table th {
+      background: #f8f9fa;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .table td {
+      font-size: 15px;
+    }
+    .table th:nth-child(2), .table td:nth-child(2) { /* Full Name */
+      min-width: 180px;
+      max-width: 250px;
+      white-space: normal !important;
+      overflow-wrap: break-word !important;
+      overflow: visible !important;
+    }
+    .table th:nth-child(3), .table td:nth-child(3) { /* Contact Number */
+      min-width: 110px;
+      max-width: 130px;
+    }
+    .table th:nth-child(4), .table td:nth-child(4) { /* Position */
+      min-width: 140px;
+      max-width: 180px;
+    }
+    .table th:nth-child(7), .table td:nth-child(7) { /* Division */
+      min-width: 140px;
+      max-width: 180px;
+    }
+    .table th:nth-child(10), .table td:nth-child(10) { /* Action */
+      min-width: 90px;
+      max-width: 120px;
+      text-align: center;
+    }
+    @media (max-width: 1200px) {
+      .table th, .table td {
+        font-size: 13px;
+        padding: 6px 4px;
+      }
+    }
+    @media print {
+      .table th, .table td {
+        font-size: 12px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+      }
     }
     .breadcrumb-link {
       color: inherit;
@@ -143,7 +197,7 @@ if ($result && $result->num_rows > 0) {
     <h4 class="mb-0" style="font-weight: bold;">Personnel Records</h4>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">Personnel</li>
       </ol>
     </nav>
@@ -195,7 +249,7 @@ if ($result && $result->num_rows > 0) {
             <td><?= htmlspecialchars($p['employment_status']) ?></td> <!-- New column -->
             <td>
             <?php if (!empty($p['Emp_No'])): ?>
-              <a href="http://192.168.1.100//ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
+              <a href="http://localhost//ICWS-Personnel-Profiling/src/components/profile.php?Emp_No=<?= urlencode($p['Emp_No']) ?>" class="view-link">View Profile</a>
             <?php else: ?>
               <span class="text-muted">Employee Not Found</span>
             <?php endif; ?>
@@ -240,21 +294,27 @@ if ($result && $result->num_rows > 0) {
                 extend: 'csv', 
                 title: 'Personnel Records',
                 exportOptions: {
-                    columns: ':not(:last-child)'
+                    columns: ':visible:not(:last-child)'
                 }
             },
             { 
                 extend: 'pdf', 
                 title: 'Personnel Records',
+                orientation: 'landscape',
+                pageSize: 'folio',
                 exportOptions: {
-                    columns: ':not(:last-child)'
+                    columns: ':visible:not(:last-child)'
+                },
+                customize: function (doc) {
+                  doc.styles.tableHeader.alignment = 'left';
+                  doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
                 }
             },
             { 
                 extend: 'print', 
                 title: 'Personnel Records',
                 exportOptions: {
-                    columns: ':not(:last-child)'
+                    columns: ':visible:not(:last-child)'
                 }
             }
         ]

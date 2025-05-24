@@ -190,15 +190,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'
                 $result = $stmt->get_result();
                 if ($result && $result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$row['contractStart']}</td>
-                                <td>{$row['contractEnd']}</td>
-                                <td>{$row['remarks']}</td>
-                                <td>
-                                  <button class='btn btn-sm btn-primary' data-bs-toggle='modal' data-bs-target='#editModal{$row['serviceRecord_id']}'>Edit</button>
-                                  <button class='btn btn-sm btn-danger' data-bs-toggle='modal' data-bs-target='#deleteModal{$row['serviceRecord_id']}'>Delete</button>
-                                </td>
-                              </tr>";
+                        echo "<tr>";
+
+                        // Contract Start
+                        echo "<td>";
+                        if (!empty($row['contractStart'])) {
+                            $dt = DateTime::createFromFormat('Y-m-d', $row['contractStart']);
+                            echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($row['contractStart']);
+                        } else {
+                            echo '';
+                        }
+                        echo "</td>";
+
+                        // Contract End
+                        echo "<td>";
+                        if (!empty($row['contractEnd'])) {
+                            $dt = DateTime::createFromFormat('Y-m-d', $row['contractEnd']);
+                            echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($row['contractEnd']);
+                        } else {
+                            echo '';
+                        }
+                        echo "</td>";
+
+                        // Remarks
+                        echo "<td>" . htmlspecialchars($row['remarks'] ?? '') . "</td>";
+
+                        // Actions
+                        echo "<td>
+                                <button class='btn btn-sm btn-primary' data-bs-toggle='modal' data-bs-target='#editModal{$row['serviceRecord_id']}'>Edit</button>
+                                <button class='btn btn-sm btn-danger' data-bs-toggle='modal' data-bs-target='#deleteModal{$row['serviceRecord_id']}'>Delete</button>
+                              </td>";
+                        echo "</tr>";
 
                         // Edit Modal
                         echo "<div class='modal fade' id='editModal{$row['serviceRecord_id']}' tabindex='-1' aria-hidden='true'>
@@ -358,7 +380,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_service_record'
     function deleteRecord(serviceRecordId) {
       if (confirm("Are you sure you want to delete this record? This action cannot be undone.")) {
         // Redirect to a PHP script to handle deletion
-        window.location.href = `http://192.168.1.100/ICWS-Personnel-Profiling/src/components/delete_contractRecord.php?serviceRecord_id=${serviceRecordId}`;
+        window.location.href = `http://localhost/ICWS-Personnel-Profiling/src/components/delete_contractRecord.php?serviceRecord_id=${serviceRecordId}`;
       }
     }
   </script>

@@ -134,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["intern_id"])) {
   <?php if ($success): ?>
     <div class="alert alert-success">
       Intern information has been successfully updated! 
-      <a href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
+      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_intern.php" class="alert-link">Go to Manage Interns</a>.
     </div>
   <?php endif; ?>
 

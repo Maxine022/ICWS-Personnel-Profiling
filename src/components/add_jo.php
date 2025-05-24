@@ -141,8 +141,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h5 class="mb-0 fw-bold">Add New Job Order Employees</h5>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
-        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/hero/home.php">Home</a></li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php">Manage</a></li>
         <li class="breadcrumb-item active" aria-current="page">Job Order</li>
       </ol>
     </nav>

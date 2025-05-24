@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['data_file'])) {
             }
             fclose($handle);
             // Redirect after successful upload
-            header("Location: http://192.168.1.100/ICWS-Personnel-Profiling/src/components/manage_jo.php");
+            header("Location: http://localhost/ICWS-Personnel-Profiling/src/components/manage_jo.php");
             exit;
         }
     }

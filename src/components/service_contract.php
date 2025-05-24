@@ -44,8 +44,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service_record']))
 
     // Validate required fields
     if (!$jo_id) $errors[] = "Job Order ID (jo_id) is required.";
-    if (!$date || !$date_usage) $errors[] = "Both are required.";
-    if ($date >= $date_usage) $errors[] = "Date of CTO must be before the date of usage.";
+    //if (!$date || !$date_usage) $errors[] = "Both are required.";
+    //if ($date >= $date_usage) $errors[] = "Date of CTO must be before the date of usage.";
 
     // Limit: COC record should not exceed 1 year from starting date
     $start = new DateTime($date);
@@ -222,9 +222,27 @@ ob_end_flush();
       <?php if (!empty($pagedRecords)): ?>
         <?php foreach ($pagedRecords as $record): ?>
           <tr>
-            <td><?= htmlspecialchars($record['date'] ?? '') ?></td>
+            <td>
+              <?php
+                if (!empty($record['date'])) {
+                  $dt = DateTime::createFromFormat('Y-m-d', $record['date']);
+                  echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($record['date']);
+                } else {
+                  echo '';
+                }
+              ?>
+            </td>
             <td><?= htmlspecialchars((string)($record['earned_hours'] ?? '')) ?></td>
-            <td><?= htmlspecialchars($record['date_usage'] ?? '') ?></td>
+            <td>
+              <?php
+                if (!empty($record['date_usage'])) {
+                  $dt = DateTime::createFromFormat('Y-m-d', $record['date_usage']);
+                  echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($record['date_usage']);
+                } else {
+                  echo '';
+                }
+              ?>
+            </td>
             <td><?= htmlspecialchars((string)($record['used_hours'] ?? '')) ?></td>
             <td><?= htmlspecialchars($record['ActJust'] ?? '') ?></td>
             <td><?= htmlspecialchars($record['remarks'] ?? '') ?></td>
@@ -439,8 +457,23 @@ ob_end_flush();
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         echo "<tr>";
-        echo "<td>" . htmlspecialchars($row['date_from']) . "</td>";
-        echo "<td>" . htmlspecialchars($row['date_to']) . "</td>";
+        echo "<td>";
+        if (!empty($row['date_from'])) {
+          $dt = DateTime::createFromFormat('Y-m-d', $row['date_from']);
+          echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($row['date_from']);
+        } else {
+          echo '';
+        }
+        echo "</td>";
+
+        echo "<td>";
+        if (!empty($row['date_to'])) {
+          $dt = DateTime::createFromFormat('Y-m-d', $row['date_to']);
+          echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($row['date_to']);
+        } else {
+          echo '';
+        }
+        echo "</td>";
         echo "<td>" . htmlspecialchars($row['position_title']) . "</td>";
         echo "<td>" . htmlspecialchars($row['department']) . "</td>";
         echo "<td>₱" . number_format($row['monthly_salary'] ?? 0, 2) . "</td>";
