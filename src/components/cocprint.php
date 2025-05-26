@@ -261,7 +261,16 @@ $valid_until = date('Y-m-d', strtotime($date_issued . ' +12 months'));
                     <tr>
                     <td><?= htmlspecialchars(date('m/d/Y', strtotime($entry['date']))) ?></td>
                     <td><?= htmlspecialchars($entry['earned_hours']) ?></td>
-                    <td><?= htmlspecialchars(date('m/d/Y', strtotime($entry['date_usage']))) ?></td>
+                    <td>
+                      <?php
+                        if (!empty($entry['date_usage']) && $entry['date_usage'] !== '0000-00-00') {
+                          $dt = DateTime::createFromFormat('Y-m-d', $entry['date_usage']);
+                          echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($entry['date_usage']);
+                        } else {
+                          echo '';
+                        }
+                      ?>
+                    </td>
                     <td><?= htmlspecialchars($entry['used_hours']) ?></td>
                     <td><?= htmlspecialchars($entry['ActJust']) ?></td>
                     <td><?= htmlspecialchars(!empty($entry['remarks']) ? $entry['remarks'] : 'Approved') ?></td>

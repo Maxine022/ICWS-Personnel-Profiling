@@ -32,11 +32,11 @@ if ($emp_no) {
 // Handle Add
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service_record'])) {
     $date = $_POST["startingDate"];
-    $date_usage = $_POST["endDate"];
+    $date_usage = $_POST["endDate"]?? null;
     $ActJust = $_POST["ActJust"];
     $remarks = $_POST["remarks"];
     $jo_id = $_POST["jo_id"];
-    $earned_hours = $_POST["earned_hours"] ?? 0;
+    $earned_hours = $_POST["earned_hours"] ?? null;
     $used_hours = $_POST["used_hours"] ?? 0;
 
     // Error trapping
@@ -232,10 +232,12 @@ ob_end_flush();
                 }
               ?>
             </td>
-            <td><?= htmlspecialchars((string)($record['earned_hours'] ?? '')) ?></td>
+            <td>
+              <?= ($record['earned_hours'] !== null && $record['earned_hours'] !== '') ? htmlspecialchars((string)$record['earned_hours']) : '' ?>
+            </td>
             <td>
               <?php
-                if (!empty($record['date_usage'])) {
+                if (!empty($record['date_usage']) && $record['date_usage'] !== '0000-00-00') {
                   $dt = DateTime::createFromFormat('Y-m-d', $record['date_usage']);
                   echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($record['date_usage']);
                 } else {
@@ -268,19 +270,19 @@ ob_end_flush();
                   <div class="modal-body">
                     <div class="mb-3">
                         <label for="startingDate<?= $record['certificatecomp_id'] ?>" class="form-label">Date of CTO</label>
-                        <input type="date" class="form-control" id="startingDate<?= $record['certificatecomp_id'] ?>" name="startingDate" value="<?= htmlspecialchars($record['date'] ?? '') ?>" required>
+                        <input type="date" class="form-control" id="startingDate<?= $record['certificatecomp_id'] ?>" name="startingDate" value="<?= htmlspecialchars($record['date'] ?? '') ?>">
                     </div>
                     <div class="mb-3">
                         <label for="earned_hours<?= $record['certificatecomp_id'] ?>" class="form-label">Earned COC</label>
-                        <input type="number" step="0.01" class="form-control" id="earned_hours<?= $record['certificatecomp_id'] ?>" name="earned_hours" value="<?= htmlspecialchars((string)($record['earned_hours'] ?? '')) ?>" required>
+                        <input type="number" step="0.01" class="form-control" id="earned_hours<?= $record['certificatecomp_id'] ?>" name="earned_hours" value="<?= htmlspecialchars((string)($record['earned_hours'] ?? '')) ?>">
                     </div>
                     <div class="mb-3">
                         <label for="endDate<?= $record['certificatecomp_id'] ?>" class="form-label">Date of Usage</label>
-                        <input type="date" class="form-control" id="endDate<?= $record['certificatecomp_id'] ?>" name="endDate" value="<?= htmlspecialchars($record['date_usage'] ?? '') ?>" required>
+                        <input type="date" class="form-control" id="endDate<?= $record['certificatecomp_id'] ?>" name="endDate" value="<?= htmlspecialchars($record['date_usage'] ?? '') ?>">
                     </div>
                     <div class="mb-3">
                         <label for="used_hours<?= $record['certificatecomp_id'] ?>" class="form-label">Remaining COC</label>
-                        <input type="number" step="0.01" class="form-control" id="used_hours<?= $record['certificatecomp_id'] ?>" name="used_hours" value="<?= htmlspecialchars((string)($record['used_hours'] ?? '')) ?>" required>
+                        <input type="number" step="0.01" class="form-control" id="used_hours<?= $record['certificatecomp_id'] ?>" name="used_hours" value="<?= htmlspecialchars((string)($record['used_hours'] ?? '')) ?>">
                     </div>
                     <div class="mb-3">
                         <label for="ActJust<?= $record['certificatecomp_id'] ?>" class="form-label">Title of Activity</label>
@@ -288,7 +290,7 @@ ob_end_flush();
                     </div>
                     <div class="mb-3">
                         <label for="remarks<?= $record['certificatecomp_id'] ?>" class="form-label">Remarks</label>
-                        <select class="form-select" id="remarks<?= $record['certificatecomp_id'] ?>" name="remarks" required>
+                        <select class="form-select" id="remarks<?= $record['certificatecomp_id'] ?>" name="remarks">
                         <option value="Approved" <?= ($record['remarks'] ?? '') === 'Approved' ? 'selected' : '' ?>>Approved</option>
                         <option value="Reject" <?= ($record['remarks'] ?? '') === 'Reject' ? 'selected' : '' ?>>Reject</option>
                         </select>
@@ -344,19 +346,19 @@ ob_end_flush();
         <div class="modal-body">
           <div class="mb-3">
             <label for="startingDate" class="form-label">Date of CTO</label>
-            <input type="date" class="form-control" id="startingDate" name="startingDate" required>
+            <input type="date" class="form-control" id="startingDate" name="startingDate">
           </div>
           <div class="mb-3">
             <label for="earned_hours" class="form-label">Earned COC</label>
-            <input type="number" class="form-control" id="earned_hours" name="earned_hours" required>
+            <input type="number" class="form-control" id="earned_hours" name="earned_hours">
           </div>
           <div class="mb-3">
             <label for="endDate" class="form-label">Date of Usage</label>
-            <input type="date" class="form-control" id="endDate" name="endDate" required>
+            <input type="date" class="form-control" id="endDate" name="endDate">
           </div>
           <div class="mb-3">
             <label for="used_hours" class="form-label">Remaining COC</label>
-            <input type="number" class="form-control" id="used_hours" name="used_hours" required>
+            <input type="number" class="form-control" id="used_hours" name="used_hours">
           </div>
           <div class="mb-3">
             <label for="ActJust" class="form-label">Title of Activity</label>
@@ -364,7 +366,7 @@ ob_end_flush();
           </div>
           <div class="mb-3">
             <label for="remarks" class="form-label">Remarks</label>
-            <select class="form-select" id="remarks" name="remarks" required>
+            <select class="form-select" id="remarks" name="remarks">
               <option value="Approved">Approved</option>
               <option value="Reject">Reject</option>
             </select>
@@ -398,23 +400,23 @@ ob_end_flush();
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Date From</label>
-            <input type="date" name="date_from" class="form-control" required>
+            <input type="date" name="date_from" class="form-control" value="<?= htmlspecialchars($_POST['date_from'] ?? '') ?>">
           </div>
           <div class="mb-3">
             <label class="form-label">Date To</label>
-            <input type="date" name="date_to" class="form-control" required>
+            <input type="date" name="date_to" class="form-control" value="<?= htmlspecialchars($_POST['date_to'] ?? '') ?>">
           </div>
           <div class="mb-3">
             <label class="form-label">Position Title</label>
-            <input type="text" name="position_title" value="<?= htmlspecialchars($_POST['position_title'] ?? '') ?>" class="form-control" required>
+            <input type="text" name="position_title" value="<?= htmlspecialchars($_POST['position_title'] ?? '') ?>" class="form-control">
           </div>
           <div class="mb-3">
             <label class="form-label">Department</label>
-            <input type="text" name="department" value="<?= htmlspecialchars($_POST['department'] ?? '') ?>" class="form-control" required>
+            <input type="text" name="department" value="<?= htmlspecialchars($_POST['department'] ?? '') ?>" class="form-control">
           </div>
           <div class="mb-3">
             <label class="form-label">Monthly Salary</label>
-            <input type="number" step="0.01" name="monthly_salary" class="form-control" required>
+            <input type="number" step="0.01" name="monthly_salary" class="form-control">
           </div>
         </div>
         <div class="modal-footer">
@@ -474,8 +476,9 @@ if ($result->num_rows > 0) {
           echo '';
         }
         echo "</td>";
-        echo "<td>" . htmlspecialchars($row['position_title']) . "</td>";
-        echo "<td>" . htmlspecialchars($row['department']) . "</td>";
+
+        echo "<td>" . htmlspecialchars($row['position_title'] ?? '') . "</td>";
+        echo "<td>" . htmlspecialchars($row['department'] ?? '') . "</td>";
         echo "<td>₱" . number_format($row['monthly_salary'] ?? 0, 2) . "</td>";
         echo "<td>
             <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#editWorkExpModal{$row['experience_id']}'>Edit</button>
@@ -511,11 +514,11 @@ $stmt->close();
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <div class="mb-2"><label>Date From</label><input type="date" name="date_from" value="<?= $row['date_from'] ?>" class="form-control" required></div>
-              <div class="mb-2"><label>Date To</label><input type="date" name="date_to" value="<?= $row['date_to'] ?>" class="form-control" required></div>
-              <div class="mb-2"><label>Position Title</label><input type="text" name="position_title" value="<?= htmlspecialchars($row['position_title'] ?? '') ?>" class="form-control" required></div>
-              <div class="mb-2"><label>Department</label><input type="text" name="department" value="<?= htmlspecialchars($row['department'] ?? '') ?>" class="form-control" required></div>
-              <div class="mb-2"><label>Monthly Salary</label><input type="number" name="monthly_salary" step="0.01" value="<?= $row['monthly_salary'] ?>" class="form-control" required></div>
+              <div class="mb-2"><label>Date From</label><input type="date" name="date_from" value="<?= $row['date_from'] ?>" class="form-control"></div>
+              <div class="mb-2"><label>Date To</label><input type="date" name="date_to" value="<?= $row['date_to'] ?>" class="form-control"></div>
+              <div class="mb-2"><label>Position Title</label><input type="text" name="position_title" value="<?= htmlspecialchars($row['position_title'] ?? '') ?>" class="form-control"></div>
+              <div class="mb-2"><label>Department</label><input type="text" name="department" value="<?= htmlspecialchars($row['department'] ?? '') ?>" class="form-control"></div>
+              <div class="mb-2"><label>Monthly Salary</label><input type="number" name="monthly_salary" step="0.01" value="<?= $row['monthly_salary'] ?>" class="form-control"></div>
             </div>
             <div class="modal-footer">
               <button type="submit" class="btn btn-primary">Save</button>
@@ -567,23 +570,23 @@ $stmt->close();
         <div class="modal-body">
           <div class="mb-2">
             <label>Date From</label>
-            <input type="date" name="date_from" value="<?= htmlspecialchars($row['date_from'] ?? '') ?>" class="form-control" required>
+            <input type="date" name="date_from" value="<?= htmlspecialchars($row['date_from'] ?? '') ?>" class="form-control">
           </div>
           <div class="mb-2">
             <label>Date To</label>
-            <input type="date" name="date_to" value="<?= htmlspecialchars($row['date_to'] ?? '') ?>" class="form-control" required>
+            <input type="date" name="date_to" value="<?= htmlspecialchars($row['date_to'] ?? '') ?>" class="form-control">
           </div>
           <div class="mb-2">
             <label>Position Title</label>
-            <input type="text" name="position_title" value="<?= htmlspecialchars($row['position_title'] ?? '') ?>" class="form-control" required>
+            <input type="text" name="position_title" value="<?= htmlspecialchars($row['position_title'] ?? '') ?>" class="form-control">
           </div>
           <div class="mb-2">
             <label>Department</label>
-            <input type="text" name="department" value="<?= htmlspecialchars($row['department'] ?? '') ?>" class="form-control" required>
+            <input type="text" name="department" value="<?= htmlspecialchars($row['department'] ?? '') ?>" class="form-control">
           </div>
           <div class="mb-2">
             <label>Monthly Salary</label>
-            <input type="number" name="monthly_salary" step="0.01" value="<?= htmlspecialchars($row['monthly_salary'] ?? '0') ?>" class="form-control" required>
+            <input type="number" name="monthly_salary" step="0.01" value="<?= htmlspecialchars($row['monthly_salary'] ?? '0') ?>" class="form-control">
           </div>
         </div>
         <div class="modal-footer">

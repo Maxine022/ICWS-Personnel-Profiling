@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 24, 2025 at 12:03 PM
+-- Generation Time: May 26, 2025 at 07:18 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,7 +35,7 @@ CREATE TABLE `coc` (
   `ActJust` varchar(255) DEFAULT NULL,
   `remarks` varchar(255) DEFAULT NULL,
   `earned_hours` int(11) NOT NULL,
-  `used_hours` int(11) NOT NULL,
+  `used_hours` int(11) DEFAULT NULL,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -76,7 +76,7 @@ CREATE TABLE `contract_service` (
 --
 
 INSERT INTO `contract_service` (`contractservice_id`, `personnel_id`, `salaryRate`, `createdAt`, `updatedAt`) VALUES
-(4, 466, 22.00, '2025-05-23 01:39:44', '2025-05-23 01:39:44'),
+(4, 466, 22050.40, '2025-05-26 05:17:44', '2025-05-26 05:17:44'),
 (5, 467, 0.00, '2025-05-23 01:39:44', '2025-05-23 01:39:44'),
 (6, 468, 501.00, '2025-05-23 01:39:44', '2025-05-23 01:39:44');
 
@@ -337,7 +337,7 @@ CREATE TABLE `jo_work_experience` (
 --
 
 INSERT INTO `jo_work_experience` (`experience_id`, `personnel_id`, `date_from`, `date_to`, `position_title`, `department`, `monthly_salary`, `updatedAt`) VALUES
-(1, 309, '2025-05-01', '2025-05-01', 'JS', 'JS', 232.12, '2025-05-23');
+(1, 309, '2025-05-01', '2025-05-05', 'JS', 'JS', 232.12, '2025-05-23');
 
 -- --------------------------------------------------------
 
@@ -860,7 +860,7 @@ ALTER TABLE `job_order`
 --
 ALTER TABLE `jo_work_experience`
   ADD PRIMARY KEY (`experience_id`),
-  ADD UNIQUE KEY `personnel_id` (`personnel_id`);
+  ADD KEY `personnel_id` (`personnel_id`) USING BTREE;
 
 --
 -- Indexes for table `personnel`
@@ -904,13 +904,13 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `coc`
 --
 ALTER TABLE `coc`
-  MODIFY `certificatecomp_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `certificatecomp_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `contractservice_record`
 --
 ALTER TABLE `contractservice_record`
-  MODIFY `serviceRecord_id` int(5) NOT NULL AUTO_INCREMENT;
+  MODIFY `serviceRecord_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `contract_service`
@@ -934,7 +934,7 @@ ALTER TABLE `job_order`
 -- AUTO_INCREMENT for table `jo_work_experience`
 --
 ALTER TABLE `jo_work_experience`
-  MODIFY `experience_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `experience_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `personnel`
