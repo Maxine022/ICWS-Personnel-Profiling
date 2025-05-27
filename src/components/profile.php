@@ -559,7 +559,7 @@ if ($action === 'delete') {
                 $show_contract_record = false;
 
                 if ($emp_type === 'regular') {
-                    $show_service_record = true;
+                    $show_service_contract = true; // show COC table from service_contract.php
                 } elseif ($emp_type === 'job_order') {
                     $show_service_contract = true;
                 } elseif ($emp_type === 'contract') {
@@ -579,17 +579,19 @@ if ($action === 'delete') {
               }
               ?>
           <?php endif; ?>
-
+                    
           <?php if ($show_service_contract): ?>
               <?php 
               $service_contract_path = __DIR__ . '/service_contract.php';
               if (file_exists($service_contract_path)) {
+                  $_GET['Emp_No'] = $employee['Emp_No']; // ✅ Add this line
                   include $service_contract_path; 
               } else {
                   echo "<p>Error: service_contract.php not found.</p>";
               }
               ?>
           <?php endif; ?>
+
 
           <?php if ($show_contract_record): ?>
               <?php 

@@ -8,36 +8,49 @@ header("Expires: 0");
 include_once __DIR__ . '/../../backend/db.php';
 
 $emp_no = $_GET['Emp_No'] ?? null;
+$type = $_GET['type'] ?? 'jo'; // default is job order
 
 if (!$emp_no) {
     die("Employee number not provided.");
 }
 
-// Fetch employee and job order info
-$stmt = $conn->prepare("
-    SELECT 
-        p.full_name, p.sex, p.personnel_id, jo.jo_id 
-    FROM personnel p
-    JOIN job_order jo ON p.personnel_id = jo.personnel_id
-    WHERE p.Emp_No = ?
-");
-$stmt->bind_param("s", $emp_no);
-$stmt->execute();
-$employee = $stmt->get_result()->fetch_assoc();
+if ($type === 'regular') {
+    // REGULAR EMPLOYEE COC
+    $stmt = $conn->prepare("SELECT full_name, sex, personnel_id FROM personnel WHERE Emp_No = ?");
+    $stmt->bind_param("s", $emp_no);
+    $stmt->execute();
+    $employee = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-if (!$employee) {
-    die("Job Order employee not found.");
+    if (!$employee) die("Regular employee not found.");
+
+    $gender = strtolower($employee['sex']) === 'male' ? 'Mr.' : 'Ms.';
+
+    $stmt = $conn->prepare("SELECT * FROM coc WHERE personnel_id = ?");
+    $stmt->bind_param("i", $employee['personnel_id']);
+    $stmt->execute();
+    $coc_entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+} else {
+    // JOB ORDER COC (original logic)
+    $stmt = $conn->prepare("SELECT p.full_name, p.sex, p.personnel_id, jo.jo_id FROM personnel p JOIN job_order jo ON p.personnel_id = jo.personnel_id WHERE p.Emp_No = ?");
+    $stmt->bind_param("s", $emp_no);
+    $stmt->execute();
+    $employee = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$employee) die("Job Order employee not found.");
+
+    $gender = strtolower($employee['sex']) === 'male' ? 'Mr.' : 'Ms.';
+
+    $stmt = $conn->prepare("SELECT * FROM coc WHERE jo_id = ?");
+    $stmt->bind_param("i", $employee['jo_id']);
+    $stmt->execute();
+    $coc_entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 }
 
-
-// Determine gender salutation
-$gender = strtolower($employee['sex']) === 'male' ? 'Mr.' : 'Ms.';
-
-// Fetch COC records for the job order ID
-$stmt = $conn->prepare("SELECT * FROM coc WHERE jo_id = ?");
-$stmt->bind_param("i", $employee['jo_id']);
-$stmt->execute();
-$coc_entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Totals
 $total_earned = array_sum(array_column($coc_entries, 'earned_hours')) ?? 0;

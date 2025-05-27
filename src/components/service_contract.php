@@ -1,5 +1,4 @@
 <?php
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -7,35 +6,61 @@ ob_start();
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 include_once __DIR__ . '/../../backend/db.php';
 
 $emp_no = $_GET['Emp_No'] ?? null;
-$pagedRecords = []; 
+$pagedRecords = [];
+$employment_type = null;
+$personnel_id = null;
 
 if ($emp_no) {
-    // Get personnel_id for this Emp_No
-    $stmt = $conn->prepare("
-    SELECT c.certificatecomp_id, c.date, c.date_usage, c.ActJust, c.remarks, c.earned_hours, c.used_hours
-    FROM coc c
-    INNER JOIN job_order j ON c.jo_id = j.jo_id
-    INNER JOIN personnel p ON j.personnel_id = p.personnel_id
-    WHERE p.Emp_No = ?
-    ");
-
+    // Get personnel_id and employment type
+    $stmt = $conn->prepare("SELECT personnel_id, emp_type FROM personnel WHERE Emp_No = ?");
     $stmt->bind_param("s", $emp_no);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $person = $result->fetch_assoc();
+    $stmt->close();
+
+    $personnel_id = $person['personnel_id'] ?? null;
+    $employment_type = strtolower($person['emp_type'] ?? '');
+
+    if ($employment_type === 'regular') {
+        $stmt = $conn->prepare("
+            SELECT certificatecomp_id, date, date_usage, ActJust, remarks, earned_hours, used_hours
+            FROM coc
+            WHERE personnel_id = ?
+            ORDER BY date DESC
+        ");
+        $stmt->bind_param("i", $personnel_id);
+    } else {
+        $stmt = $conn->prepare("
+            SELECT c.certificatecomp_id, c.date, c.date_usage, c.ActJust, c.remarks, c.earned_hours, c.used_hours
+            FROM coc c
+            INNER JOIN job_order j ON c.jo_id = j.jo_id
+            INNER JOIN personnel p ON j.personnel_id = p.personnel_id
+            WHERE p.Emp_No = ?
+        ");
+        $stmt->bind_param("s", $emp_no);
+    }
+
     $stmt->execute();
     $result = $stmt->get_result();
     $pagedRecords = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 }
 
-// Handle Add
+// Handle Add COC Record
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service_record'])) {
+    // Retrieve values
     $date = $_POST["startingDate"];
-    $date_usage = $_POST["endDate"]?? null;
+    $date_usage = $_POST["endDate"] ?? null;
     $ActJust = $_POST["ActJust"];
     $remarks = $_POST["remarks"];
-    $jo_id = $_POST["jo_id"];
+    $jo_id = $_POST["jo_id"] ?? null;
+    $personnel_id = $_POST["personnel_id"] ?? null;
+    $employment_type = $_POST["employment_type"] ?? null;
     $earned_hours = $_POST["earned_hours"] ?? null;
     $used_hours = $_POST["used_hours"] ?? 0;
 
@@ -43,36 +68,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_service_record']))
     $errors = [];
 
     // Validate required fields
-    if (!$jo_id) $errors[] = "Job Order ID (jo_id) is required.";
-    //if (!$date || !$date_usage) $errors[] = "Both are required.";
-    //if ($date >= $date_usage) $errors[] = "Date of CTO must be before the date of usage.";
-
-    // Limit: COC record should not exceed 1 year from starting date
-    $start = new DateTime($date);
-    $end = new DateTime($date_usage);
-    $interval = $start->diff($end);
-    if ($interval->y > 1 || ($interval->y == 1 && ($interval->m > 0 || $interval->d > 0))) {
-        $errors[] = "COC record duration must not exceed 1 year.";
+    if ($employment_type === 'regular') {
+        if (!$personnel_id) $errors[] = "Personnel ID is required for regular employees.";
+    } else {
+        if (!$jo_id) $errors[] = "Job Order ID (jo_id) is required.";
     }
-    
+
+    // Optional: Date validations
+    if (!$date || !$date_usage) $errors[] = "Both CTO Date and Usage Date are required.";
+    if ($date && $date_usage && $date >= $date_usage) {
+        $errors[] = "Date of CTO must be before the date of usage.";
+    }
+
+    // Check duration limit
+    if ($date && $date_usage) {
+        $start = new DateTime($date);
+        $end = new DateTime($date_usage);
+        $interval = $start->diff($end);
+        if ($interval->y > 1 || ($interval->y == 1 && ($interval->m > 0 || $interval->d > 0))) {
+            $errors[] = "COC record duration must not exceed 1 year.";
+        }
+    }
+
+    // Show errors
     if (!empty($errors)) {
         echo "<div class='alert alert-danger'><ul>";
         foreach ($errors as $err) echo "<li>" . htmlspecialchars($err) . "</li>";
         echo "</ul></div>";
     } else {
-        // Insert using jo_id
-        $stmt = $conn->prepare("INSERT INTO coc (jo_id, date, date_usage, ActJust, remarks, earned_hours, used_hours) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("issssdd", $jo_id, $date, $date_usage, $ActJust, $remarks, $earned_hours, $used_hours);
+        // Insert logic
+        if ($employment_type === 'regular') {
+            $stmt = $conn->prepare("INSERT INTO coc (personnel_id, date, date_usage, ActJust, remarks, earned_hours, used_hours)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)");
 
-        if ($stmt->execute()) {
+            $stmt->bind_param("issssdd", $personnel_id, $date, $date_usage, $ActJust, $remarks, $earned_hours, $used_hours);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO coc (jo_id, date, date_usage, ActJust, remarks, earned_hours, used_hours)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("issssdd", $jo_id, $date, $date_usage, $ActJust, $remarks, $earned_hours, $used_hours);
+        }
+
+       if ($stmt->execute()) {
             echo "<script>window.location.href = '?Emp_No=" . urlencode($emp_no) . "';</script>";
             exit();
         } else {
-            echo "<script>alert('Error: Unable to add service record. {$stmt->error}');</script>";
+            die("❌ MySQL Error: " . $stmt->error);
         }
     }
 }
-// handle EDIT
+
+// Handle Edit COC Record
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_service_record'])) {
     $id = $_POST['certificatecomp_id'];
     $date = $_POST["startingDate"];
@@ -82,12 +127,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_service_record'])
     $earned_hours = $_POST["earned_hours"] ?? 0;
     $used_hours = $_POST["used_hours"] ?? 0;
 
-    $stmt = $conn->prepare("UPDATE coc SET date=?, date_usage=?, ActJust=?, remarks=?, earned_hours=?, used_hours=? WHERE certificatecomp_id=?");
+    $stmt = $conn->prepare("UPDATE coc SET date=?, date_usage=?, ActJust=?, remarks=?, earned_hours=?, used_hours=?
+                            WHERE certificatecomp_id=?");
     $stmt->bind_param("ssssddi", $date, $date_usage, $ActJust, $remarks, $earned_hours, $used_hours, $id);
 
-    if ($stmt->execute()) {
-        echo "<script>window.location.href = '?Emp_No=" . urlencode($emp_no) . "';</script>";
-        exit();
+if ($stmt->execute()) {
+    echo "<script>window.location.href = '?Emp_No=" . urlencode($emp_no) . "';</script>";
+    exit();
     } else {
         echo "<script>alert('Error: Unable to update service record. {$stmt->error}');</script>";
     }
@@ -161,17 +207,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_work_experience'])
 }
 
 
-// Get personnel_id for this Emp_No
-$personnel_id = null;
-if ($emp_no) {
-$stmt = $conn->prepare("SELECT personnel_id FROM personnel WHERE Emp_No = ?");
-$stmt->bind_param("s", $emp_no);
-$stmt->execute();
-$stmt->bind_result($personnel_id);
-$stmt->fetch();
-$stmt->close();
-}
-
 $jo_id = null;
 if ($personnel_id) {
     $stmt = $conn->prepare("SELECT jo_id FROM job_order WHERE personnel_id = ? ORDER BY jo_id DESC LIMIT 1");
@@ -200,11 +235,19 @@ ob_end_flush();
       <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceRecordModal">
         <i class="fas fa-plus"></i> Add COC Record
       </button>
-      <a href="http://localhost/ICWS-Personnel-Profiling/src/components/cocprint.php?Emp_No=<?= urlencode($emp_no) ?>" class="btn btn-info btn-sm" target="_blank">
-        <i class="fas fa-print"></i> Print COC
-      </a>
+
+      <?php if ($employment_type === 'regular'): ?>
+        <a href="cocprint.php?Emp_No=<?= urlencode($emp_no) ?>&type=regular" class="btn btn-info btn-sm" target="_blank">
+          <i class="fas fa-print"></i> Print COC
+        </a>
+      <?php elseif (in_array($employment_type, ['job order', 'job_order', 'joborder'])): ?>
+        <a href="cocprint.php?Emp_No=<?= urlencode($emp_no) ?>&type=jo" class="btn btn-info btn-sm" target="_blank">
+          <i class="fas fa-print"></i> Print COC
+        </a>
+      <?php endif; ?>
     </div>
   </div>
+
 
   <table class="table table-bordered">
     <thead class="table-dark">
@@ -330,11 +373,14 @@ ob_end_flush();
     </tbody>
   </table>
 
-  <!-- Add COC Record Modal -->
+<!-- Add COC Record Modal -->
 <div class="modal fade" id="addServiceRecordModal" tabindex="-1" aria-labelledby="addServiceRecordModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form method="POST" action="">
+      <!-- Hidden Fields for Identification -->
       <input type="hidden" name="add_service_record" value="1">
+      <input type="hidden" name="employment_type" value="<?= $employment_type ?>">
+      <input type="hidden" name="personnel_id" value="<?= $personnel_id ?>">
       <input type="hidden" name="jo_id" value="<?= htmlspecialchars($jo_id ?? '') ?>">
 
       <div class="modal-content">
@@ -357,7 +403,7 @@ ob_end_flush();
             <input type="date" class="form-control" id="endDate" name="endDate">
           </div>
           <div class="mb-3">
-            <label for="used_hours" class="form-label">Remaining COC</label>
+            <label for="used_hours" class="form-label">Used COC</label>
             <input type="number" class="form-control" id="used_hours" name="used_hours">
           </div>
           <div class="mb-3">
@@ -381,8 +427,6 @@ ob_end_flush();
     </form>
   </div>
 </div>
-<hr/>
-
 
 
 
