@@ -558,7 +558,8 @@ if ($action === 'delete') {
                 $show_service_contract = false;
                 $show_contract_record = false;
 
-                if ($emp_type === 'regular') {
+                if ($emp_type === 'regular') {      
+                    $show_service_record = true;      // 👈 shows plantilla service record
                     $show_service_contract = true; // show COC table from service_contract.php
                 } elseif ($emp_type === 'job_order') {
                     $show_service_contract = true;
@@ -568,29 +569,19 @@ if ($action === 'delete') {
             ?>
 
           <!-- Display the appropriate section based on the parameters -->
-          <?php if ($show_service_record): ?>
-              <?php 
-              $service_record_path = __DIR__ . '/service_record.php';
-              if (file_exists($service_record_path)) {
-                  $_GET['Emp_No'] = $employee['Emp_No']; // Explicitly pass Emp_No
-                  include $service_record_path; 
-              } else {
-                  echo "<p>Error: service_record.php not found.</p>";
-              }
-              ?>
-          <?php endif; ?>
-                    
-          <?php if ($show_service_contract): ?>
-              <?php 
-              $service_contract_path = __DIR__ . '/service_contract.php';
-              if (file_exists($service_contract_path)) {
-                  $_GET['Emp_No'] = $employee['Emp_No']; // ✅ Add this line
-                  include $service_contract_path; 
-              } else {
-                  echo "<p>Error: service_contract.php not found.</p>";
-              }
-              ?>
-          <?php endif; ?>
+        <?php if ($show_service_record): ?>
+          <?php
+            $_GET['Emp_No'] = $employee['Emp_No']; // Ensure Emp_No is passed
+            include 'service_record.php';
+          ?>
+        <?php endif; ?>
+
+        <?php if ($show_service_contract): ?>
+          <?php
+            $_GET['Emp_No'] = $employee['Emp_No'];
+            include 'service_contract.php';
+          ?>
+        <?php endif; ?>
 
 
           <?php if ($show_contract_record): ?>

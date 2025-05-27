@@ -472,7 +472,7 @@ ob_end_flush();
   </div>
 </div>
 
-
+<?php if (in_array($employment_type, ['job order', 'job_order', 'joborder'])): ?>
 <!-- Job Order Work Experience Section -->
 <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
   <h5 class="fw-bold">Job Order Work Experience</h5>
@@ -480,9 +480,9 @@ ob_end_flush();
     <i class="fas fa-plus"></i> Add Work Experience
   </button>
 </div>
-<table class="table table-bordered">
-    <thead class="table-dark">
 
+<table class="table table-bordered">
+  <thead class="table-dark">
     <tr>
       <th>Date From</th>
       <th>Date To</th>
@@ -500,50 +500,34 @@ ob_end_flush();
         $stmt->execute();
         $result = $stmt->get_result();
 
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        echo "<tr>";
-        echo "<td>";
-        if (!empty($row['date_from'])) {
-          $dt = DateTime::createFromFormat('Y-m-d', $row['date_from']);
-          echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($row['date_from']);
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . (!empty($row['date_from']) ? DateTime::createFromFormat('Y-m-d', $row['date_from'])->format('m/d/Y') : '') . "</td>";
+                echo "<td>" . (!empty($row['date_to']) ? DateTime::createFromFormat('Y-m-d', $row['date_to'])->format('m/d/Y') : '') . "</td>";
+                echo "<td>" . htmlspecialchars($row['position_title'] ?? '') . "</td>";
+                echo "<td>" . htmlspecialchars($row['department'] ?? '') . "</td>";
+                echo "<td>₱" . number_format($row['monthly_salary'] ?? 0, 2) . "</td>";
+                echo "<td>
+                    <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#editWorkExpModal{$row['experience_id']}'>Edit</button>
+                    <button class='btn btn-danger btn-sm' data-bs-toggle='modal' data-bs-target='#deleteWorkExpModal{$row['experience_id']}'>Delete</button>
+                </td>";
+                echo "</tr>";
+
+                $editModals[] = $row; // for modal rendering below
+            }
         } else {
-          echo '';
+            echo '<tr><td colspan="6" class="text-center">No work experience found.</td></tr>';
         }
-        echo "</td>";
 
-        echo "<td>";
-        if (!empty($row['date_to'])) {
-          $dt = DateTime::createFromFormat('Y-m-d', $row['date_to']);
-          echo $dt ? $dt->format('m/d/Y') : htmlspecialchars($row['date_to']);
-        } else {
-          echo '';
-        }
-        echo "</td>";
-
-        echo "<td>" . htmlspecialchars($row['position_title'] ?? '') . "</td>";
-        echo "<td>" . htmlspecialchars($row['department'] ?? '') . "</td>";
-        echo "<td>₱" . number_format($row['monthly_salary'] ?? 0, 2) . "</td>";
-        echo "<td>
-            <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#editWorkExpModal{$row['experience_id']}'>Edit</button>
-            <button class='btn btn-danger btn-sm' data-bs-toggle='modal' data-bs-target='#deleteWorkExpModal{$row['experience_id']}'>Delete</button>
-        </td>";
-        echo "</tr>";
-
-        // Store modal HTML in a buffer (next section)
-        $editModals[] = $row;
+        $stmt->close();
+    } else {
+        echo '<tr><td colspan="6" class="text-center">Personnel ID not found.</td></tr>';
     }
-} else {
-    echo '<tr><td colspan="6" class="text-center">No work experience found.</td></tr>';
-}
-$stmt->close();
-} else {
-    echo '<tr><td colspan="6" class="text-center">Personnel ID not found.</td></tr>';
-}
-?>
+    ?>
   </tbody>
 </table>
-</div>
+
 <?php if (!empty($editModals)): ?>
   <?php foreach ($editModals as $row): ?>
     <!-- Edit Modal -->
@@ -551,7 +535,7 @@ $stmt->close();
       <div class="modal-dialog">
         <form method="POST" action="">
           <input type="hidden" name="edit_work_experience" value="1">
-            <input type="hidden" name="experience_id" value="<?= $row['experience_id'] ?>">
+          <input type="hidden" name="experience_id" value="<?= $row['experience_id'] ?>">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Edit Work Experience</h5>
@@ -595,6 +579,8 @@ $stmt->close();
     </div>
   <?php endforeach; ?>
 <?php endif; ?>
+<?php endif; ?>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
