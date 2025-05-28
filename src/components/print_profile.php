@@ -107,11 +107,18 @@ $stmt->execute();
 $reg_emp = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-// Profile picture
-$profile_picture_path = __DIR__ . '/../../uploads/profile_' . $employee['personnel_id'] . '.png';
-$profile_picture_url = file_exists($profile_picture_path)
-    ? '../../uploads/profile_' . $employee['personnel_id'] . '.png'
-    : '../../assets/profile.jpg';
+// Profile picture (accept multiple formats)
+$profile_picture_url = '../../assets/profile.jpg'; // default
+$profile_picture_dir = __DIR__ . '/../../uploads/';
+$profile_picture_base = 'profile_' . $employee['personnel_id'];
+$extensions = ['png', 'jpg', 'jpeg', 'webp'];
+foreach ($extensions as $ext) {
+    $path = $profile_picture_dir . $profile_picture_base . '.' . $ext;
+    if (file_exists($path)) {
+        $profile_picture_url = '../../uploads/' . $profile_picture_base . '.' . $ext;
+        break;
+    }
+}
 
 $cos = [];
 if ($employment_type === 'contract') {
